@@ -1,0 +1,6 @@
+/data/reference-sample-data/models/mobilenet-ssd/FP16/mobilenet-ssd.xml
+/data/reference-sample-data/models/mobilenet-ssd/FP16/mobilenet-ssd.bin
+/data/reference-sample-data/store-traffic-monitor-python/labels.txt
+/data/reference-sample-data/store-traffic-monitor-python/people-detection.mp4 person
+/data/reference-sample-data/store-traffic-monitor-python/one-by-one-person-detection.mp4 person
+/data/reference-sample-data/store-traffic-monitor-python/bottle-detection.mp4 bottle
