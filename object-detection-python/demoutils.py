@@ -8,6 +8,7 @@ import subprocess
 import datetime
 
 
+
 def videoHTML(title, video, stats=None):
     if stats:
         with open(stats) as f:

@@ -46,6 +46,22 @@ def build_argparser():
                         default=None, type=str)
     return parser
 
+def placeBoxes(res, labels_map, prob_threshold, frame, initial_w, initial_h):
+    for obj in res[0][0]:
+        # Draw only objects when probability more than specified threshold
+        if obj[2] > prob_threshold:
+            xmin = int(obj[3] * initial_w)
+            ymin = int(obj[4] * initial_h)
+            xmax = int(obj[5] * initial_w)
+            ymax = int(obj[6] * initial_h)
+            class_id = int(obj[1])
+            # Draw box and label\class_id
+            color = (min(class_id * 12.5, 255), min(class_id * 7, 255), min(class_id * 5, 255))
+            cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
+            det_label = labels_map[class_id] if labels_map else str(class_id)
+            cv2.putText(frame, det_label + ' ' + str(round(obj[2] * 100, 1)) + ' %', (xmin, ymin - 7),
+                        cv2.FONT_HERSHEY_COMPLEX, 0.6, color, 1)
+    return frame
 
 def main():
     log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=sys.stdout)
@@ -141,20 +157,7 @@ def main():
     
                 # Parse detection results of the current request
                 res = exec_net.requests[cur_request_id].outputs[out_blob]
-                for obj in res[0][0]:
-                    # Draw only objects when probability more than specified threshold
-                    if obj[2] > args.prob_threshold:
-                        xmin = int(obj[3] * initial_w)
-                        ymin = int(obj[4] * initial_h)
-                        xmax = int(obj[5] * initial_w)
-                        ymax = int(obj[6] * initial_h)
-                        class_id = int(obj[1])
-                        # Draw box and label\class_id
-                        color = (min(class_id * 12.5, 255), min(class_id * 7, 255), min(class_id * 5, 255))
-                        cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
-                        det_label = labels_map[class_id] if labels_map else str(class_id)
-                        cv2.putText(frame, det_label + ' ' + str(round(obj[2] * 100, 1)) + ' %', (xmin, ymin - 7),
-                                    cv2.FONT_HERSHEY_COMPLEX, 0.6, color, 1)
+                frame = placeBoxes(res, labels_map, args.prob_threshold, frame, initial_w, initial_h)
     
                 # Draw performance stats
                 inf_time_message = "Inference time: N\A for async mode" if is_async_mode else \
