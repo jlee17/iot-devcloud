@@ -22,6 +22,8 @@ from argparse import ArgumentParser
 import cv2
 import time
 import logging as log
+import numpy as np
+import io
 from openvino.inference_engine import IENetwork, IEPlugin
 
 
@@ -46,22 +48,26 @@ def build_argparser():
                         default=None, type=str)
     return parser
 
-def placeBoxes(res, labels_map, prob_threshold, frame, initial_w, initial_h):
+
+
+def processBoxes(frame_count, res, labels_map, prob_threshold, frame, initial_w, initial_h, result_file, det_time):
     for obj in res[0][0]:
+        dims = ""
         # Draw only objects when probability more than specified threshold
         if obj[2] > prob_threshold:
-            xmin = int(obj[3] * initial_w)
-            ymin = int(obj[4] * initial_h)
-            xmax = int(obj[5] * initial_w)
-            ymax = int(obj[6] * initial_h)
-            class_id = int(obj[1])
-            # Draw box and label\class_id
-            color = (min(class_id * 12.5, 255), min(class_id * 7, 255), min(class_id * 5, 255))
-            cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
-            det_label = labels_map[class_id] if labels_map else str(class_id)
-            cv2.putText(frame, det_label + ' ' + str(round(obj[2] * 100, 1)) + ' %', (xmin, ymin - 7),
-                        cv2.FONT_HERSHEY_COMPLEX, 0.6, color, 1)
-    return frame
+            xmin = str(int(obj[3] * initial_w))
+            ymin = str(int(obj[4] * initial_h))
+            xmax = str(int(obj[5] * initial_w))
+            ymax = str(int(obj[6] * initial_h))
+            class_id = str(int(obj[1]))
+            est = str(round(obj[2]*100, 1))
+            det_time = round(det_time*1000)
+            out_list = [str(frame_count), xmin, ymin, xmax, ymax, class_id, est, str(det_time)]
+            for i in range(len(out_list)):
+                dims += out_list[i]+' '
+            dims += '\n'
+            result_file.write(dims)
+
 
 def main():
     log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=sys.stdout)
@@ -114,35 +120,34 @@ def main():
         labels_map = None
 
     cap = cv2.VideoCapture(input_stream)
-
     cur_request_id = 0
     next_request_id = 1
-
     vw = None
-    if not args.output_dir is None and cap.isOpened():   
-        width  = int(cap.get(3))
-        height = int(cap.get(4))
-        vw = cv2.VideoWriter(out_path, 0x00000021, 50.0, (width, height), True)
-    
+  
     log.info("Starting inference in async mode...")
     log.info("To switch between sync and async modes press Tab button")
     log.info("To stop the sample execution press Esc button")
+    result_file = open(os.path.join(args.output_dir,'output.txt'), "w")
     is_async_mode = True
     render_time = 0
     fps_sum = 0
     frame_count = 0
+    inf_list = []
+    res_list = []
+    res_arr = np.zeros((3000, 1, 1, 100, 7))
     try:
         frame_time_start = time.time()
         while cap.isOpened():
+            read_time = time.time()
             ret, frame = cap.read()
             if not ret:
                 break
             initial_w = cap.get(3)
             initial_h = cap.get(4)
+
             in_frame = cv2.resize(frame, (w, h))
             in_frame = in_frame.transpose((2, 0, 1))  # Change data layout from HWC to CHW
             in_frame = in_frame.reshape((n, c, h, w))
-    
             # Main sync point:
             # in the truly Async mode we start the NEXT infer request, while waiting for the CURRENT to complete
             # in the regular mode we start the CURRENT request and immediately wait for it's completion
@@ -151,47 +156,29 @@ def main():
                 exec_net.start_async(request_id=next_request_id, inputs={input_blob: in_frame})
             else:
                 exec_net.start_async(request_id=cur_request_id, inputs={input_blob: in_frame})
+
+
             if exec_net.requests[cur_request_id].wait(-1) == 0:
                 inf_end = time.time()
                 det_time = inf_end - inf_start
-    
-                # Parse detection results of the current request
+                #Parse detection results of the current request
                 res = exec_net.requests[cur_request_id].outputs[out_blob]
-                frame = placeBoxes(res, labels_map, args.prob_threshold, frame, initial_w, initial_h)
-    
-                # Draw performance stats
-                inf_time_message = "Inference time: N\A for async mode" if is_async_mode else \
-                    "Inference time: {:.3f} ms".format(det_time * 1000)
-                render_time_message = "OpenCV rendering time: {:.3f} ms".format(render_time * 1000)
-                async_mode_message = "Async mode is on. Processing request {}".format(cur_request_id) if is_async_mode else \
-                    "Async mode is off. Processing request {}".format(cur_request_id)
-    
-                cv2.putText(frame, inf_time_message, (15, 15), cv2.FONT_HERSHEY_COMPLEX, 0.5, (200, 10, 10), 1)
-                cv2.putText(frame, render_time_message, (15, 30), cv2.FONT_HERSHEY_COMPLEX, 0.5, (10, 10, 200), 1)
-                cv2.putText(frame, async_mode_message, (10, int(initial_h - 20)), cv2.FONT_HERSHEY_COMPLEX, 0.5,
-                            (10, 10, 200), 1)
+                processBoxes(frame_count, res, labels_map, args.prob_threshold, frame, initial_w, initial_h, result_file, det_time)
     
             #
-            render_start = time.time()
-            if args.output_dir is None:
-                cv2.imshow("Detection Results", frame)
-            else:
-                vw.write(frame)
-            render_end = time.time()
-            render_time = render_end - render_start
-            
             frame_count+=1
-    
             key = cv2.waitKey(1)
             if key == 27:
                 break
             if (9 == key):
                 is_async_mode = not is_async_mode
                 log.info("Switched to {} mode".format("async" if is_async_mode else "sync"))
-    
             if is_async_mode:
                 cur_request_id, next_request_id = next_request_id, cur_request_id
-    
+
+ 	##End while loop /
+        cap.release()
+        result_file.close()
         if args.output_dir is None:
             cv2.destroyAllWindows()
         else:

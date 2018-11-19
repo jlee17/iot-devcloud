@@ -1,12 +1,14 @@
 from IPython.core.display import HTML
 import threading
-from IPython.display import display
+from IPython.display import display, Image
 import ipywidgets as widgets
 import time
 import queue
 import subprocess
 import datetime
-
+import matplotlib
+import matplotlib.pyplot as plt
+import os 
 
 
 def videoHTML(title, video, stats=None):
@@ -51,3 +53,19 @@ def liveQstat():
     display(qstat)
     display(sb)
 
+
+def summaryPlot(result_dir, HW):
+    plt.figure()
+    plt.title("Inference engine processing time")
+    plt.ylabel("Time, seconds")
+    time = []
+    arch = []
+    for hw in HW:
+        path = os.path.join(result_dir, hw , 'stats.txt')
+        f = open(path, "r")
+        time.append(float(f.readline()))
+        arch.append(hw)
+        f.close()
+    plt.bar(arch, time)
+    
+   	 
