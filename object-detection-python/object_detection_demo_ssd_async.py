@@ -120,6 +120,7 @@ def main():
         labels_map = None
 
     cap = cv2.VideoCapture(input_stream)
+    video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cur_request_id = 0
     next_request_id = 1
     vw = None
@@ -128,6 +129,7 @@ def main():
     log.info("To switch between sync and async modes press Tab button")
     log.info("To stop the sample execution press Esc button")
     result_file = open(os.path.join(args.output_dir,'output.txt'), "w")
+    progress_file = open(os.path.join(args.output_dir,'i_progress.txt'), "w")
     is_async_mode = True
     render_time = 0
     fps_sum = 0
@@ -167,6 +169,9 @@ def main():
     
             #
             frame_count+=1
+            if frame_count%1 == 0: 
+                progress_file.write(str(round(100*(frame_count/video_len)))+'\n')
+                progress_file.flush()
             key = cv2.waitKey(1)
             if key == 27:
                 break
@@ -179,6 +184,7 @@ def main():
  	##End while loop /
         cap.release()
         result_file.close()
+        progress_file.close()
         if args.output_dir is None:
             cv2.destroyAllWindows()
         else:

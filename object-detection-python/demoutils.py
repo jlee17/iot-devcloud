@@ -26,6 +26,24 @@ def videoHTML(title, video, stats=None):
 </video>
 '''.format(title=title, video=video, stats_line=stats_line))
 
+
+
+def summaryPlot(result_dir, HW):
+    plt.figure()
+    plt.title("Inference engine processing time")
+    plt.ylabel("Time, seconds")
+    time = []
+    arch = []
+    for hw in HW:
+        path = os.path.join(result_dir, hw , 'stats.txt')
+        f = open(path, "r")
+        time.append(float(f.readline()))
+        arch.append(hw)
+        f.close()
+    plt.bar(arch, time)
+ 
+
+
 def liveQstat():
     cmd = ['qstat']
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
@@ -54,18 +72,70 @@ def liveQstat():
     display(sb)
 
 
-def summaryPlot(result_dir, HW):
-    plt.figure()
-    plt.title("Inference engine processing time")
-    plt.ylabel("Time, seconds")
-    time = []
-    arch = []
-    for hw in HW:
-        path = os.path.join(result_dir, hw , 'stats.txt')
-        f = open(path, "r")
-        time.append(float(f.readline()))
-        arch.append(hw)
-        f.close()
-    plt.bar(arch, time)
-    
+   
    	 
+def inferProgress(fname):
+    infer_progress = widgets.FloatProgress(
+        value=0,
+        min=0,
+        max=100.0,
+        step=1,
+        description='Inference',
+        bar_style='info',
+        orientation='horizontal'
+    )
+    video_progress = widgets.FloatProgress(
+        value=0,
+        min=0,
+        max=100.0,
+        step=1,
+        description='Post processing',
+        bar_style='info',
+        orientation='horizontal'
+    )
+
+    infer_progress.value=0
+    video_progress.value=0
+    display(infer_progress)
+    display(video_progress)
+
+    def _work(infer_progress, video_progress, fname):
+
+        # Inference engine progress
+        last_status=0
+        infer_prog = os.path.join(fname, 'i_progress.txt')
+        while not os.path.isfile(infer_prog):
+            time.sleep(0.001)
+        fh = open(infer_prog, "r")
+        cmd = ['sync']
+        while last_status < 100:
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            output,_ = p.communicate()
+            line=fh.readline()
+            if line:
+                last_status = int(line)
+            infer_progress.value=last_status
+        os.remove(infer_prog)
+
+        #Post processing progress
+        last_status=0
+        video_prog = os.path.join(fname, 'v_progress.txt')
+        while not os.path.isfile(video_prog):
+            time.sleep(0.001)
+        fh = open(video_prog, "r")
+        cmd = ['sync']
+        while last_status < 100:
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            output,_ = p.communicate()
+            line=fh.readline()
+            if line:
+                last_status = int(line)
+            video_progress.value=last_status
+        os.remove(video_prog)
+
+    thread = threading.Thread(target=_work, args=(infer_progress, video_progress, fname))
+    thread.start()
+
+
+
+        

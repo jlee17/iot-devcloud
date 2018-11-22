@@ -58,6 +58,7 @@ int main(int argc, char ** argv)
 
 	string input_stream = argv[1];
 	string input_data = string(argv[2])+"/output.txt";
+	string progress_data = string(argv[2])+"/v_progress.txt";
 	string output_result = string(argv[2])+"/cars_1900_output.mp4";
 	int skip_frame = stoi(argv[3]);
 	float resl = stof(argv[4]);
@@ -71,11 +72,13 @@ int main(int argc, char ** argv)
            }
 	//Open the input data file and read the first line to str
 	ifstream input(input_data);
+	ofstream progress;
 	string str;
 	getline(input, str,  input.widen('\n'));
         vector<string> object(8, "0");
 	int width = 0;
 	int height = 0;
+	int length = 0;
         int id = 0;
 	int seq_num = 0;
 	int next_id = 0;
@@ -84,7 +87,9 @@ int main(int argc, char ** argv)
 	if(cap.isOpened()){
 		width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));	
 		height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));	
+		length = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
 		outVideo.open(output_result, 0x21, 50.0, Size(width*resl, height*resl), true);
+                progress.open(progress_data);
 	}
 	//Start while loop to process input stream and write the output frame to output_results 
         while(cap.isOpened()){
@@ -114,6 +119,11 @@ int main(int argc, char ** argv)
 			}
 		}	
 		seq_num++;
+		if (seq_num%1 == 0){
+			string cur_progress = to_string(int(100*seq_num/length))+'\n';
+			progress<<cur_progress;
+			progress.flush();
+		}
 		if (id%skip_frame == 0){
 			resize(frame, frame, Size(width * resl, height * resl), 0, 0, CV_INTER_LINEAR);
 			outVideo.write(frame);
@@ -121,6 +131,7 @@ int main(int argc, char ** argv)
 	}
 	cap.release();
 	destroyAllWindows();
+	progress.close();
 	t = omp_get_wtime()-t;
 	cout<<"Video process time: "<<t<<" seconds"<<endl;
 }
