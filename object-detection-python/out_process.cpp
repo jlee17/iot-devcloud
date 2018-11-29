@@ -4,6 +4,7 @@
 #include <fstream>
 #include <time.h>
 #include <omp.h>
+#include <stdlib.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -55,11 +56,11 @@ int main(int argc, char ** argv)
 	//argv[2]:(string)result_directory->path to input data file and the output processed mp4 video
 	//argv[3]:(int)(1 or 2)Skip_frame-> 2 to skip frame in the output, 1 to process the complete video without skipping
 	//argv[4]:(float)resl-> scale ratio of the output frame (0.75, 0.5, 1)
-
+	string job_id = getenv("PBS_JOBID");
 	string input_stream = argv[1];
-	string input_data = string(argv[2])+"/output.txt";
-	string progress_data = string(argv[2])+"/v_progress.txt";
-	string output_result = string(argv[2])+"/cars_1900_output.mp4";
+	string input_data = string(argv[2])+"/output_"+job_id+".txt";
+	string progress_data = string(argv[2])+"/v_progress_"+job_id+".txt";
+	string output_result = string(argv[2])+"/cars_1900_output_"+job_id+".mp4";
 	int skip_frame = stoi(argv[3]);
 	float resl = stof(argv[4]);
 	
@@ -88,8 +89,8 @@ int main(int argc, char ** argv)
 		width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));	
 		height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));	
 		length = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
-		outVideo.open(output_result, 0x21, 50.0, Size(width*resl, height*resl), true);
-                progress.open(progress_data);
+		outVideo.open(output_result, 0x21, 50.0/skip_frame, Size(width*resl, height*resl), true);
+
 	}
 	//Start while loop to process input stream and write the output frame to output_results 
         while(cap.isOpened()){
@@ -119,10 +120,12 @@ int main(int argc, char ** argv)
 			}
 		}	
 		seq_num++;
-		if (seq_num%1 == 0){
+		if (seq_num%10 == 0){
+                	progress.open(progress_data);
 			string cur_progress = to_string(int(100*seq_num/length))+'\n';
 			progress<<cur_progress;
 			progress.flush();
+			progress.close();
 		}
 		if (id%skip_frame == 0){
 			resize(frame, frame, Size(width * resl, height * resl), 0, 0, CV_INTER_LINEAR);
@@ -131,7 +134,7 @@ int main(int argc, char ** argv)
 	}
 	cap.release();
 	destroyAllWindows();
-	progress.close();
+
 	t = omp_get_wtime()-t;
 	cout<<"Video process time: "<<t<<" seconds"<<endl;
 }

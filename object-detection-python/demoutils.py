@@ -74,7 +74,7 @@ def liveQstat():
 
    
    	 
-def inferProgress(fname):
+def inferProgress(fname, job_id):
     infer_progress = widgets.FloatProgress(
         value=0,
         min=0,
@@ -99,41 +99,43 @@ def inferProgress(fname):
     display(infer_progress)
     display(video_progress)
 
-    def _work(infer_progress, video_progress, fname):
+    def _work(infer_progress, video_progress, fname, job_id):
 
         # Inference engine progress
         last_status=0
-        infer_prog = os.path.join(fname, 'i_progress.txt')
-        while not os.path.isfile(infer_prog):
-            time.sleep(0.001)
-        fh = open(infer_prog, "r")
-        cmd = ['sync']
+        infer_prog = os.path.join(fname, 'i_progress_'+job_id[0]+'.txt')
         while last_status < 100:
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            output,_ = p.communicate()
-            line=fh.readline()
-            if line:
-                last_status = int(line)
-            infer_progress.value=last_status
+            if os.path.isfile(infer_prog):
+                with open(infer_prog, "r") as fh:
+                    line=fh.readline()
+                    if line:
+                        last_status = int(line)
+                    infer_progress.value=last_status
+            else:
+                cmd = ['ls']
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+                output,_ = p.communicate()
+        time.sleep(1)
         os.remove(infer_prog)
 
         #Post processing progress
         last_status=0
-        video_prog = os.path.join(fname, 'v_progress.txt')
-        while not os.path.isfile(video_prog):
-            time.sleep(0.001)
-        fh = open(video_prog, "r")
-        cmd = ['sync']
+        video_prog = os.path.join(fname, 'v_progress_'+job_id[0]+'.txt')
         while last_status < 100:
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            output,_ = p.communicate()
-            line=fh.readline()
-            if line:
-                last_status = int(line)
-            video_progress.value=last_status
+            if os.path.isfile(video_prog):
+                with open(video_prog, "r") as fh:
+                    line=fh.readline()
+                    if line:
+                        last_status = int(line)
+                    video_progress.value=last_status
+            else:
+                cmd = ['ls']
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+                output,_ = p.communicate()
+        time.sleep(1)
         os.remove(video_prog)
 
-    thread = threading.Thread(target=_work, args=(infer_progress, video_progress, fname))
+    thread = threading.Thread(target=_work, args=(infer_progress, video_progress, fname, job_id))
     thread.start()
 
 

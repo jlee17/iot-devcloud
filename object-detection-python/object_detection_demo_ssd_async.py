@@ -61,8 +61,8 @@ def processBoxes(frame_count, res, labels_map, prob_threshold, frame, initial_w,
             ymax = str(int(obj[6] * initial_h))
             class_id = str(int(obj[1]))
             est = str(round(obj[2]*100, 1))
-            det_time = round(det_time*1000)
-            out_list = [str(frame_count), xmin, ymin, xmax, ymax, class_id, est, str(det_time)]
+            time = round(det_time*1000)
+            out_list = [str(frame_count), xmin, ymin, xmax, ymax, class_id, est, str(time)]
             for i in range(len(out_list)):
                 dims += out_list[i]+' '
             dims += '\n'
@@ -128,8 +128,10 @@ def main():
     log.info("Starting inference in async mode...")
     log.info("To switch between sync and async modes press Tab button")
     log.info("To stop the sample execution press Esc button")
-    result_file = open(os.path.join(args.output_dir,'output.txt'), "w")
-    progress_file = open(os.path.join(args.output_dir,'i_progress.txt'), "w")
+    job_id = os.environ['PBS_JOBID']
+    result_file = open(os.path.join(args.output_dir,'output_'+str(job_id)+'.txt'), "w")
+    progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
+
     is_async_mode = True
     render_time = 0
     fps_sum = 0
@@ -169,9 +171,11 @@ def main():
     
             #
             frame_count+=1
-            if frame_count%1 == 0: 
+            if frame_count%10 == 0: 
+                progress_file = open(progress_file_path, "w")
                 progress_file.write(str(round(100*(frame_count/video_len)))+'\n')
                 progress_file.flush()
+                progress_file.close()
             key = cv2.waitKey(1)
             if key == 27:
                 break
@@ -184,7 +188,7 @@ def main():
  	##End while loop /
         cap.release()
         result_file.close()
-        progress_file.close()
+
         if args.output_dir is None:
             cv2.destroyAllWindows()
         else:
