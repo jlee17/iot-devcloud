@@ -6,6 +6,7 @@
 #include <omp.h>
 #include <stdlib.h>
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc_c.h>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/video/video.hpp>
@@ -86,9 +87,9 @@ int main(int argc, char ** argv)
 	//Open the output file to write processed video to it
 	VideoWriter outVideo;
 	if(cap.isOpened()){
-		width = int(cap.get(CV_CAP_PROP_FRAME_WIDTH));	
-		height = int(cap.get(CV_CAP_PROP_FRAME_HEIGHT));	
-		length = int(cap.get(CV_CAP_PROP_FRAME_COUNT));
+		width = int(cap.get(CAP_PROP_FRAME_WIDTH));	
+		height = int(cap.get(CAP_PROP_FRAME_HEIGHT));	
+		length = int(cap.get(CAP_PROP_FRAME_COUNT));
 		outVideo.open(output_result, 0x21, 50.0/skip_frame, Size(width*resl, height*resl), true);
 
 	}
@@ -136,5 +137,5 @@ int main(int argc, char ** argv)
 	destroyAllWindows();
 
 	t = omp_get_wtime()-t;
-	cout<<"Video process time: "<<t<<" seconds"<<endl;
+	cout<<"Video post-processing time: "<<t<<" seconds"<<endl;
 }

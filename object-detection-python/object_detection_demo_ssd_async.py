@@ -78,13 +78,14 @@ def main():
     log.info("Initializing plugin for {} device...".format(args.device))
     plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
     if args.cpu_extension and 'CPU' in args.device:
+        log.info("Loading plugins for {} device...".format(args.device))
         plugin.add_cpu_extension(args.cpu_extension)
 
     # Read IR
     log.info("Reading IR...")
     net = IENetwork.from_ir(model=model_xml, weights=model_bin)
 
-    if "CPU" in plugin.device:
+    if plugin.device == "CPU":
         supported_layers = plugin.get_supported_layers(net)
         not_supported_layers = [l for l in net.layers.keys() if l not in supported_layers]
         if len(not_supported_layers) != 0:
@@ -100,7 +101,10 @@ def main():
     log.info("Loading IR to the plugin...")
     exec_net = plugin.load(network=net, num_requests=2)
     # Read and pre-process input image
-    n, c, h, w = net.inputs[input_blob]
+    if isinstance(net.inputs[input_blob], list):
+        n, c, h, w = net.inputs[input_blob]
+    else:
+        n, c, h, w = net.inputs[input_blob].shape
     del net
     if args.input == 'cam':
         input_stream = 0
@@ -123,7 +127,6 @@ def main():
     video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cur_request_id = 0
     next_request_id = 1
-    vw = None
   
     log.info("Starting inference in async mode...")
     log.info("To switch between sync and async modes press Tab button")
@@ -197,10 +200,9 @@ def main():
                 f.write(str(total_time)+'\n')
                 f.write(str(frame_count))
 
+    finally:
         del exec_net
         del plugin
-    finally:
-        if not vw is None:
-            vw.release()
+
 if __name__ == '__main__':
     sys.exit(main() or 0)
