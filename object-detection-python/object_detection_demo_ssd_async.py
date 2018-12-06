@@ -177,6 +177,8 @@ def main():
             if frame_count%10 == 0: 
                 progress_file = open(progress_file_path, "w")
                 progress_file.write(str(round(100*(frame_count/video_len)))+'\n')
+                estimated_time = str(round(((time.time()-frame_time_start)/frame_count)*(video_len-frame_count)))
+                progress_file.write(estimated_time+'\n')
                 progress_file.flush()
                 progress_file.close()
             key = cv2.waitKey(1)

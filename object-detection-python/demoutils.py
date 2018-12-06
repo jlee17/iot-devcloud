@@ -26,23 +26,34 @@ def videoHTML(title, video, stats=None):
 </video>
 '''.format(title=title, video=video, stats_line=stats_line))
 
-
-
-def summaryPlot(result_dir, HW):
+ 
+def summaryPlot(results_dict, x_axis, y_axis, title):
+    ''' Bar plot input:
+	results_dict: dictionary of path to result file and label {path_to_result:label}
+	x_axis: label of the x axis
+	y_axis: label of the y axis
+	title: title of the graph
+    '''
     plt.figure()
-    plt.title("Inference engine processing time")
-    plt.ylabel("Time, seconds")
+    plt.title(title)
+    plt.ylabel(y_axis)
+    plt.xlabel(x_axis)
     time = []
     arch = []
-    for hw in HW:
-        path = os.path.join(result_dir, hw , 'stats.txt')
-        f = open(path, "r")
-        time.append(float(f.readline()))
+    for path, hw in results_dict.items():
+        if os.path.isfile(path):
+            f = open(path, "r")
+            time.append(round(float(f.readline())))
+            f.close()
+        else:
+            time.append(0)
         arch.append(hw)
-        f.close()
-    plt.bar(arch, time)
+    plt.bar(arch, time, width=0.8, align='center')
+    diff = 0.125
+    for i in time:
+        plt.text(diff, i, i, fontsize=10, multialignment="center",horizontalalignment="right", verticalalignment="baseline",  color='black')
+        diff += 1
  
-
 
 def liveQstat():
     cmd = ['qstat']
@@ -140,4 +151,56 @@ def inferProgress(fname, job_id):
 
 
 
-        
+def progressIndicator(path, title, min_, max_):
+    '''
+	Progress indicator reads first line in the file "path" 
+	path: path to the progress file
+	title: description of the bar
+	min_: min_ value for the progress bar
+	max_: max value in the progress bar
+
+    '''
+    progress_bar = widgets.FloatProgress(
+    value=0,
+    min=min_,
+    max=max_,
+    step=10,
+    description=title,
+    bar_style='info',
+    orientation='horizontal'
+)
+    est_time = widgets.HTML(
+    value='0',
+    placeholder='0',
+    description='Remaining',
+)
+    progress_bar.value=min_
+
+    def _work(progress_bar, est_time, path):
+        box = widgets.HBox([progress_bar, est_time])
+        display(box)
+        # progress
+        last_status = 0
+        est_val = '0'
+        output_file = path
+        while last_status < 100:
+            if os.path.isfile(output_file):
+                with open(output_file, "r") as fh:
+                    line1=fh.readline()
+                    line2=fh.readline()
+                    if line1 and line2:
+                        last_status = int(line1)
+                        est_val = int(line2)
+                    progress_bar.value = last_status
+                    est_time.value = str(est_val)+' seconds' 
+            else:
+                cmd = ['ls']
+                p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+                output,_ = p.communicate()
+        time.sleep(1)
+        os.remove(output_file)
+
+
+    thread = threading.Thread(target=_work, args=(progress_bar, est_time, path))
+    thread.start()
+
