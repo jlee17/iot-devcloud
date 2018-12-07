@@ -354,7 +354,7 @@ def main(device, output_dir, conf):
     print("Loading IR to the plugin...")
     exec_net = plugin.load(network=net, num_requests=2)
     # Read and pre-process input image
-    n, c, h, w = net.inputs[input_blob]
+    n, c, h, w = net.inputs[input_blob].shape
     del net
 
     # Read the labels file
