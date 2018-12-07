@@ -121,7 +121,7 @@ def detect_color(frame, cnt, base_dir, count_object):
     # Morphological opening (remove small objects from the foreground)
     img_thresholded = cv2.erode(img_thresholded, kernel=cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
     img_thresholded = cv2.dilate(img_thresholded, kernel=cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
-    _, contours, hierarchy = cv2.findContours(img_thresholded, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    contours, hierarchy = cv2.findContours(img_thresholded, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     for i in range(len(contours)):
         area = cv2.contourArea(contours[i])
         if 2000 < area < 10000:
@@ -165,7 +165,7 @@ def detect_crack(frame, cnt, base_dir, count_object):
     # Find the edges
     detected_edges = cv2.Canny(img, low_threshold, low_threshold * ratio, kernel_size)
     # Find the contours
-    _, contours, hierarchy = cv2.findContours(detected_edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+    contours, hierarchy = cv2.findContours(detected_edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     cnts = []
     if len(contours) != 0:
         for i in range(len(contours)):
@@ -256,7 +256,7 @@ def runFlowDetector(vid_path = 0, base_dir=None, draw_callback = None):
                 img_thresholded = cv2.erode(img_thresholded, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
 
                 # Find the contours on the image
-                _, contours, hierarchy = cv2.findContours(img_thresholded, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+                contours, hierarchy = cv2.findContours(img_thresholded, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
 
                 for cnt in contours:
                     x, y, width, height = cv2.boundingRect(cnt)
