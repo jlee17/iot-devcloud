@@ -40,20 +40,30 @@ def summaryPlot(results_dict, x_axis, y_axis, title):
     plt.xlabel(x_axis)
     time = []
     arch = []
+    diff = 0
     for path, hw in results_dict.items():
         if os.path.isfile(path):
             f = open(path, "r")
-            time.append(round(float(f.readline())))
+            label = round(float(f.readline()))
+            time.append(label)
             f.close()
         else:
-            time.append(0)
+            time.append(-1)
         arch.append(hw)
-    plt.bar(arch, time, width=0.8, align='center')
-    diff = 0.125
+
+    offset = max(time)/100
     for i in time:
-        plt.text(diff, i, i, fontsize=10, multialignment="center",horizontalalignment="right", verticalalignment="baseline",  color='black')
+        if i == -1:
+            data = 'N/A'
+            y = 0
+        else:
+            data = i
+            y = i + offset   
+        plt.text(diff, y, data, fontsize=10, multialignment="center",horizontalalignment="center", verticalalignment="bottom",  color='black')
         diff += 1
- 
+    plt.ylim(top=(max(time)+10*offset))
+    plt.bar(arch, time, width=0.8, align='center')
+
 
 def liveQstat():
     cmd = ['qstat']
@@ -84,73 +94,6 @@ def liveQstat():
 
 
    
-   	 
-def inferProgress(fname, job_id):
-    infer_progress = widgets.FloatProgress(
-        value=0,
-        min=0,
-        max=100.0,
-        step=1,
-        description='Inference',
-        bar_style='info',
-        orientation='horizontal'
-    )
-    video_progress = widgets.FloatProgress(
-        value=0,
-        min=0,
-        max=100.0,
-        step=1,
-        description='Post processing',
-        bar_style='info',
-        orientation='horizontal'
-    )
-
-    infer_progress.value=0
-    video_progress.value=0
-    display(infer_progress)
-    display(video_progress)
-
-    def _work(infer_progress, video_progress, fname, job_id):
-
-        # Inference engine progress
-        last_status=0
-        infer_prog = os.path.join(fname, 'i_progress_'+job_id[0]+'.txt')
-        while last_status < 100:
-            if os.path.isfile(infer_prog):
-                with open(infer_prog, "r") as fh:
-                    line=fh.readline()
-                    if line:
-                        last_status = int(line)
-                    infer_progress.value=last_status
-            else:
-                cmd = ['ls']
-                p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-                output,_ = p.communicate()
-        time.sleep(1)
-        os.remove(infer_prog)
-
-        #Post processing progress
-        last_status=0
-        video_prog = os.path.join(fname, 'v_progress_'+job_id[0]+'.txt')
-        while last_status < 100:
-            if os.path.isfile(video_prog):
-                with open(video_prog, "r") as fh:
-                    line=fh.readline()
-                    if line:
-                        last_status = int(line)
-                    video_progress.value=last_status
-            else:
-                cmd = ['ls']
-                p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-                output,_ = p.communicate()
-        time.sleep(1)
-        os.remove(video_prog)
-
-    thread = threading.Thread(target=_work, args=(infer_progress, video_progress, fname, job_id))
-    thread.start()
-
-
-
 def progressIndicator(path, title, min_, max_):
     '''
 	Progress indicator reads first line in the file "path" 
@@ -160,6 +103,7 @@ def progressIndicator(path, title, min_, max_):
 	max_: max value in the progress bar
 
     '''
+    style = {'description_width': 'initial'}
     progress_bar = widgets.FloatProgress(
     value=0,
     min=min_,
@@ -167,40 +111,55 @@ def progressIndicator(path, title, min_, max_):
     step=10,
     description=title,
     bar_style='info',
-    orientation='horizontal'
+    orientation='horizontal',
+    style=style
+)
+    remain_time = widgets.HTML(
+    value='0',
+    placeholder='0',
+    description='Remaining:',
+    style=style
 )
     est_time = widgets.HTML(
     value='0',
     placeholder='0',
-    description='Remaining',
+    description='Total Estimated:',
+    style=style
 )
+
     progress_bar.value=min_
 
-    def _work(progress_bar, est_time, path):
-        box = widgets.HBox([progress_bar, est_time])
+    def _work(progress_bar, est_time,remain_time,  path):
+        box_layout = widgets.Layout(display='flex', flex_flow='column', align_items='stretch', border='ridge', width='70%', height='')
+        box = widgets.HBox([progress_bar, est_time, remain_time], layout=box_layout)
         display(box)
         # progress
         last_status = 0
+        remain_val = '0'
         est_val = '0'
         output_file = path
         while last_status < 100:
             if os.path.isfile(output_file):
                 with open(output_file, "r") as fh:
-                    line1=fh.readline()
-                    line2=fh.readline()
-                    if line1 and line2:
+                    line1 = fh.readline() 	#Progress 
+                    line2 = fh.readline()  	#Remaining time
+                    line3 = fh.readline()  	#Estimated total time
+                    if line1 and line2 and line3:
                         last_status = int(line1)
-                        est_val = int(line2)
+                        remain_val = int(line2)
+                        est_val = int(line3)
                     progress_bar.value = last_status
+                    remain_time.value = str(remain_val)+' seconds' 
                     est_time.value = str(est_val)+' seconds' 
             else:
                 cmd = ['ls']
                 p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
                 output,_ = p.communicate()
+        remain_time.value = '0'+' seconds' 
         time.sleep(1)
         os.remove(output_file)
 
 
-    thread = threading.Thread(target=_work, args=(progress_bar, est_time, path))
+    thread = threading.Thread(target=_work, args=(progress_bar, est_time, remain_time, path))
     thread.start()
 

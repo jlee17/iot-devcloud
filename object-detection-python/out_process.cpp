@@ -125,8 +125,10 @@ int main(int argc, char ** argv)
 			double fps_t = omp_get_wtime()-t;
                 	progress.open(progress_data);
 			string cur_progress = to_string(int(100*seq_num/length))+'\n';
-			string estimated_time = to_string(int((fps_t/seq_num)*(length-seq_num)))+'\n';
+			string remaining_time = to_string(int((fps_t/seq_num)*(length-seq_num)))+'\n';
+			string estimated_time = to_string(int((fps_t/seq_num)*length))+'\n';
 			progress<<cur_progress;
+			progress<<remaining_time;
 			progress<<estimated_time;
 			progress.flush();
 			progress.close();
