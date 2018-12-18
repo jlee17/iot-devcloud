@@ -25,6 +25,9 @@ import logging as log
 import numpy as np
 import io
 from openvino.inference_engine import IENetwork, IEPlugin
+from pathlib import Path
+sys.path.insert(0, str(Path().resolve().parent))
+from demo_tools.demoutils import progressUpdate
 
 
 def build_argparser():
@@ -143,7 +146,7 @@ def main():
     res_list = []
     res_arr = np.zeros((3000, 1, 1, 100, 7))
     try:
-        frame_time_start = time.time()
+        infer_time_start = time.time()
         while cap.isOpened():
             read_time = time.time()
             ret, frame = cap.read()
@@ -174,15 +177,10 @@ def main():
     
             #
             frame_count+=1
+            #Write data to progress tracker
             if frame_count%10 == 0: 
-                progress_file = open(progress_file_path, "w")
-                progress_file.write(str(round(100*(frame_count/video_len)))+'\n')
-                remaining_time = str(round(((time.time()-frame_time_start)/frame_count)*(video_len-frame_count)))
-                estimated_time = str(round(((time.time()-frame_time_start)/frame_count)*video_len))
-                progress_file.write(remaining_time+'\n')
-                progress_file.write(estimated_time+'\n')
-                progress_file.flush()
-                progress_file.close()
+                progressUpdate(progress_file_path, time.time()-infer_time_start, frame_count, video_len) 
+
             key = cv2.waitKey(1)
             if key == 27:
                 break
@@ -199,10 +197,11 @@ def main():
         if args.output_dir is None:
             cv2.destroyAllWindows()
         else:
-            total_time = time.time() - frame_time_start
+            total_time = time.time() - infer_time_start
             with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
-                f.write(str(total_time)+'\n')
-                f.write(str(frame_count))
+                f.write(str(round(total_time, 1))+'\n')
+                f.write(str(frame_count)+'\n')
+
 
     finally:
         del exec_net
