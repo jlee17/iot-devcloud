@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
 """
- Author: Andrei Hutuca <andrei.hutuca@gmail.com>
+ Authors: Stefan Andritoiu <stefan.andritoiu@gmail.com>
+          Serban Waltter <serban.waltter@rinftech.com>
  Copyright (c) 2018 Intel Corporation.
 
  Permission is hereby granted, free of charge, to any person obtaining
@@ -37,25 +37,32 @@ import time
 import datetime
 import collections
 import threading
-import queue
-import subprocess
-
+#import queue
+import datetime
+import math
 from openvino.inference_engine import IENetwork, IEPlugin
+from pathlib import Path
+sys.path.insert(0, str(Path().resolve().parent))
+from demo_tools.demoutils import progressUpdate
+
+
 
 ##########################################################
 # CONSTANTS
 ##########################################################
 
+#CONF_FILE = './resources/conf.txt'
 CONF_VIDEODIR = './UI/resources/video_frames/'
 CONF_DATAJSON_FILE = './UI/resources/video_data/data.json'
 CONF_VIDEOJSON_FILE = './UI/resources/video_data/videolist.json'
-CPU_EXTENSION = '/data/reference-sample-data/extension/libcpu_extension.so'
+CPU_EXTENSION = ''
+#TARGET_DEVICE = 'CPU'
 STATS_WINDOW_NAME = 'Statistics'
-CAM_WINDOW_NAME_TEMPLATE = 'Video {}'
+CAM_WINDOW_NAME_TEMPLATE = 'inference_output_Video_{}'
 PROB_THRESHOLD = 0.145
-WINDOW_COLUMNS = 5
-QUEUE_SIZE = 100
-LOOP_VIDEO = False
+FRAME_THRESHOLD = 5
+WINDOW_COLUMNS = 3
+#LOOP_VIDEO = False
 UI_OUTPUT = False
 
 ##########################################################
@@ -68,10 +75,10 @@ labels_file = ''
 videoCaps = []
 display_lock = threading.Lock()
 log_lock = threading.Lock()
-rolling_log = None
-rolling_log_changed = True
 frames = 0
 frameNames = []
+numVids = 20000
+acceptedDevices= ['CPU', 'GPU', 'MYRIAD']
 
 ##########################################################
 # CLASSES
@@ -87,7 +94,8 @@ class VideoCap:
         self.cap = cap
         self.req_label = req_label
         self.cap_name = cap_name
-        self.is_cam = is_cam
+        self.is_cam = False
+        #self.is_cam = is_cam
         self.cur_frame = numpy.array([], dtype='uint8')
         self.initial_w = 0
         self.initial_h = 0
@@ -98,159 +106,133 @@ class VideoCap:
         self.candidate_count = 0
         self.candidate_confidence = 0
         self.closed = False
-        self.frame_queue = queue.Queue(QUEUE_SIZE)
         self.countAtFrame = []
+        self.video = None
+        self.rate = 0
 
         if not is_cam:
             self.fps = self.cap.get(cv2.CAP_PROP_FPS)
+            self.length = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
         else:
             self.fps = 0
 
-class VideoWriterThread(threading.Thread):
-    def __init__(self, videoCap, output_dir, group=None,
-                 args=(), kwargs=None, verbose=None):
-        super(VideoWriterThread,self).__init__()
-        self.output_dir=output_dir
-        self.videoCap = videoCap
-        self.daemon = True
-        self.name = videoCap.cap_name
-        self.queue = videoCap.frame_queue
-        self.fps = videoCap.fps
-        self.v_temp_file = os.path.join(output_dir, 'inference_output_'+self.name.strip().replace(' ','_')+'_temp.mp4')
-        self.v_file = os.path.join(output_dir, 'inference_output_'+self.name.strip().replace(' ','_')+'.mp4')
-        self.vw = None
+        self.videoName = cap_name + ".mp4"
 
-        return
+    def init_vw(self, h, w, fps):
+        self.video = cv2.VideoWriter(os.path.join(output_dir, self.videoName), 0x00000021, fps, (w, h), True)
+        if not self.video.isOpened():
+            print ("Could not open for write" + self.videoName)
+            sys.exit(1)
 
-    def run(self):
-        global rolling_log, rolling_log_changed
-
-        while True:
-            # If video capture is not from a cam
-            if self.fps:
-                start = time.time()
-            frame, new_logs = self.queue.get()
-            # Quit if empty frame was sent to us.
-            if frame is None:
-                break
-            # Display the current video frame
-#            print("{0} : shape {1}".format(self.name, frame.shape))
-            if self.vw == None:
-                height = numpy.size(frame, 0)
-                width = numpy.size(frame, 1)
-                self.vw = cv2.VideoWriter(self.v_temp_file, 0x00000021, 15.0, (width, height), True)
-            self.vw.write(frame)
-            # If available, add the new logs to the rolling log
-            if new_logs:
-                log_lock.acquire()
-                for log in new_logs:
-                    rolling_log.append(log)
-                rolling_log_changed = True
-                log_lock.release()
-    
-            if self.fps:
-                stop = time.time()
-                # Limit the frame rate at the video FPS
-                time_to_sleep = 1 / self.fps - (stop - start)
-                if time_to_sleep > 0:
-                    time.sleep(time_to_sleep)
-        if self.vw:
-            print('Releasing '+self.v_file)
-            self.vw.release()
-        return
-
-def adjustSpeeds(vc_threads, stats_thread, new_fps):
-    #ffmpeg -i input.mkv -filter:v "setpts=0.5*PTS" output.mkv
-    pts='setpts={}*PTS'.format(15./new_fps)
-    for vc in vc_threads:
-        cmd = ['ffmpeg', '-y', '-i', vc.v_temp_file, '-filter:v', pts, vc.v_file]
-        subprocess.call(cmd)
-        if os.path.exists(vc.v_temp_file):
-            os.remove(vc.v_temp_file)
-    cmd = ['ffmpeg', '-y', '-i', stats_thread.v_temp_file, '-filter:v', pts, stats_thread.v_file]
-    subprocess.call(cmd)
-    if os.path.exists(stats_thread.v_temp_file):
-        os.remove(stats_thread.v_temp_file)
-    
-    
-class DisplayThread(threading.Thread):
-    def __init__(self, videoCap, group=None, target=None,
-                 args=(), kwargs=None, verbose=None):
-        super(DisplayThread,self).__init__()
-        self.videoCap = videoCap
-        self.target = target
-        self.daemon = True
-        self.name = videoCap.cap_name
-        self.queue = videoCap.frame_queue
-        self.fps = videoCap.fps
-
-        return
-
-    def run(self):
-        global rolling_log, rolling_log_changed
-
-        while True:
-            # If video capture is not from a cam
-            if self.fps:
-                start = time.time()
-            frame, new_logs = self.queue.get()
-            # Display the current video frame
-            display_lock.acquire()
-            if UI_OUTPUT:
-                imgName = self.name
-                imgName = imgName.split()[0] + "_" + chr(ord(imgName.split()[1]) + 1)
-                imgName += "_" + str(self.videoCap.frames)
-                frameNames.append(imgName)
-                imgName = CONF_VIDEODIR + imgName + ".jpg"
-                cv2.imwrite(imgName, frame)
-                a = saveJSON()
-                if(a):
-                    return a
-            else:
-                cv2.imshow(self.name, frame)
-            display_lock.release()
-            # If available, add the new logs to the rolling log
-            if new_logs:
-                log_lock.acquire()
-                for log in new_logs:
-                    rolling_log.append(log)
-                rolling_log_changed = True
-                log_lock.release()
-
-            if self.fps:
-                stop = time.time()
-                # Limit the frame rate at the video FPS
-                time_to_sleep = 1 / self.fps - (stop - start)
-                if time_to_sleep > 0:
-                    time.sleep(time_to_sleep)
-
-        return
 
 ##########################################################
 # FUNCTIONS
 ##########################################################
 
-def parse_conf_file(conf_file):
+def env_parser():
+    global TARGET_DEVICE, numVids, LOOP_VIDEO
+    if 'DEVICE' in os.environ:
+        TARGET_DEVICE = os.environ['DEVICE']
+
+    if 'LOOP' in os.environ:
+        lp = os.environ['LOOP']
+        if lp == "true":
+            LOOP_VIDEO = True
+        if lp == "false":
+            LOOP_VIDEO = False
+
+    if 'NUM_VIDEOS' in os.environ:
+        numVids = int(os.environ['NUM_VIDEOS'])
+
+def args_parser():
+    parser = ArgumentParser()
+    parser.add_argument("-d", "--device",
+                        help="Specify the target device to infer on; CPU, GPU or MYRIAD is acceptable. Application "
+                             "will look for a suitable plugin for device specified (CPU by default)", type=str)
+    parser.add_argument("-m", "--model", help="Path to an .xml file with a trained model's weights.", required=True, type=str)
+    parser.add_argument("-l", "--labels", help="Labels mapping file", default=None, type=str, required=True)
+    parser.add_argument("-e", "--cpu_extension",
+                        help="MKLDNN (CPU)-targeted custom layers.Absolute path to a shared library with the kernels "
+                             "impl.", type=str, default=None)
+    parser.add_argument("-lp", "--loop", help = "Loops video to mimic continous input", type = str, default = None)
+    parser.add_argument("-c", "--config_file", help = "Path to config file", type = str, default = None)
+    parser.add_argument("-n", "--num_videos", help = "Number of videos to process", type = int, default = None)
+    parser.add_argument("-o", "--output_dir", help = "Path to output directory", type = str, default = None)
+
+    global model_xml, model_bin, TARGET_DEVICE, labels_file, CPU_EXTENSION, LOOP_VIDEO, config_file, num_videos, output_dir
+
+    args = parser.parse_args()
+    if args.model:
+        model_xml = args.model
+        model_bin = os.path.splitext(model_xml)[0] + ".bin"
+    if args.labels:
+        labels_file = args.labels
+    if args.device:
+        TARGET_DEVICE = args.device
+    if args.cpu_extension:
+        CPU_EXTENSION = args.cpu_extension
+    if args.loop:
+        lp = args.loop
+        if lp == "true":
+            LOOP_VIDEO = True
+        if lp == "false":
+            LOOP_VIDEO = False
+    if args.config_file:
+        config_file = args.config_file
+    if args.num_videos:
+        num_videos = args.num_videos
+    if args.output_dir:
+        output_dir = args.output_dir
+
+
+def check_args(defaultTarget=None):
+    # ArgumentParser checks model and labels by default right now
+    if model_xml == '':
+        print ("You need to specify the path to the .xml file")
+        print ("Use -m MODEL or --model MODEL")
+        sys.exit(11)
+    if labels_file == '':
+        print ("You need to specify the path to the labels file")
+        print ("Use -l LABELS or --labels LABELS")
+        sys.exit(12)
+    global TARGET_DEVICE
+    if TARGET_DEVICE not in acceptedDevices:
+        print ("Unsupporterd device " + TARGET_DEVICE + ". Defaulting to CPU")
+        TARGET_DEVICE = 'CPU'
+    with open(config_file, 'r') as f:
+        if not f.read():
+            print("Please use at least 1 video")
+            sys.exit(13)
+
+def parse_conf_file():
     """
         Parses the configuration file.
-        Reads model_xml, model_bin, labels_file, videoCaps
+        Reads videoCaps
     """
-    global model_xml, model_bin, labels_file, videoCaps
-
-    with open(conf_file, 'r') as f:
-        model_xml = f.readline().rstrip('\n')
-        model_bin = f.readline().rstrip('\n')
-        labels_file = f.readline().rstrip('\n')
-
+    with open(config_file, 'r') as f:
+        cnt = 0
         for idx, item in enumerate(f.read().splitlines()):
-            split = item.split()
-            if split[0].isdigit():
-                videoCap = VideoCap(cv2.VideoCapture(int(split[0])), split[1], CAM_WINDOW_NAME_TEMPLATE.format(idx), True)
+            if cnt < num_videos:
+                split = item.split()
+                if split[0].isdigit():
+                    videoCap = VideoCap(cv2.VideoCapture(int(split[0])), split[1], CAM_WINDOW_NAME_TEMPLATE.format(idx), True)
+                else:
+                    if os.path.isfile(split[0]) :
+                        videoCap = VideoCap(cv2.VideoCapture(split[0]), split[1], CAM_WINDOW_NAME_TEMPLATE.format(idx), False)
+                    else:
+                        print ("Couldn't find " + split[0])
+                        sys.exit(3)
+                videoCaps.append(videoCap)
+                cnt += 1
             else:
-                videoCap = VideoCap(cv2.VideoCapture(split[0]), split[1], CAM_WINDOW_NAME_TEMPLATE.format(idx), False)
-            videoCaps.append(videoCap)
+                break
 
-def arrange_windows(width, height, output_dir):
+    for vc in videoCaps:
+        if not vc.cap.isOpened():
+            print ("Could not open for reading " + vc.cap_name)
+            sys.exit(2)
+
+def arrange_windows(width, height):
     """
         Arranges the windows so they are not overlapping
         Also starts the display threads
@@ -267,7 +249,6 @@ def arrange_windows(width, height, output_dir):
         cv2.namedWindow(CAM_WINDOW_NAME_TEMPLATE.format(idx), cv2.WINDOW_AUTOSIZE)
         cv2.moveWindow(CAM_WINDOW_NAME_TEMPLATE.format(idx), (spacer + width) * cols, (spacer + height) * rows)
         cols += 1
-        DisplayThread(videoCaps[idx], output_dir).start()
 
     # Arrange statistics window
     if(cols == WINDOW_COLUMNS):
@@ -276,70 +257,79 @@ def arrange_windows(width, height, output_dir):
     cv2.namedWindow(STATS_WINDOW_NAME, cv2.WINDOW_AUTOSIZE)
     cv2.moveWindow(STATS_WINDOW_NAME, (spacer + width) * cols, (spacer + height) * rows)
 
-def saveJSON():
-    """
-        This JSON contains info about current and total object count
-    """
-    if UI_OUTPUT:
-        dataJSON = open(CONF_DATAJSON_FILE, "w")
-        if not os.access(CONF_DATAJSON_FILE, os.W_OK):
-            print("Could not open dataJSON file for writing")
-            return 5
+#def saveJSON():
+#    """
+#        This JSON contains info about current and total object count
+#    """
+#    if UI_OUTPUT:
+#        dataJSON = open(CONF_DATAJSON_FILE, "w")
+#        if not os.access(CONF_DATAJSON_FILE, os.W_OK):
+#            print("Could not open dataJSON file for writing")
+#            return 5
+#
+#        videoJSON = open(CONF_VIDEOJSON_FILE, "w")
+#        if not os.access(CONF_VIDEOJSON_FILE, os.W_OK):
+#            print("Could not open videoJSON file for writing")
+#            return 5
+#
+#        dataJSON.write("{\n");
+#        videoJSON.write("{\n");
+#        vsz = len(videoCaps)
+#
+#        for i in range(vsz):
+#            if len(videoCaps[i].countAtFrame) > 0:
+#                j = 0
+#                dataJSON.write("\t\"Video_" + str(i + 1) + "\": {\n")
+#                fsz = len(videoCaps[i].countAtFrame) - 1
+#                for j in range(fsz):
+#                    strt = "\t\t\"%d\": {\n\t\t\t\"count\":\"%d\",\n\t\t\t\"time\":\"%s\"\n\t\t},\n" % \
+#                                (videoCaps[i].countAtFrame[j].frameNo, videoCaps[i].countAtFrame[j].count, videoCaps[i].countAtFrame[j].timestamp)
+#                    dataJSON.write(strt)
+#
+#                strt = "\t\t\"%d\": {\n\t\t\t\"count\":\"%d\",\n\t\t\t\"time\":\"%s\"\n\t\t}\n" % \
+#                    (videoCaps[i].countAtFrame[j].frameNo, videoCaps[i].countAtFrame[j].count, videoCaps[i].countAtFrame[j].timestamp)
+#                dataJSON.write(strt)
+#                dataJSON.write("\t},\n")
+#
+#        dataJSON.write("\t\"totals\": {\n")
+#        for i in range(vsz - 1):
+#            dataJSON.write("\t\t\"Video_" + str(i + 1) + "\": \"" + str(videoCaps[i].total_count) + "\",\n")
+#
+#        i = vsz - 1
+#        dataJSON.write("\t\t\"Video_" + str(i + 1) + "\": \"" + str(videoCaps[i].total_count) + "\"\n")
+#        dataJSON.write("\t}\n")
+#        dataJSON.write("}")
+#        dataJSON.close()
+#
+#        sz = len(frameNames) - 1
+#        for i in range(sz):
+#            videoJSON.write("\t\"" + str(i + 1) + "\":\"" + str(frameNames[i]) + "\",\n")
+#
+#        i = sz
+#        videoJSON.write("\t\"" + str(i + 1) + "\":\"" + str(frameNames[i]) + "\"\n")
+#        videoJSON.write("}")
+#        videoJSON.close()
+#
+#        return 0
 
-        videoJSON = open(CONF_VIDEOJSON_FILE, "w")
-        if not os.access(CONF_VIDEOJSON_FILE, os.W_OK):
-            print("Could not open videoJSON file for writing")
-            return 5
-
-        dataJSON.write("{\n");
-        videoJSON.write("{\n");
-        vsz = len(videoCaps)
-
-        for i in range(vsz):
-            if len(videoCaps[i].countAtFrame) > 0:
-                j = 0
-                dataJSON.write("\t\"Video_" + str(i + 1) + "\": {\n")
-                fsz = len(videoCaps[i].countAtFrame) - 1
-                for j in range(fsz):
-                    strt = "\t\t\"%d\": {\n\t\t\t\"count\":\"%d\",\n\t\t\t\"time\":\"%s\"\n\t\t},\n" % \
-                                (videoCaps[i].countAtFrame[j].frameNo, videoCaps[i].countAtFrame[j].count, videoCaps[i].countAtFrame[j].timestamp)
-                    dataJSON.write(strt)
-
-                strt = "\t\t\"%d\": {\n\t\t\t\"count\":\"%d\",\n\t\t\t\"time\":\"%s\"\n\t\t}\n" % \
-                    (videoCaps[i].countAtFrame[j].frameNo, videoCaps[i].countAtFrame[j].count, videoCaps[i].countAtFrame[j].timestamp)
-                dataJSON.write(strt)
-                dataJSON.write("\t},\n")
-
-        dataJSON.write("\t\"totals\": {\n")
-        for i in range(vsz - 1):
-            dataJSON.write("\t\t\"Video_" + str(i + 1) + "\": \"" + str(videoCaps[i].total_count) + "\",\n")
-
-        i = vsz - 1
-        dataJSON.write("\t\t\"Video_" + str(i + 1) + "\": \"" + str(videoCaps[i].total_count) + "\"\n")
-        dataJSON.write("\t}\n")
-        dataJSON.write("}")
-        dataJSON.close()
-
-        sz = len(frameNames) - 1
-        for i in range(sz):
-            videoJSON.write("\t\"" + str(i + 1) + "\":\"" + str(frameNames[i]) + "\",\n")
-
-        i = sz
-        videoJSON.write("\t\"" + str(i + 1) + "\":\"" + str(frameNames[i]) + "\"\n")
-        videoJSON.write("}")
-        videoJSON.close()
-
-        return 0
-
-def main(device, output_dir, conf):
-    global rolling_log, rolling_log_changed
-
-    parse_conf_file(conf)
+def main():
     # Plugin initialization for specified device and load extensions library
-    print("Initializing plugin for {} device...".format(device))
-    plugin = IEPlugin(device=device)
-    if 'CPU' in device:
-        print("Loading CPU extensions")
+    global rolling_log
+    #defaultTarget = TARGET_DEVICE
+
+    env_parser()
+    args_parser()
+    check_args()
+    parse_conf_file()
+    
+    
+    # if TARGET_DEVICE not in acceptedDevices:
+    #     print ("Unsupporterd device " + TARGET_DEVICE + ". Defaulting to CPU")
+    #     TARGET_DEVICE = 'CPU'
+    
+    print("Initializing plugin for {} device...".format(TARGET_DEVICE))
+    plugin = IEPlugin(device=TARGET_DEVICE)
+    if CPU_EXTENSION and 'CPU' == TARGET_DEVICE:
         plugin.add_cpu_extension(CPU_EXTENSION)
 
     # Read IR
@@ -356,6 +346,23 @@ def main(device, output_dir, conf):
     # Read and pre-process input image
     n, c, h, w = net.inputs[input_blob].shape
     del net
+
+    minFPS = min([i.cap.get(cv2.CAP_PROP_FPS) for i in videoCaps])
+    minlength = min([i.cap.get(cv2.CAP_PROP_FRAME_COUNT) for i in videoCaps])
+    for vc in videoCaps:
+        vc.rate = int(math.ceil(vc.length/minlength))
+    print(minFPS)
+    waitTime = int(round(1000 / minFPS / len(videoCaps))) # wait time in ms between showing frames
+    frames_sum = 0
+    for vc in videoCaps:
+        vc.init_vw(h, w, minFPS)
+        frames_sum += vc.length
+    statsWidth = w if w > 345 else 345
+    statsHeight = h if h > (len(videoCaps) * 20 + 15) else (len(videoCaps) * 20 + 15)
+    statsVideo = cv2.VideoWriter(os.path.join(output_dir,'Statistics.mp4'), 0x00000021, minFPS, (statsWidth, statsHeight), True)    
+    if not statsVideo.isOpened():
+        print ("Couldn't open stats video for writing")
+        sys.exit(4)
 
     # Read the labels file
     if labels_file:
@@ -374,154 +381,161 @@ def main(device, output_dir, conf):
     # Start with async mode enabled
     is_async_mode = True
 
-    stats_video=None
-    stats_thread=None
-    vc_threads=[]
-    if output_dir:
-        stats_video = VideoCap(None, 'STATS', 'stats', True)
-        stats_thread = VideoWriterThread(stats_video,output_dir)
-        stats_thread.start()
-        for vc in videoCaps:
-            new_vc_thread = VideoWriterThread(vc, output_dir)
-            new_vc_thread.start()
-            vc_threads.append(new_vc_thread)
-    elif UI_OUTPUT:
-        for idx in range(len(videoCaps)):
-            DisplayThread(videoCaps[idx]).start()
-    else:
+    if not UI_OUTPUT:
         # Arrange windows so they are not overlapping
-        arrange_windows(w, h)
-
-    if output_dir == None:
+        #arrange_windows(w, h)
         print("To stop the execution press Esc button")
-    else:
-        print("Wrting results into {}".format(output_dir))
-    total_frames_count=0
-    fps_sum=0.
+
+    no_more_data = False
+    
+    for vc in videoCaps:
+        vc.start_time = datetime.datetime.now()
+    frame_count = 0
+    job_id = os.environ['PBS_JOBID']
+    progress_file_path = os.path.join(output_dir,'i_progress_'+job_id+'.txt')
+    infer_start_time = time.time()
+    
+#Start while loop
     while True:
         # If all video captures are closed stop the loop
         if False not in [videoCap.closed for videoCap in videoCaps]:
+            print("I broke here line 387")
             break
-        total_frames_count+=1
 
-        iter_frames_processed=0
-        t_start = time.time()
+        no_more_data = False
+
         # loop over all video captures
         for idx, videoCapInfer in enumerate(videoCaps):
             # read the next frame
-            ret, frame = videoCapInfer.cap.read()
-            # If the read failed
-            #  close the window
-            #  mark it as closed
-            #  go to the next video capture
-            if not ret:
-                if not videoCapInfer.closed and output_dir ==None:
-                    cv2.destroyWindow(videoCapInfer.cap_name)
-                videoCapInfer.closed = True
-                continue
+            #print("Video {0} has length {1} and fps {2}".format(idx, videoCapInfer.length,  videoCapInfer.fps))
+            if not videoCapInfer.closed:
+                 #print("ID {0}".format(idx))
+                 vfps = int(round(videoCapInfer.cap.get(cv2.CAP_PROP_FPS)))
+                 #for i in range(0, int(round(vfps / minFPS))):
+                 for i in range(videoCapInfer.rate):
+                     frame_count += 1
+                     #print("i = {0}".format(i))
+                     ret, frame = videoCapInfer.cap.read()
+                     videoCapInfer.cur_frame_count += 1
+                     # If the read failed close the program
+                     if not ret:
+                         videoCapInfer.closed = True
+                         no_more_data = True
+                         break
 
-            # Copy the current frame for later use
-            videoCapInfer.cur_frame = frame.copy()
-            videoCapInfer.initial_w = videoCapInfer.cap.get(3)
-            videoCapInfer.initial_h = videoCapInfer.cap.get(4)
-            # Resize and change the data layout so it is compatible
-            in_frame = cv2.resize(videoCapInfer.cur_frame, (w, h))
-            in_frame = in_frame.transpose((2, 0, 1))  # Change data layout from HWC to CHW
-            in_frame = in_frame.reshape((n, c, h, w))
 
-            if is_async_mode:
-                exec_net.start_async(request_id=next_request_id, inputs={input_blob: in_frame})
-                # Async enabled and only one video capture
-                if(len(videoCaps) == 1):
-                    videoCapResult = videoCapInfer
-                # Async enabled and more than one video capture
-                else:
-                    # Get previous index
-                    videoCapResult = videoCaps[idx - 1 if idx - 1 >= 0 else len(videoCaps) - 1]
-            else:
-                # Async disabled
-                exec_net.start_async(request_id=cur_request_id, inputs={input_blob: in_frame})
-                videoCapResult = videoCapInfer
+                 if videoCapInfer.closed:
+                     print("Video {0} is done".format(idx))
+                     print("Video has  {0} frames ".format(videoCapInfer.length))
+                     break
 
-            if exec_net.requests[cur_request_id].wait(-1) == 0:
-                current_count = 0;
-                # Parse detection results of the current request
-                res = exec_net.requests[cur_request_id].outputs[out_blob]
-                for obj in res[0][0]:
-                    class_id = int(obj[1])
-                    # Draw only objects when probability more than specified threshold
-                    if (obj[2] > PROB_THRESHOLD and
-                        videoCapResult.req_label in labels_map and
-                        labels_map.index(videoCapResult.req_label) == class_id - 1):
-                        current_count += 1
-                        xmin = int(obj[3] * videoCapResult.initial_w)
-                        ymin = int(obj[4] * videoCapResult.initial_h)
-                        xmax = int(obj[5] * videoCapResult.initial_w)
-                        ymax = int(obj[6] * videoCapResult.initial_h)
-                        # Draw box
-                        cv2.rectangle(videoCapResult.cur_frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 4, 16)
+                 # Copy the current frame for later use
+                 videoCapInfer.cur_frame = frame.copy()
+                 videoCapInfer.initial_w = videoCapInfer.cap.get(3)
+                 videoCapInfer.initial_h = videoCapInfer.cap.get(4)
+                 # Resize and change the data layout so it is compatible
+                 in_frame = cv2.resize(videoCapInfer.cur_frame, (w, h))
+                 in_frame = in_frame.transpose((2, 0, 1))  # Change data layout from HWC to CHW
+                 in_frame = in_frame.reshape((n, c, h, w))
 
-                if videoCapResult.candidate_count is current_count:
-                    videoCapResult.candidate_confidence += 1
-                else:
-                    videoCapResult.candidate_confidence = 0
-                    videoCapResult.candidate_count = current_count
+                 infer_start = datetime.datetime.now()
+                 if is_async_mode:
+                     exec_net.start_async(request_id=next_request_id, inputs={input_blob: in_frame})
+                     # Async enabled and only one video capture
+                     if(len(videoCaps) == 1):
+                         videoCapResult = videoCapInfer
+                     # Async enabled and more than one video capture
+                     else:
+                         # Get previous index
+                         videoCapResult = videoCaps[idx - 1 if idx - 1 >= 0 else len(videoCaps) - 1]
+                 else:
+                     # Async disabled
+                     exec_net.start_async(request_id=cur_request_id, inputs={input_blob: in_frame})
+                     videoCapResult = videoCapInfer
+                 
+                 if exec_net.requests[cur_request_id].wait(-1) == 0:
+                     infer_end = datetime.datetime.now()
+                     infer_duration = infer_end - infer_start
+                     current_count = 0
+                     # Parse detection results of the current request
+                     res = exec_net.requests[cur_request_id].outputs[out_blob]
+                     for obj in res[0][0]:
+                         class_id = int(obj[1])
+                         # Draw only objects when probability more than specified threshold
+                         if (obj[2] > PROB_THRESHOLD and
+                             videoCapResult.req_label in labels_map and
+                             labels_map.index(videoCapResult.req_label) == class_id - 1):
+                             current_count += 1
+                             xmin = int(obj[3] * videoCapResult.initial_w)
+                             ymin = int(obj[4] * videoCapResult.initial_h)
+                             xmax = int(obj[5] * videoCapResult.initial_w)
+                             ymax = int(obj[6] * videoCapResult.initial_h)
+                             # Draw box
+                             cv2.rectangle(videoCapResult.cur_frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 4, 16)
 
-                new_logs = []
-                if videoCapResult.candidate_confidence is 5:
-                    videoCapResult.candidate_confidence = 0
-                    if current_count > videoCapResult.last_correct_count:
-                        videoCapResult.total_count += current_count - videoCapResult.last_correct_count
+                     if videoCapResult.candidate_count is current_count:
+                         videoCapResult.candidate_confidence += 1
+                     else:
+                         videoCapResult.candidate_confidence = 0
+                         videoCapResult.candidate_count = current_count
 
-                    if current_count is not videoCapResult.last_correct_count:
-                        if UI_OUTPUT:
-                            currtime = datetime.datetime.now().strftime("%H:%M:%S")
-                            fr = FrameInfo(videoCapResult.frames, current_count, currtime)
-                            videoCapResult.countAtFrame.append(fr)
-                        new_objects = current_count - videoCapResult.last_correct_count
-                        for _ in range(new_objects):
-                            strt = "{} - {} detected on {}".format(time.strftime("%H:%M:%S"), videoCapResult.req_label, videoCapResult.cap_name)
-                            new_logs.append(strt)
+                     if videoCapResult.candidate_confidence is FRAME_THRESHOLD:
+                         videoCapResult.candidate_confidence = 0
+                         if current_count > videoCapResult.last_correct_count:
+                             videoCapResult.total_count += current_count - videoCapResult.last_correct_count
 
-                    videoCapResult.frames+=1
-                    videoCapResult.last_correct_count = current_count
-                else:
-                    videoCapResult.frames+=1
+                         if current_count is not videoCapResult.last_correct_count:
+                             if UI_OUTPUT:
+                                 currtime = datetime.datetime.now().strftime("%H:%M:%S")
+                                 fr = FrameInfo(videoCapResult.frames, current_count, currtime)
+                                 videoCapResult.countAtFrame.append(fr)
+                             new_objects = current_count - videoCapResult.last_correct_count
+                             for _ in range(new_objects):
+                                 str = "{} - {} detected on {}".format(time.strftime("%H:%M:%S"), videoCapResult.req_label, videoCapResult.cap_name)
+                                 rolling_log.append(str)
 
-                videoCapResult.cur_frame = cv2.resize(videoCapResult.cur_frame, (w, h))
+                         videoCapResult.frames+=1
+                         videoCapResult.last_correct_count = current_count
+                     else:
+                         videoCapResult.frames+=1
 
-                if not UI_OUTPUT:
-                    # Add log text to each frame
-                    log_message = "Async mode is on." if is_async_mode else \
-                                  "Async mode is off."
-                    cv2.putText(videoCapResult.cur_frame, log_message, (15, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-                    log_message = "Total {} count: {}".format(videoCapResult.req_label, videoCapResult.total_count)
-                    cv2.putText(videoCapResult.cur_frame, log_message, (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-                    log_message = "Current {} count: {}".format(videoCapResult.req_label, videoCapResult.last_correct_count)
-                    cv2.putText(videoCapResult.cur_frame, log_message, (10, h - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                     videoCapResult.cur_frame = cv2.resize(videoCapResult.cur_frame, (w, h))
 
-                # Send the current video frame and the new logs to the propper display thread
-                videoCapResult.frame_queue.put((videoCapResult.cur_frame, new_logs))
+                     if not UI_OUTPUT:
+                         # Add log text to each frame
+                         log_message = "Async mode is on." if is_async_mode else \
+                                       "Async mode is off."
+                         cv2.putText(videoCapResult.cur_frame, log_message, (15, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                         log_message = "Total {} count: {}".format(videoCapResult.req_label, videoCapResult.total_count)
+                         cv2.putText(videoCapResult.cur_frame, log_message, (10, h - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                         log_message = "Current {} count: {}".format(videoCapResult.req_label, videoCapResult.last_correct_count)
+                         cv2.putText(videoCapResult.cur_frame, log_message, (10, h - 30), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                         cv2.putText(videoCapResult.cur_frame, 'Infer wait: %0.3fs' % (infer_duration.total_seconds()), (10, h - 70), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                     
+                         # Display inferred frame and stats
+                         stats = numpy.zeros((statsHeight, statsWidth, 1), dtype = 'uint8')
+                         for i, log in enumerate(rolling_log):
+                             cv2.putText(stats, log, (10, i * 20 + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                         #cv2.imshow(STATS_WINDOW_NAME, stats)
+                         if idx == 0:
+                             stats = cv2.cvtColor(stats, cv2.COLOR_GRAY2BGR)
+                             #Write
+                             statsVideo.write(stats)
+                         end_time = datetime.datetime.now()
+                         cv2.putText(videoCapResult.cur_frame, 'FPS: %0.2fs' % (1 / (end_time - videoCapResult.start_time).total_seconds()), (10, h - 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                         #cv2.imshow(videoCapResult.cap_name, videoCapResult.cur_frame)
+                         videoCapResult.start_time = datetime.datetime.now()
+                         #Write
+                         videoCapResult.video.write(videoCapResult.cur_frame)
+                      
+            if frame_count%10 == 0: 
+                progressUpdate(progress_file_path, time.time()-infer_start_time, frame_count, frames_sum) 
 
-                if not UI_OUTPUT:
-                    # Display stats
-                    log_lock.acquire()
-                    if rolling_log_changed:
-                        if output_dir == None:
-                            stats = numpy.zeros((h if h > (len(videoCaps) * 20 + 15) else (len(videoCaps) * 20 + 15), w if w > 345 else 345, 1), dtype = 'uint8')
-                            for i, log in enumerate(rolling_log):
-                                cv2.putText(stats, log, (10, i * 20 + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
-                            display_lock.acquire()
-                            cv2.imshow(STATS_WINDOW_NAME, stats)
-                            display_lock.release()
-                        rolling_log_changed = False
-                    log_lock.release()
-
-            # imshow and waitKey are not thread safe
-            display_lock.acquire()
+            # Wait if necessary for the required time
+            #key = cv2.waitKey(waitTime)
             key = cv2.waitKey(1)
-            display_lock.release()
+            
             # Esc key pressed
             if key == 27:
                 cv2.destroyAllWindows()
@@ -538,51 +552,43 @@ def main(device, output_dir, conf):
                 # Swap infer request IDs
                 cur_request_id, next_request_id = next_request_id, cur_request_id
 
-            if LOOP_VIDEO and videoCapInfer.is_cam:
-                videoCapInfer.cur_frame_count += 1
+            # Loop video if LOOP_VIDEO = True and input isn't live from USB camera
+            if LOOP_VIDEO and not videoCapInfer.is_cam:
+                vfps = int(round(videoCapInfer.cap.get(cv2.CAP_PROP_FPS)))
                 # If a video capture has ended restart it
-                if (videoCapInfer.cur_frame_count == videoCapInfer.cap.get(cv2.CAP_PROP_FRAME_COUNT)):
+                if (videoCapInfer.cur_frame_count > videoCapInfer.cap.get(cv2.CAP_PROP_FRAME_COUNT) - int(round(vfps / minFPS))):
                     videoCapInfer.cur_frame_count = 0
                     videoCapInfer.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+        
+        if no_more_data:
+            progressUpdate(progress_file_path, time.time()-infer_start_time, frames_sum, frames_sum) 
+            break
+#End of while loop--------------------
+    no_more_data = True
+    t2 = time.time()-infer_start_time
+    for videos in videoCaps:
+        print(videos.length)
+        print(videos.closed)
+    print("End loop")
+    print("Total time {0}".format(t2))
+    print("Total frame count {0}".format(frame_count))
+    print("fps {0}".format(frame_count/t2))
+    with open(os.path.join(output_dir, 'stats.txt'), 'w') as f:
+        f.write('{} \n'.format(round(t2)))
+        f.write('{} \n'.format(frame_count))
+                 
 
-            iter_frames_processed+=1
-
-        t_finished = time.time()
-        #iter_fps=float(iter_frames_processed)/(t_finished-t_start)
-        iter_fps=1.0/(t_finished-t_start)
-        fps_sum += iter_fps
-
-        if output_dir:
-            stats = numpy.zeros((h, w, 3), dtype = 'uint8')
-            for i, log in enumerate(rolling_log):
-                cv2.putText(stats, log, (10, i * 20 + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-            stats_video.frame_queue.put((stats, None))
+    for vc in videoCaps:
+        print("Frames processed {}".format(vc.cur_frame_count))
+        print("Frames count {}".format(vc.length))
 
 
+    for vc in videoCaps:
+        vc.video.release()
+        vc.cap.release()
 
-    # Teminating video writes
-    if output_dir:
-        stats_video.frame_queue.put((None, None))
-        for vc in videoCaps:
-            vc.frame_queue.put((None, None))
-        stats_thread.join()
-        for vc_thread in vc_threads:
-            vc_thread.join()
-        fps=fps_sum/float(total_frames_count)
-        print('total_fps was {}'.format(fps))
-        adjustSpeeds(vc_threads, stats_thread, fps)
-        with open(os.path.join(output_dir, 'fps.txt'), 'w') as f:
-            f.write(str(fps))
+        if no_more_data:
+            break
 
 if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument('-o', '--output_dir', default=None, help="Name of the directory to write the video to")
-    parser.add_argument('-d', '--device', default='GPU', help="Device to use for inference")
-    parser.add_argument('-c', '--conf', default='./resources/conf.txt', help=".conf file to use")
-
-    args = vars(parser.parse_args())
-    allowed_devices = ['GPU', 'CPU', 'MYRIAD']
-    if not args['device'] in allowed_devices:
-        print("Device must be one of {}".format(allowed_devices))
-        sys.exit(1)
-    sys.exit(main(**args) or 0)
+    sys.exit(main() or 0)
