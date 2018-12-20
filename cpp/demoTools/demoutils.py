@@ -139,7 +139,7 @@ def progressIndicator(path, file_name , title, min_, max_):
 
     #Check if results directory exists, if not create it and create the progress data file
     if not os.path.isdir(path):
-        os.mkdir(path)
+        os.makedirs(path, exist_ok=True)
     f = open(path+'/'+file_name, "w")
     f.close()
     
