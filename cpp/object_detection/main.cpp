@@ -26,6 +26,7 @@
 #include <chrono>
 #include <gflags/gflags.h>
 
+#include <omp.h>
 #include <ie_device.hpp>
 #include <ie_plugin_config.hpp>
 #include <ie_plugin_dispatcher.hpp>
@@ -125,9 +126,10 @@ int main(int argc, char *argv[]) {
             showUsage();
             return 1;
         }
-
-
-        FILE *ROIfile=fopen(FLAGS_o.c_str(),"w"); // output stored here, view with ROIviewer
+      
+	std::string ROIsFile = FLAGS_o+"/ROIs.txt";
+        //FILE *ROIfile=fopen(ROIsFile.c_str(),"w"); // output stored here, view with ROIviewer
+        FILE *ROIfile=fopen(ROIsFile.c_str(),"w"); // output stored here, view with ROIviewer
 
         /** ---------------------1. Load Plugin ---------------------------------------------------------------------**/
         InferenceEngine::PluginDispatcher dispatcher({""});
@@ -249,6 +251,14 @@ int main(int argc, char *argv[]) {
         int framenum=0;
         bool process_more_frames=true;
         int frames_in_output=batchSize;
+        std::string job_id = getenv("PBS_JOBID");
+	std::string progress_data = FLAGS_o+"/i_progress_"+job_id+".txt";
+	std::ofstream progress;
+	double t1 = omp_get_wtime();
+	size_t length = (size_t) cap.get(cv::CAP_PROP_FRAME_COUNT);
+        //For progress indicator, max value is min(video length, max num of frames to process)
+	if(FLAGS_fr < length)
+		length = FLAGS_fr;
 
         /** ------------------------------------------------------------------**/
         /** ---------           MAIN LOOP                        -------------**/
@@ -256,6 +266,20 @@ int main(int argc, char *argv[]) {
         do {
 
             /** ---------------------7. Prepare input -------------------------------------------------------------------**/
+		//Progress Indicator
+		if (framenum%10 == 0  || framenum%length == 0){
+	        	double t2 = omp_get_wtime()-t1;
+            		progress.open(progress_data);
+                	std::string cur_progress = std::to_string(int(100*framenum/length))+'\n';
+	        	std::string remaining_time = std::to_string(int((t2/framenum)*(length-framenum)))+'\n';
+	        	std::string estimated_time = std::to_string(int((t2/framenum)*length))+'\n';
+	        	progress<<cur_progress;
+	        	progress<<remaining_time;
+	        	progress<<estimated_time;
+	
+	                progress.flush();
+        	        progress.close();
+                }
 
 	    time1 = chrono::high_resolution_clock::now();
             for (int mb=0; mb < batchSize; mb++)
@@ -350,6 +374,14 @@ int main(int argc, char *argv[]) {
 	        postprocess_times.push_back(diff.count()*1000.0);
             }
         } while (process_more_frames);
+	//Write time and num of frames to stats file
+	std::ofstream stats; 
+	stats.open(FLAGS_o+"/stats.txt");
+	stats<<std::to_string(omp_get_wtime()-t1)+'\n';
+        stats<<std::to_string(framenum)+'\n';
+	stats.close();
+
+
 
         fclose(ROIfile);
 

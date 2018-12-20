@@ -26,7 +26,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/video/video.hpp>
-
+#include <omp.h>
 #include <gflags/gflags.h>
 #include <common_labelinfo.hpp>
 
@@ -143,13 +143,18 @@ int main(int argc,char **argv)
     Size S = Size((int) cap.get(CAP_PROP_FRAME_WIDTH)/FLAGS_r,    // Acquire input size
                   (int) cap.get(CAP_PROP_FRAME_HEIGHT)/FLAGS_r);
     float o_fps = cap.get(CAP_PROP_FPS)/FLAGS_k;
-    VideoWriter outputVideo(FLAGS_o, 0x00000021, o_fps, S, true);
+    VideoWriter outputVideo(FLAGS_o+"/output.mp4", 0x00000021, o_fps, S, true);
     if (!outputVideo.isOpened())
     {
-        cout  << "Could not open the output video for write: " << FLAGS_o << endl;
+        cout  << "Could not open the output video for write: " << FLAGS_o+"/output.mp4" << endl;
         return -1;
     }
 
+    std::string job_id = getenv("PBS_JOBID");
+    std::string progress_data = FLAGS_o+"/v_progress_"+job_id+".txt";
+    std::ofstream progress;
+    size_t length = (size_t) cap.get(cv::CAP_PROP_FRAME_COUNT);
+    double t1 = omp_get_wtime();
 
     for(;;)
     {
@@ -157,6 +162,22 @@ int main(int argc,char **argv)
         if (frame.empty()) break;
         int ncols=frame.cols;
         int nrows=frame.rows;
+
+	//Progress Indicator
+	if (framenum%10 == 0  || framenum%length == 0){
+        	double t2 = omp_get_wtime()-t1;
+    		progress.open(progress_data);
+        	std::string cur_progress = std::to_string(int(100*framenum/length))+'\n';
+        	std::string remaining_time = std::to_string(int((t2/framenum)*(length-framenum)))+'\n';
+        	std::string estimated_time = std::to_string(int((t2/framenum)*length))+'\n';
+        	progress<<cur_progress;
+        	progress<<remaining_time;
+        	progress<<estimated_time;
+
+                progress.flush();
+	        progress.close();
+        }
+
 
         //catch up with current frame
         while (R.framenum<framenum) {
