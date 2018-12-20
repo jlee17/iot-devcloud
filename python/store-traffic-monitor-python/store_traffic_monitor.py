@@ -37,13 +37,12 @@ import time
 import datetime
 import collections
 import threading
-#import queue
 import datetime
 import math
 from openvino.inference_engine import IENetwork, IEPlugin
 from pathlib import Path
 sys.path.insert(0, str(Path().resolve().parent))
-from demo_tools.demoutils import progressUpdate
+from demoTools.demoutils import progressUpdate
 
 
 

@@ -27,7 +27,7 @@ import io
 from openvino.inference_engine import IENetwork, IEPlugin
 from pathlib import Path
 sys.path.insert(0, str(Path().resolve().parent))
-from demo_tools.demoutils import progressUpdate
+from demoTools.demoutils import progressUpdate
 
 
 def build_argparser():
