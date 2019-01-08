@@ -184,7 +184,7 @@ def detect_crack(frame, cnt, base_dir, count_object):
 
 
 
-def runFlowDetector(vid_path = 0, base_dir=None, draw_callback = None):
+def runFlawDetector(vid_path = 0, base_dir=None, draw_callback = None):
 
     OBJECT_AREA = 9000
     LOW_H = 0
@@ -315,6 +315,6 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
     base_dir = args['dir']
     vid_path = args['vid']
-    runFlowDetector(vid_path, base_dir)
+    runFlawDetector(vid_path, base_dir)
 
 
