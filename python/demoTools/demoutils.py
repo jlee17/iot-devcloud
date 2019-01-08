@@ -77,20 +77,21 @@ def liveQstat():
     cmd = ['qstat']
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     output,_ = p.communicate()
-    now=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    qstat = widgets.Textarea(value=now+'\n'+output.decode(), layout={'height': '200px', 'width': '600px'})
-    stop_signal_q=queue.Queue()
+    now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    qstat = widgets.Output(layout={'width': '100%', 'border': '1px solid gray'})
+    stop_signal_q = queue.Queue()
 
     def _work(qstat,stop_signal_q):
         while stop_signal_q.empty():
             cmd = ['qstat']
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
             output,_ = p.communicate()
-            now=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            qstat.value = now+'\n'+output.decode()
-            time.sleep(0.1)
-        print('qstat stopped')
-    thread = threading.Thread(target=_work, args=(qstat,stop_signal_q))
+            now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            qstat.append_stdout(now+'\n'+output.decode()+'\n\n\n')
+            qstat.clear_output(wait=True)
+            time.sleep(1.0)
+        print('liveQstat stopped')
+    thread = threading.Thread(target=_work, args=(qstat, stop_signal_q))
 
     thread.start()
     sb = widgets.Button(description='Stop')
