@@ -144,7 +144,6 @@ def main():
     frame_count = 0
     inf_list = []
     res_list = []
-    res_arr = np.zeros((3000, 1, 1, 100, 7))
     try:
         infer_time_start = time.time()
         while cap.isOpened():
