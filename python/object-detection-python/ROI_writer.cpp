@@ -61,7 +61,7 @@ int main(int argc, char ** argv)
 	string input_stream = argv[1];
 	string input_data = string(argv[2])+"/output_"+job_id+".txt";
 	string progress_data = string(argv[2])+"/v_progress_"+job_id+".txt";
-	string output_result = string(argv[2])+"/cars_1900_output_"+job_id+".mp4";
+	string output_result = string(argv[2])+"/output_"+job_id+".mp4";
 	int skip_frame = stoi(argv[3]);
 	float resl = stof(argv[4]);
 	
