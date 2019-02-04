@@ -26,7 +26,7 @@ import numpy as np
 import io
 from openvino.inference_engine import IENetwork, IEPlugin
 from pathlib import Path
-sys.path.insert(0, str(Path().resolve().parent))
+sys.path.insert(0, str(Path().resolve().parent.parent))
 from demoTools.demoutils import progressUpdate
 
 
