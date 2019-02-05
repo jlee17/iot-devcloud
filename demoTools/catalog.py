@@ -1,28 +1,38 @@
-from IPython.core.display import HTML
+from IPython.core.display import HTML, Markdown
 import ipywidgets as widgets
 import subprocess
 import json
+import os.path
 
 class DemoCatalog:
 
     def __init__(self, config_file):
-        with open(config_file) as config:
+        with open(config_file, "r") as config:
             self.conf = json.load(config)
-
-        self.repoStatus = widgets.HTML(value=self.conf['status']['messages']['placeholder'])
+            config.close()
+        with open(self.conf['css']) as css:
+            display(HTML(css.read()))
         self.ShowRepositoryStatus()
         self.ShowRefreshButton()
         self.ShowListOfDemos()
         self.AutoClickStatusButton()
 
+    def ShowRepositoryControls(self):
+        self.repoStatus = widgets.HTML(value=self.conf['status']['messages']['placeholder'])
+        self.statusButton = widgets.Button(description=self.conf['status']['button'])
+        
+        display(Markdown("## Code Repository Controls"))
+        display(widgets.VBox([self.repoStatus, self.statusButton]))
+
     def ShowRepositoryStatus(self):
-        data = "<h2>"+self.conf['status']['header']+"</h2>"
-        display(HTML(data))
+        self.repoStatus = widgets.HTML(value=self.conf['status']['messages']['placeholder'])
+        data = "### "+self.conf['status']['header']
+        display(Markdown(data))
         self.statusButton = widgets.Button(description=self.conf['status']['button'])
         self.statusButton.on_click(self.RefreshStatus)
         display(self.repoStatus)
         display(self.statusButton)
-
+        
     def AutoClickStatusButton(self):
         code = ('<script>autoClickLaunched = 0;'+
                 'function AutoClickStatusButton(event) {'+
@@ -40,16 +50,24 @@ class DemoCatalog:
         display(HTML(code))
 
     def ShowRefreshButton(self):
-        data = "<h2>"+self.conf['refresh']['header']+"</h2>"
-        data += "<p>"+self.conf['refresh']['foreword']+"<p>"
+        data = "### "+self.conf['refresh']['header']+"\n"
+        data += self.conf['refresh']['foreword']
         self.refreshButton = widgets.Button(description=self.conf['refresh']['button'])
         self.refreshButton.on_click(self.RefreshRepository)
-        display(HTML(data))
+        display(Markdown(data))
         display(self.refreshButton)
 
     def ShowListOfDemos(self):
-        data = "<h2>"+self.conf['list']['header']+"</h2>"
-        display(HTML(data))
+        data = "## "+self.conf['list']['header']+"\n"
+        for lab in self.conf['list']['labs']:
+            lab_dir=os.path.dirname(lab)
+            with open(lab_dir+"/README.md", "r") as readme:
+                cont=readme.read()
+                readme.close()
+                data += cont
+            title = cont[0]
+            data += "\n<a href='"+lab+"' target='_blank' class='big-jupyter-button'>"+self.conf['list']['terms']['goto']+": "+lab+"</a>\n"
+        display(Markdown(data))
 
     def RefreshStatus(self, evt):
         cmd = self.conf['status']['serverSideScript']
@@ -67,13 +85,13 @@ class DemoCatalog:
             v = msgs['unable']
 
         terms = self.conf['status']['terms']
-        self.repoStatus.value = ("<ul><li>{remote}: {remote_url}</li>"+
+        status = ("<ul><li>{remote}: {remote_url}</li>"+
                 "<li>{time}: {time_last}</li>"+
                 "<li>{status}: {status_value}</li></ul>").format(
                     remote=terms['remote'], remote_url=data[0],
                     time=terms['lastCheck'], time_last=data[2],
                     status=terms['status'], status_value=v)
-
+        self.repoStatus.value = status
 
     def RefreshRepository(self, evt):
         self.refreshButton.disabled = True
@@ -82,7 +100,7 @@ class DemoCatalog:
         output,_ = p.communicate()
         data = output.decode().split("\n")
         print(data)
-        refreshCode="<script>window.location.reload()</script>"
-        display(HTML(refreshCode))
+        refreshMessage="** Finished refresh. Please reload the browser window. **"
+        display(Markdown(refreshMessage))
 
         

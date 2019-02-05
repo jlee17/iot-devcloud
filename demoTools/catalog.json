@@ -1,4 +1,5 @@
 {
+    "css": "demoTools/catalog.css",
     "status":
     {
 	"header": "Status of Repository",
@@ -23,13 +24,23 @@
     },
     "refresh":
     {
-	"header": "Reinstall Code Repository",
-	"foreword": "Did the status check report that there are important updates to the demos? Do you want to undo all your changes to the demos and start fresh? Use the button below in both cases. It will wipe the demo directory and pull the latest code of the demos from GitHub. <b>You will lose any changes you have made to the demos and any data that your demo runs may have generated.</b>",
-	"button": "Yes, Reinstall",
+	"header": "Refresh Code Repository",
+	"foreword": "Did the status check report that there are important updates to the demos? Do you want to undo all your changes to the demos and start fresh? Use the button below in both cases. It will wipe the demo directory and pull the latest code of the demos from GitHub.\n\n**After refresh, you will lose any changes you have made to the demos and any data that your demo runs may have generated.**",
+	"button": "Yes, Refresh",
 	"serverSideScript": "demoTools/refreshRepository.sh"
     },
     "list":
     {
-	"header": "List of Demos"
+	"header": "List of Demos",
+	"labs":
+	[
+	    "python/flaw-detector-python/flawdetector-demo.ipynb",
+	    "python/object-detection-python/object_detection_demo.ipynb",
+	    "python/store-traffic-monitor-python/store_traffic_monitor_demo.ipynb"
+	],
+	"terms":
+	{
+	    "goto": "Go to Lab"
+	}
     }
 }
