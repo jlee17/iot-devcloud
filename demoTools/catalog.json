@@ -2,33 +2,24 @@
     "css": "demoTools/catalog.css",
     "status":
     {
-	"header": "Status of Repository",
-	"button": "Check Status",
-	"firstCheckDelayMilliseconds": "2000",
-	"autoCheckIntervalMilliseconds": "600000",
-	"serverSideScript": "demoTools/checkStatus.sh",
+	"serverSideStatusScript": "demoTools/checkStatus.sh",
+	"serverSideRefreshScript": "demoTools/refreshRepository.sh",
 	"messages":
 	{
 	    "placeholder": "(waiting to check the status; click the Check Status button to check immediately)",
-	    "upToDate": "the catalog is up to date. Feel free to start using the examples.",
-	    "behund": "there are important updates for the demos in the upstream repository. You should use the Refresh button below to get the most recent examples.",
-	    "ahead": "it seems that you have started your own version control. If you ever want to revert your changes and start fresh, use the Refresh button below.",
-	    "unable": "unable to determine status due to a server-side error."
-	},
-	"terms":
-	{
+	    "uptodate": "As of {time}, the catalog is up to date. Feel free to start using the examples.",
+	    "behind": "As of {time}, the catalog requires an update. Click to expand and learn more.",
+	    "ahead": "As of {time}, it seems that you are doing your own version control. Click to expand and learn more.",
+	    "unable": "As of {time}, we are unable to determine the catalog status due to a server-side error.",
+	    "foreword": "You can refresh the code catalog using the button below. <b>After the refresh, you will lose any changes you have made to the demos and any data that your demo runs may have generated.</b> Use the Refresh button if your catalog requires an update or if you want to undo all your changes to the demos and start fresh. Upon refresh, we will wipe your demo directory and pull the latest code of the demos from GitHub.\n\n",
 	    "remote": "Remote URL",
-	    "lastCheck": "Server-side time of last check",
-	    "status": "Status"
-	}
+	    "lastCheck": "Server-side time of last status check",
+	    "gitsaid": "Output of 'git status'"
+	},
+	"button": "Refresh Catalog",
+	"reloadCode": "<script>window.location.reload()</script>"
     },
-    "refresh":
-    {
-	"header": "Refresh Code Repository",
-	"foreword": "Did the status check report that there are important updates to the demos? Do you want to undo all your changes to the demos and start fresh? Use the button below in both cases. It will wipe the demo directory and pull the latest code of the demos from GitHub.\n\n**After refresh, you will lose any changes you have made to the demos and any data that your demo runs may have generated.**",
-	"button": "Yes, Refresh",
-	"serverSideScript": "demoTools/refreshRepository.sh"
-    },
+
     "list":
     {
 	"header": "List of Demos",
@@ -38,7 +29,7 @@
 	    "python/object-detection-python/object_detection_demo.ipynb",
 	    "python/store-traffic-monitor-python/store_traffic_monitor_demo.ipynb"
 	],
-	"terms":
+	"messages":
 	{
 	    "goto": "Go to Lab"
 	}

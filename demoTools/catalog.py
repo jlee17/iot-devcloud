@@ -12,50 +12,36 @@ class DemoCatalog:
             config.close()
         with open(self.conf['css']) as css:
             display(HTML(css.read()))
-        self.ShowRepositoryStatus()
-        self.ShowRefreshButton()
+        self.ShowRepositoryControls()
         self.ShowListOfDemos()
-        self.AutoClickStatusButton()
 
     def ShowRepositoryControls(self):
-        self.repoStatus = widgets.HTML(value=self.conf['status']['messages']['placeholder'])
-        self.statusButton = widgets.Button(description=self.conf['status']['button'])
-        
-        display(Markdown("## Code Repository Controls"))
-        display(widgets.VBox([self.repoStatus, self.statusButton]))
+        url, status, lastCheck, fullstatus = self.GetStatus()
+        msgs = self.conf['status']['messages']
+        if int(status) == 0:
+            c = 'uptodate'
+        elif int(status) == 1:
+            c = 'behind'
+        elif int(status) == 2:
+            c = 'ahead'
+        else:
+            c = 'unable'
+        v = msgs[c].format(time=lastCheck)
 
-    def ShowRepositoryStatus(self):
-        self.repoStatus = widgets.HTML(value=self.conf['status']['messages']['placeholder'])
-        data = "### "+self.conf['status']['header']
-        display(Markdown(data))
-        self.statusButton = widgets.Button(description=self.conf['status']['button'])
-        self.statusButton.on_click(self.RefreshStatus)
-        display(self.repoStatus)
-        display(self.statusButton)
-        
-    def AutoClickStatusButton(self):
-        code = ('<script>autoClickLaunched = 0;'+
-                'function AutoClickStatusButton(event) {'+
-                '  var btns = document.getElementsByTagName("button");'+
-                '  var text = "'+self.conf["status"]["button"]+'";'+
-                '  for (var i = 0; i < btns.length; i++) {'+
-                '    if (btns[i].textContent == text) {'+
-                '       btns[i].click();'+
-                '    }'+
-                '  }'+
-                '  if (!event) setTimeout(AutoClickStatusButton, '+self.conf['status']['autoCheckIntervalMilliseconds']+');'+
-                '}'+
-                'setTimeout(AutoClickStatusButton, '+self.conf['status']['firstCheckDelayMilliseconds']+');'+
-                '</script>')
-        display(HTML(code))
 
-    def ShowRefreshButton(self):
-        data = "### "+self.conf['refresh']['header']+"\n"
-        data += self.conf['refresh']['foreword']
-        self.refreshButton = widgets.Button(description=self.conf['refresh']['button'])
+        w_url = widgets.HTML(value=("{remote}: {remote_url}").format(remote=msgs['remote'], remote_url=url))
+        w_time = widgets.HTML(value=("{time}: {lastCheck}").format(time=msgs['lastCheck'], lastCheck=lastCheck))
+        w_git = widgets.HTML(value=("{gitsaid}: {gitline}").format(gitsaid=msgs['gitsaid'], gitline=fullstatus))
+        w_hint = widgets.HTML(value=msgs['foreword'])
+        w_refresh=widgets.Button(description=self.conf['status']['button'])
+        w_info=widgets.VBox([w_url, w_time, w_git, w_hint, w_refresh])
+        w_acc=widgets.Accordion(children=[w_info], selected_index=None)
+        w_acc.set_title(0, v)
+        w_acc.add_class(c)
+        display(w_acc)
+        
+        self.refreshButton = w_refresh
         self.refreshButton.on_click(self.RefreshRepository)
-        display(Markdown(data))
-        display(self.refreshButton)
 
     def ShowListOfDemos(self):
         data = "## "+self.conf['list']['header']+"\n"
@@ -66,41 +52,21 @@ class DemoCatalog:
                 readme.close()
                 data += cont
             title = cont[0]
-            data += "\n<a href='"+lab+"' target='_blank' class='big-jupyter-button'>"+self.conf['list']['terms']['goto']+": "+lab+"</a>\n"
+            data += "\n<a href='"+lab+"' target='_blank' class='big-jupyter-button'>"+self.conf['list']['messages']['goto']+": "+lab+"</a>\n"
         display(Markdown(data))
 
-    def RefreshStatus(self, evt):
-        cmd = self.conf['status']['serverSideScript']
+    def GetStatus(self):
+        cmd = self.conf['status']['serverSideStatusScript']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         output,_ = p.communicate()
         data = output.decode().split("\n")
-        msgs = self.conf['status']['messages']
-        if int(data[1]) == 0:
-            v = msgs['upToDate']
-        elif int(data[1]) == 1:
-            v = msgs['behind']
-        elif int(data[1]) == 2:
-            v = msgs['ahead']
-        else:
-            v = msgs['unable']
-
-        terms = self.conf['status']['terms']
-        status = ("<ul><li>{remote}: {remote_url}</li>"+
-                "<li>{time}: {time_last}</li>"+
-                "<li>{status}: {status_value}</li></ul>").format(
-                    remote=terms['remote'], remote_url=data[0],
-                    time=terms['lastCheck'], time_last=data[2],
-                    status=terms['status'], status_value=v)
-        self.repoStatus.value = status
-
+        return data[0], data[1], data[2], data[3]
+        
     def RefreshRepository(self, evt):
         self.refreshButton.disabled = True
-        cmd = self.conf['refresh']['serverSideScript']
+        cmd = self.conf['refresh']['serverSideRefreshScript']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         output,_ = p.communicate()
-        data = output.decode().split("\n")
-        print(data)
-        refreshMessage="** Finished refresh. Please reload the browser window. **"
-        display(Markdown(refreshMessage))
+        display(HTML(self.conf['status']['reloadCode']))
 
         

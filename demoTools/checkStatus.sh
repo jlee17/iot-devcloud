@@ -13,4 +13,4 @@ else
    echo 3
 fi
 date
-
+echo $st
