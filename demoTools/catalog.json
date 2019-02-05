@@ -11,7 +11,7 @@
 	    "behind": "As of {time}, the catalog requires an update. Click to expand and learn more.",
 	    "ahead": "As of {time}, it seems that you are doing your own version control. Click to expand and learn more.",
 	    "unable": "As of {time}, we are unable to determine the catalog status due to a server-side error.",
-	    "foreword": "You can refresh the code catalog using the button below. <b>After the refresh, you will lose any changes you have made to the demos and any data that your demo runs may have generated.</b> Use the Refresh button if your catalog requires an update or if you want to undo all your changes to the demos and start fresh. Upon refresh, we will wipe your demo directory and pull the latest code of the demos from GitHub.\n\n",
+	    "foreword": "You can refresh the code catalog using the button below. <b>After the refresh, you will lose any changes you have made to the demos and any data that your demo runs may have generated.</b> Use the Refresh button if your catalog is not up to date. You can also use it if you want to undo all your changes to the demos and start fresh. Upon refresh, we will syncronize your demo directory with the latest code of the demos from GitHub.\n\n",
 	    "remote": "Remote URL",
 	    "lastCheck": "Server-side time of last status check",
 	    "gitsaid": "Output of 'git status'"

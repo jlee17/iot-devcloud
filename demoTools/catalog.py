@@ -64,7 +64,7 @@ class DemoCatalog:
         
     def RefreshRepository(self, evt):
         self.refreshButton.disabled = True
-        cmd = self.conf['refresh']['serverSideRefreshScript']
+        cmd = self.conf['status']['serverSideRefreshScript']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         output,_ = p.communicate()
         display(HTML(self.conf['status']['reloadCode']))
