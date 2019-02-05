@@ -1,0 +1,32 @@
+{
+    "status":
+    {
+	"header": "Status of Repository",
+	"button": "Check Status",
+	"firstCheckDelayMilliseconds": "2000",
+	"autoCheckIntervalMilliseconds": "600000",
+	"statusCheckScript": "demoTools/checkStatus.sh",
+	"messages":
+	{
+	    "placeholder": "(waiting to check the status; click the Check Status button to check immediately)",
+	    "upToDate": "the catalog is up to date. Feel free to start using the examples.",
+	    "behund": "there are important updates for the demos in the upstream repository. You should use the Refresh button below to get the most recent examples.",
+	    "ahead": "it seems that you have started your own version control. If you ever want to revert your changes and start fresh, use the Refresh button below.",
+	    "unable": "unable to determine status due to a server-side error."
+	},
+	"terms":
+	{
+	    "remote": "Remote URL",
+	    "lastCheck": "Server-side time of last check",
+	    "status": "Status"
+	}
+    },
+    "refresh":
+    {
+	"header": "Refresh Code Repository"
+    },
+    "list":
+    {
+	"header": "List of Demos"
+    }
+}
