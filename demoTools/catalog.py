@@ -41,14 +41,18 @@ class DemoCatalog:
 
     def ShowRefreshButton(self):
         data = "<h2>"+self.conf['refresh']['header']+"</h2>"
+        data += "<p>"+self.conf['refresh']['foreword']+"<p>"
+        self.refreshButton = widgets.Button(description=self.conf['refresh']['button'])
+        self.refreshButton.on_click(self.RefreshRepository)
         display(HTML(data))
+        display(self.refreshButton)
 
     def ShowListOfDemos(self):
         data = "<h2>"+self.conf['list']['header']+"</h2>"
         display(HTML(data))
 
     def RefreshStatus(self, evt):
-        cmd = self.conf['status']['statusCheckScript']
+        cmd = self.conf['status']['serverSideScript']
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
         output,_ = p.communicate()
         data = output.decode().split("\n")
@@ -69,4 +73,16 @@ class DemoCatalog:
                     remote=terms['remote'], remote_url=data[0],
                     time=terms['lastCheck'], time_last=data[2],
                     status=terms['status'], status_value=v)
-        #        self.repoStatus.value = "<ul><li>Remote URL: "+data[0]+"</li><li>Time of last check: "+data[2]+"</li><li>Status: "+v
+
+
+    def RefreshRepository(self, evt):
+        self.refreshButton.disabled = True
+        cmd = self.conf['refresh']['serverSideScript']
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        output,_ = p.communicate()
+        data = output.decode().split("\n")
+        print(data)
+        refreshCode="<script>window.location.reload()</script>"
+        display(HTML(refreshCode))
+
+        

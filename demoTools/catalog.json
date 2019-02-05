@@ -5,7 +5,7 @@
 	"button": "Check Status",
 	"firstCheckDelayMilliseconds": "2000",
 	"autoCheckIntervalMilliseconds": "600000",
-	"statusCheckScript": "demoTools/checkStatus.sh",
+	"serverSideScript": "demoTools/checkStatus.sh",
 	"messages":
 	{
 	    "placeholder": "(waiting to check the status; click the Check Status button to check immediately)",
@@ -23,7 +23,10 @@
     },
     "refresh":
     {
-	"header": "Refresh Code Repository"
+	"header": "Reinstall Code Repository",
+	"foreword": "Did the status check report that there are important updates to the demos? Do you want to undo all your changes to the demos and start fresh? Use the button below in both cases. It will wipe the demo directory and pull the latest code of the demos from GitHub. <b>You will lose any changes you have made to the demos and any data that your demo runs may have generated.</b>",
+	"button": "Yes, Reinstall",
+	"serverSideScript": "demoTools/refreshRepository.sh"
     },
     "list":
     {
