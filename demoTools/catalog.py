@@ -14,6 +14,7 @@ class DemoCatalog:
         with open(self.conf['css']) as css:
             display(HTML(css.read()))
         self.ShowRepositoryControls()
+        self.ShowIntro()
         self.ShowListOfDemos()
         self.AutorunAnchor()
         
@@ -44,6 +45,12 @@ class DemoCatalog:
         
         self.refreshButton = w_refresh
         self.refreshButton.on_click(self.RefreshRepository)
+
+    def ShowIntro(self):
+        with open("README.md", "r") as readme:
+            cont=readme.read()
+            readme.close()
+        display(Markdown(cont))
 
     def ShowListOfDemos(self):
         data = "## "+self.conf['list']['header']+"\n"
@@ -108,6 +115,6 @@ class DemoCatalog:
                      "  }"+
                      "  codeShow = !codeShow;"+
                      "}"+
-                     "$( document ).ready(code_toggle);"+
+                     "$( document ).ready(CodeToggle);"+
                      "</script>"+
-                     "<form action='javascript:code_toggle()'><input type='submit' value='"+self.conf['messages']['toggle']+"'></form>"))
+                     "<form action='javascript:CodeToggle()'><input type='submit' value='"+self.conf['messages']['toggle']+"'></form>"))
