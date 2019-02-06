@@ -18,7 +18,7 @@
 	},
 	"button": "Refresh Catalog",
 	"reloadCode": "<script>window.location.reload()</script>",
-	"autorunFirstDelay": "500",
+	"autorunFirstDelay": "1500",
 	"autorunInterval": "-1"
     },
 
