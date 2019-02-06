@@ -41,4 +41,10 @@ div.uptodate > div.p-Collapse > div.p-Collapse-header
     background-color:#008800;
     color:white;
 }
+.rendered_html h2, .rendered_html h2:first-child, .rendered_html h3
+{
+    margin-top:3em;
+}
+
+
 </style>
