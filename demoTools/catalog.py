@@ -12,12 +12,9 @@ class DemoCatalog:
             self.conf = json.load(config)
             config.close()
         with open(self.conf['css']) as css:
-            display(HTML(css.read()))
-        self.ShowRepositoryControls()
-        self.ShowIntro()
-        self.ShowListOfDemos()
-        self.AutorunAnchor()
-        
+            self.css = css.read()
+            css.close()
+
     def ShowRepositoryControls(self):
         url, status, lastCheck, fullstatus = self.GetStatus()
         msgs = self.conf['status']['messages']
@@ -31,6 +28,7 @@ class DemoCatalog:
             c = 'unable'
         v = msgs[c].format(time=lastCheck)
 
+        display(HTML(self.css))
 
         w_url = widgets.HTML(value=("{remote}: {remote_url}").format(remote=msgs['remote'], remote_url=url))
         w_time = widgets.HTML(value=("{time}: {lastCheck}").format(time=msgs['lastCheck'], lastCheck=lastCheck))
@@ -46,6 +44,10 @@ class DemoCatalog:
         self.refreshButton = w_refresh
         self.refreshButton.on_click(self.RefreshRepository)
 
+    def ShowCatalog(self):
+        self.ShowIntro()
+        self.ShowListOfDemos()
+        
     def ShowIntro(self):
         with open("README.md", "r") as readme:
             cont=readme.read()
@@ -78,17 +80,17 @@ class DemoCatalog:
         output,_ = p.communicate()
         display(HTML(self.conf['status']['reloadCode']))
 
-    def AutorunAnchor(self):
-        display(HTML("<a class='autorun-anchor-"+self.config_file+"'></a>"))
+    def Anchor(self, name):
+        display(HTML("<a class='"+name+"'></a>"))
 
-    def Autorun(self):
+    def Autorun(self, name):
         display(HTML("<script>"+
                      "function ClickRunGenerate() {"+
                      "  var code_cells = document.getElementsByClassName('code_cell');"+
                      "  if (code_cells.length > 0) {"+
                      "    var i;"+
                      "    for (i = 0; i < code_cells.length; i++) {"+
-                     "      var anch = code_cells[i].getElementsByClassName('autorun-anchor-"+self.config_file+"');"+
+                     "      var anch = code_cells[i].getElementsByClassName('"+name+"');"+
                      "      if (anch.length > 0) {"+
                      "        var rtc = code_cells[i].getElementsByClassName('run_this_cell');"+
                      "        if (rtc.length > 0) {"+
@@ -100,8 +102,11 @@ class DemoCatalog:
                      "      }"+
                      "    }"+
                      "  }"+
+                     "  if ("+self.conf['status']['autorunInterval']+" > 0) {"+
+                     "    setTimeout(ClickRunGenerate, "+self.conf['status']['autorunInterval']+");"+
+                     "  }"+
                      "}"+
-                     "setTimeout(ClickRunGenerate, 500);"+
+                     "setTimeout(ClickRunGenerate, "+self.conf['status']['autorunFirstDelay']+");"+
                      "</script>"))
 
     def ToggleCode(self):
