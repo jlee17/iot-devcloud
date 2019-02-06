@@ -7,6 +7,7 @@ import os.path
 class DemoCatalog:
 
     def __init__(self, config_file):
+        self.config_file = config_file
         with open(config_file, "r") as config:
             self.conf = json.load(config)
             config.close()
@@ -14,7 +15,8 @@ class DemoCatalog:
             display(HTML(css.read()))
         self.ShowRepositoryControls()
         self.ShowListOfDemos()
-
+        self.AutorunAnchor()
+        
     def ShowRepositoryControls(self):
         url, status, lastCheck, fullstatus = self.GetStatus()
         msgs = self.conf['status']['messages']
@@ -69,4 +71,43 @@ class DemoCatalog:
         output,_ = p.communicate()
         display(HTML(self.conf['status']['reloadCode']))
 
-        
+    def AutorunAnchor(self):
+        display(HTML("<a class='autorun-anchor-"+self.config_file+"'></a>"))
+
+    def Autorun(self):
+        display(HTML("<script>"+
+                     "function ClickRunGenerate() {"+
+                     "  var code_cells = document.getElementsByClassName('code_cell');"+
+                     "  if (code_cells.length > 0) {"+
+                     "    var i;"+
+                     "    for (i = 0; i < code_cells.length; i++) {"+
+                     "      var anch = code_cells[i].getElementsByClassName('autorun-anchor-"+self.config_file+"');"+
+                     "      if (anch.length > 0) {"+
+                     "        var rtc = code_cells[i].getElementsByClassName('run_this_cell');"+
+                     "        if (rtc.length > 0) {"+
+                     "          var j;"+
+                     "          for (j = 0; j < rtc.length; j++) {"+
+                     "            rtc[j].click();"+
+                     "          }"+
+                     "        }"+
+                     "      }"+
+                     "    }"+
+                     "  }"+
+                     "}"+
+                     "setTimeout(ClickRunGenerate, 500);"+
+                     "</script>"))
+
+    def ToggleCode(self):
+        display(HTML("<script>"+
+                     "codeShow=true;"+
+                     "function CodeToggle() {"+
+                     "  if (codeShow) {"+
+                     "    $('div.input').hide();"+
+                     "  } else {"+
+                     "    $('div.input').show();"+
+                     "  }"+
+                     "  codeShow = !codeShow;"+
+                     "}"+
+                     "$( document ).ready(code_toggle);"+
+                     "</script>"+
+                     "<form action='javascript:code_toggle()'><input type='submit' value='"+self.conf['messages']['toggle']+"'></form>"))
