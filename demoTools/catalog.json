@@ -7,7 +7,7 @@
 	"messages":
 	{
 	    "placeholder": "(waiting to check the status; click the Check Status button to check immediately)",
-	    "uptodate": "As of {time}, the catalog is up to date. Feel free to start using the examples.",
+	    "uptodate": "As of {time}, the catalog is up to date. To check again, in the menu choose Cell -> Run All.",
 	    "behind": "As of {time}, the catalog requires an update. Click to expand and learn more.",
 	    "ahead": "As of {time}, it seems that you are doing your own version control. Click to expand and learn more.",
 	    "unable": "As of {time}, we are unable to determine the catalog status due to a server-side error.",
@@ -29,7 +29,8 @@
 	[
 	    "python/flaw-detector-python/flawdetector-demo.ipynb",
 	    "python/object-detection-python/object_detection_demo.ipynb",
-	    "python/store-traffic-monitor-python/store_traffic_monitor_demo.ipynb"
+	    "python/store-traffic-monitor-python/store_traffic_monitor_demo.ipynb",
+	    "python/safety-gear-detection-python/safety_gear_detection.ipynb"
 	],
 	"messages":
 	{
