@@ -17,7 +17,9 @@
 	    "gitsaid": "Output of 'git status'"
 	},
 	"button": "Refresh Catalog",
-	"reloadCode": "<script>window.location.reload()</script>"
+	"reloadCode": "<script>window.location.reload()</script>",
+	"autorunFirstDelay": "1500",
+	"autorunInterval": "-1"
     },
 
     "list":
@@ -33,5 +35,10 @@
 	{
 	    "goto": "Go to Lab"
 	}
+    },
+
+    "messages":
+    {
+	"toggle": "Show/Hide Code Cells"
     }
 }

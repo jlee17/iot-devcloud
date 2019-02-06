@@ -7,13 +7,13 @@ import os.path
 class DemoCatalog:
 
     def __init__(self, config_file):
+        self.config_file = config_file
         with open(config_file, "r") as config:
             self.conf = json.load(config)
             config.close()
         with open(self.conf['css']) as css:
-            display(HTML(css.read()))
-        self.ShowRepositoryControls()
-        self.ShowListOfDemos()
+            self.css = css.read()
+            css.close()
 
     def ShowRepositoryControls(self):
         url, status, lastCheck, fullstatus = self.GetStatus()
@@ -28,6 +28,7 @@ class DemoCatalog:
             c = 'unable'
         v = msgs[c].format(time=lastCheck)
 
+        display(HTML(self.css))
 
         w_url = widgets.HTML(value=("{remote}: {remote_url}").format(remote=msgs['remote'], remote_url=url))
         w_time = widgets.HTML(value=("{time}: {lastCheck}").format(time=msgs['lastCheck'], lastCheck=lastCheck))
@@ -42,6 +43,16 @@ class DemoCatalog:
         
         self.refreshButton = w_refresh
         self.refreshButton.on_click(self.RefreshRepository)
+
+    def ShowCatalog(self):
+        self.ShowIntro()
+        self.ShowListOfDemos()
+        
+    def ShowIntro(self):
+        with open("README.md", "r") as readme:
+            cont=readme.read()
+            readme.close()
+        display(Markdown(cont))
 
     def ShowListOfDemos(self):
         data = "## "+self.conf['list']['header']+"\n"
@@ -69,4 +80,46 @@ class DemoCatalog:
         output,_ = p.communicate()
         display(HTML(self.conf['status']['reloadCode']))
 
-        
+    def Anchor(self, name):
+        display(HTML("<a class='"+name+"'></a>"))
+
+    def Autorun(self, name):
+        display(HTML("<script>"+
+                     "function ClickRunGenerate() {"+
+                     "  var code_cells = document.getElementsByClassName('code_cell');"+
+                     "  if (code_cells.length > 0) {"+
+                     "    var i;"+
+                     "    for (i = 0; i < code_cells.length; i++) {"+
+                     "      var anch = code_cells[i].getElementsByClassName('"+name+"');"+
+                     "      if (anch.length > 0) {"+
+                     "        var rtc = code_cells[i].getElementsByClassName('run_this_cell');"+
+                     "        if (rtc.length > 0) {"+
+                     "          var j;"+
+                     "          for (j = 0; j < rtc.length; j++) {"+
+                     "            rtc[j].click();"+
+                     "          }"+
+                     "        }"+
+                     "      }"+
+                     "    }"+
+                     "  }"+
+                     "  if ("+self.conf['status']['autorunInterval']+" > 0) {"+
+                     "    setTimeout(ClickRunGenerate, "+self.conf['status']['autorunInterval']+");"+
+                     "  }"+
+                     "}"+
+                     "setTimeout(ClickRunGenerate, "+self.conf['status']['autorunFirstDelay']+");"+
+                     "</script>"))
+
+    def ToggleCode(self):
+        display(HTML("<script>"+
+                     "codeShow=true;"+
+                     "function CodeToggle() {"+
+                     "  if (codeShow) {"+
+                     "    $('div.input').hide();"+
+                     "  } else {"+
+                     "    $('div.input').show();"+
+                     "  }"+
+                     "  codeShow = !codeShow;"+
+                     "}"+
+                     "$( document ).ready(CodeToggle);"+
+                     "</script>"+
+                     "<form action='javascript:CodeToggle()'><input type='submit' value='"+self.conf['messages']['toggle']+"'></form>"))
