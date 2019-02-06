@@ -62,10 +62,10 @@ def processBoxes(frame_count, res, labels_map, prob_threshold, frame, initial_w,
             ymin = str(int(obj[4] * initial_h))
             xmax = str(int(obj[5] * initial_w))
             ymax = str(int(obj[6] * initial_h))
-            class_id = int(obj[1])
+            class_id = str(int(obj[1]))
             est = str(round(obj[2]*100, 1))
             time = round(det_time*1000)
-            out_list = [str(frame_count), xmin, ymin, xmax, ymax, labels_map[class_id - 1], est, str(time)]
+            out_list = [str(frame_count), xmin, ymin, xmax, ymax, class_id, est, str(time)]
             for i in range(len(out_list)):
                 dims += out_list[i]+' '
             dims += '\n'
@@ -125,8 +125,6 @@ def main():
             labels_map = [x.strip() for x in f]
     else:
         labels_map = None
-        
-    print(str(labels_map))
 
     cap = cv2.VideoCapture(input_stream)
     video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -146,7 +144,6 @@ def main():
     frame_count = 0
     inf_list = []
     res_list = []
-    res_arr = np.zeros((3000, 1, 1, 100, 7))
     try:
         infer_time_start = time.time()
         while cap.isOpened():
