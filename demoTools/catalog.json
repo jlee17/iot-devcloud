@@ -17,7 +17,9 @@
 	    "gitsaid": "Output of 'git status'"
 	},
 	"button": "Refresh Catalog",
-	"reloadCode": "<script>window.location.reload()</script>"
+	"reloadCode": "<script>window.location.reload()</script>",
+	"autorunFirstDelay": "500",
+	"autorunInterval": "-1"
     },
 
     "list":
@@ -37,6 +39,6 @@
 
     "messages":
     {
-	"toggle": "Show/hide Cells"
+	"toggle": "Show/Hide Code Cells"
     }
 }
