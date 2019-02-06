@@ -33,5 +33,10 @@
 	{
 	    "goto": "Go to Lab"
 	}
+    },
+
+    "messages":
+    {
+	"toggle": "Show/hide Cells"
     }
 }
