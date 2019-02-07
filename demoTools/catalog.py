@@ -35,7 +35,7 @@ class DemoCatalog:
         w_git = widgets.HTML(value=("{gitsaid}: {gitline}").format(gitsaid=msgs['gitsaid'], gitline=fullstatus))
         w_hint = widgets.HTML(value=msgs['foreword'])
         w_refresh=widgets.Button(description=self.conf['status']['button'])
-        w_info=widgets.VBox([w_url, w_time, w_git, w_hint, w_refresh])
+        w_info=widgets.VBox([w_refresh, w_hint, w_url, w_time, w_git])
         w_acc=widgets.Accordion(children=[w_info], selected_index=None)
         w_acc.set_title(0, v)
         w_acc.add_class(c)
@@ -49,10 +49,11 @@ class DemoCatalog:
         self.ShowListOfDemos()
         
     def ShowIntro(self):
-        with open("README.md", "r") as readme:
-            cont=readme.read()
-            readme.close()
-        display(Markdown(cont))
+        if (self.conf['intro']):
+            with open("README.md", "r") as readme:
+                cont=readme.read()
+                readme.close()
+            display(Markdown(cont))
 
     def ShowListOfDemos(self):
         data = "## "+self.conf['list']['header']+"\n"
