@@ -117,7 +117,6 @@ def progressIndicator(path, file_name , title, min_, max_):
     value=0.0,
     min=min_,
     max=max_,
-    step=10,
     description=title,
     bar_style='info',
     orientation='horizontal',
