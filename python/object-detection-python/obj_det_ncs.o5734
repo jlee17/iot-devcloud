@@ -1,0 +1,21 @@
+
+########################################################################
+#      Date:           Thu Feb 14 10:22:16 PST 2019
+#    Job ID:           5734.c003
+#      User:           u20675
+# Resources:           neednodes=1:tank-870:i5-6500te:intel-ncs2,nodes=1:tank-870:i5-6500te:intel-ncs2,walltime=01:00:00
+########################################################################
+
+[setupvars.sh] OpenVINO environment initialized
+[ INFO ] Initializing plugin for MYRIAD device...
+[ INFO ] Reading IR...
+[ INFO ] Loading IR to the plugin...
+[35mE: [ncAPI] [    570140] ncDeviceOpen:870	failed to find device
+[0m
+Video post-processing time: 32.2516 seconds
+
+########################################################################
+# End of output for job 5734.c003
+# Date: Thu Feb 14 10:23:30 PST 2019
+########################################################################
+
