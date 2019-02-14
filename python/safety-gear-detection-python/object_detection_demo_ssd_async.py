@@ -86,7 +86,7 @@ def main():
 
     # Read IR
     log.info("Reading IR...")
-    net = IENetwork.from_ir(model=model_xml, weights=model_bin)
+    net = IENetwork(model=model_xml, weights=model_bin)
 
     if plugin.device == "CPU":
         supported_layers = plugin.get_supported_layers(net)
@@ -197,7 +197,7 @@ def main():
             cv2.destroyAllWindows()
         else:
             total_time = time.time() - infer_time_start
-            with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
+            with open(os.path.join(args.output_dir, 'stats_'+str(job_id)+'.txt'), 'w') as f:
                 f.write(str(round(total_time, 1))+'\n')
                 f.write(str(frame_count)+'\n')
 
