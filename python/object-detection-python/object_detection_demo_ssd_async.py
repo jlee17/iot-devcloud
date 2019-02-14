@@ -41,7 +41,7 @@ def build_argparser():
                              "impl.", type=str, default=None)
     parser.add_argument("-pp", "--plugin_dir", help="Path to a plugin folder", type=str, default=None)
     parser.add_argument("-d", "--device",
-                        help="Specify the target device to infer on; CPU, GPU, FPGA or MYRIAD is acceptable. Sample "
+                        help="Specify the target device to infer on; CPU, GPU, FPGA, MYRIAD or HDDL is acceptable. Sample "
                              "will look for a suitable plugin for device specified (CPU by default)", default="CPU",
                         type=str)
     parser.add_argument("--labels", help="Labels mapping file", default=None, type=str)
@@ -86,7 +86,7 @@ def main():
 
     # Read IR
     log.info("Reading IR...")
-    net = IENetwork.from_ir(model=model_xml, weights=model_bin)
+    net = IENetwork(model=model_xml, weights=model_bin)
 
     if plugin.device == "CPU":
         supported_layers = plugin.get_supported_layers(net)
@@ -197,7 +197,7 @@ def main():
             cv2.destroyAllWindows()
         else:
             total_time = time.time() - infer_time_start
-            with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
+            with open(os.path.join(args.output_dir, 'stats_'+str(job_id)+'.txt'), 'w') as f:
                 f.write(str(round(total_time, 1))+'\n')
                 f.write(str(frame_count)+'\n')
 
