@@ -9,7 +9,7 @@ import datetime
 import matplotlib
 import matplotlib.pyplot as plt
 import os 
-
+import warnings
 
 def videoHTML(title, videos_list, stats=None):
     '''
@@ -42,10 +42,13 @@ def summaryPlot(results_dict, x_axis, y_axis, title):
 	y_axis: label of the y axis
 	title: title of the graph
     '''
-    plt.figure()
-    plt.title(title)
-    plt.ylabel(y_axis)
-    plt.xlabel(x_axis)
+    warnings.simplefilter('ignore')
+    plt.figure(figsize=(20, 7))
+    plt.title(title, fontsize=20, color='blue')
+    plt.ylabel(y_axis, fontsize=20, color='blue')
+    plt.xlabel(x_axis, fontsize=20, color='blue')
+    plt.xticks(fontsize=16, rotation=0)
+    plt.yticks(fontsize=16, rotation=0)
     time = []
     arch = []
     diff = 0
@@ -56,18 +59,18 @@ def summaryPlot(results_dict, x_axis, y_axis, title):
             time.append(label)
             f.close()
         else:
-            time.append(-1)
+            time.append(0)
         arch.append(hw)
 
     offset = max(time)/100
     for i in time:
-        if i == -1:
+        if i == 0:
             data = 'N/A'
             y = 0
         else:
             data = i
             y = i + offset   
-        plt.text(diff, y, data, fontsize=10, multialignment="center",horizontalalignment="center", verticalalignment="bottom",  color='black')
+        plt.text(diff, y, data, fontsize=16, multialignment="center",horizontalalignment="center", verticalalignment="bottom",  color='black')
         diff += 1
     plt.ylim(top=(max(time)+10*offset))
     plt.bar(arch, time, width=0.8, align='center')
