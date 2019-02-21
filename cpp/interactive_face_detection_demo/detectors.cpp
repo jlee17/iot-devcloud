@@ -15,6 +15,7 @@
 #include <inference_engine.hpp>
 
 #include <samples/common.hpp>
+#include <samples/ocv_common.hpp>
 #include <samples/slog.hpp>
 
 #include <ie_iextension.h>
