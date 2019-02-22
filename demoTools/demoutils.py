@@ -42,10 +42,15 @@ def summaryPlot(results_list, x_axis, y_axis, title, plot):
 	title: title of the graph
     '''
     warnings.filterwarnings('ignore')
+    if plot=='time':
+        clr = 'xkcd:blue'
+    else:
+        clr = 'xkcd:azure'
+
     plt.figure(figsize=(15, 7))
-    plt.title(title , fontsize=16, color='blue')
-    plt.ylabel(y_axis, fontsize=16, color='blue')
-    plt.xlabel(x_axis, fontsize=16, color='blue')
+    plt.title(title , fontsize=28, color='black', fontweight='bold')
+    plt.ylabel(y_axis, fontsize=16, color=clr)
+    plt.xlabel(x_axis, fontsize=16, color=clr)
     plt.xticks(fontsize=16)
     plt.yticks(fontsize=16)
 
@@ -77,8 +82,7 @@ def summaryPlot(results_list, x_axis, y_axis, title, plot):
         plt.text(diff, y, data, fontsize=14, multialignment="center",horizontalalignment="center", verticalalignment="bottom",  color='black')
         diff += 1
     plt.ylim(top=(max(val)+10*offset))
-    plt.bar(arch, val, width=0.8, align='center', color='blue')
-
+    plt.bar(arch, val, width=0.8, align='center', color=clr)
 
 
 def liveQstat():
