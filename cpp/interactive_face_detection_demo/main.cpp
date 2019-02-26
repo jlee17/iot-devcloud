@@ -468,7 +468,7 @@ int main(int argc, char *argv[]) {
             for (cv::Mat frame: video_frames)
                 outVideo.write(frame);
 	    std::ofstream stats; 
-	    stats.open(FLAGS_o+"/stats.txt");
+	    stats.open(FLAGS_o+"/stats_"+job_id+".txt");
 	    stats<<std::to_string(t_total)+'\n';
             stats<<std::to_string(length)+'\n';
 	    stats.close();
