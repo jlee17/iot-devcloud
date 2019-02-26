@@ -47,7 +47,7 @@ def summaryPlot(results_list, x_axis, y_axis, title, plot):
     else:
         clr = 'xkcd:azure'
 
-    plt.figure(figsize=(15, 7))
+    plt.figure(figsize=(15, 8))
     plt.title(title , fontsize=28, color='black', fontweight='bold')
     plt.ylabel(y_axis, fontsize=16, color=clr)
     plt.xlabel(x_axis, fontsize=16, color=clr)
