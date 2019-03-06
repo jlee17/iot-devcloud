@@ -1,4 +1,4 @@
-### Object Detection Sample
+### Object Detection
 
 This advanced sample builds on the concepts introduced in the Flaw Detector Sample. The Object Detection Sample introduces the powerful capabilities of the Intel® Distribution of OpenVINO™ toolkit to perform object detection using pre-trained deep learning models on the Intel® Core™ i5-6500TE,  Intel® Xeon® Processor E3-1268L v5, Intel® HD Graphics 530, or Intel® Movidius™ NCS.
 
