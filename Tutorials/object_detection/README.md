@@ -1,2 +1,2 @@
-### Object detection with Intel® Distribution of OpenVINO™ toolkit
+### Object detection with the Intel® Distribution of OpenVINO™ toolkit
 
