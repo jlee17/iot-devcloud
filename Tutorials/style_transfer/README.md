@@ -1,1 +1,1 @@
-### Style Transfer with Intel® Distribution of OpenVINO™ toolkit
+### Style Transfer with the Intel® Distribution of OpenVINO™ toolkit
