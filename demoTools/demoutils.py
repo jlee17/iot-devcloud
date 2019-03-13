@@ -34,8 +34,7 @@ def videoHTML(title, videos_list, stats=None):
     {videos}
     '''.format(title=title, videos=video_string, stats_line=stats_line))
 
-
-def summaryPlot(results_dict, x_axis, y_axis, title):
+def summaryPlot(results_list, x_axis, y_axis, title, plot):
     ''' Bar plot input:
 	results_dict: dictionary of path to result file and label {path_to_result:label}
 	x_axis: label of the x axis
@@ -43,27 +42,37 @@ def summaryPlot(results_dict, x_axis, y_axis, title):
 	title: title of the graph
     '''
     warnings.filterwarnings('ignore')
-    plt.figure(figsize=(15, 10))
-    plt.title(title , fontsize=16, color='blue')
-    plt.ylabel(y_axis, fontsize=16, color='blue')
-    plt.xlabel(x_axis, fontsize=16, color='blue')
+    if plot=='time':
+        clr = 'xkcd:blue'
+    else:
+        clr = 'xkcd:azure'
+
+    plt.figure(figsize=(15, 8))
+    plt.title(title , fontsize=28, color='black', fontweight='bold')
+    plt.ylabel(y_axis, fontsize=16, color=clr)
+    plt.xlabel(x_axis, fontsize=16, color=clr)
     plt.xticks(fontsize=16)
     plt.yticks(fontsize=16)
-    time = []
+
+    val = []
     arch = []
     diff = 0
-    for path, hw in results_dict.items():
+    for path, hw in results_list:
         if os.path.isfile(path):
             f = open(path, "r")
-            label = round(float(f.readline()))
-            time.append(label)
+            l1_time = float(f.readline())
+            l2_count = float(f.readline())
+            if plot=="time":
+                val.append(round(l1_time))
+            else:
+                val.append(round(l2_count/l1_time))
             f.close()
         else:
-            time.append(0)
+            val.append(0)
         arch.append(hw)
 
-    offset = max(time)/100
-    for i in time:
+    offset = max(val)/100
+    for i in val:
         if i == 0:
             data = 'N/A'
             y = 0
@@ -72,8 +81,8 @@ def summaryPlot(results_dict, x_axis, y_axis, title):
             y = i + offset   
         plt.text(diff, y, data, fontsize=14, multialignment="center",horizontalalignment="center", verticalalignment="bottom",  color='black')
         diff += 1
-    plt.ylim(top=(max(time)+10*offset))
-    plt.bar(arch, time, width=0.8, align='center')
+    plt.ylim(top=(max(val)+10*offset))
+    plt.bar(arch, val, width=0.8, align='center', color=clr)
 
 
 def liveQstat():
