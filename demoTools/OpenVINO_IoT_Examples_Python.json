@@ -30,7 +30,8 @@
 	    "python/flaw-detector-python/flawdetector-demo.ipynb",
 	    "python/object-detection-python/object_detection_demo.ipynb",
 	    "python/store-traffic-monitor-python/store_traffic_monitor_demo.ipynb",
-	    "python/safety-gear-detection-python/safety_gear_detection.ipynb"
+	    "python/safety-gear-detection-python/safety_gear_detection.ipynb",
+	    "python/OCR-usingLSTM-python/OCR.ipynb"
 	],
 	"messages":
 	{
