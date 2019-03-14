@@ -448,7 +448,7 @@
 				</port>
 			</output>
 		</layer>
-		<layer id="23" name="shadow/LSTMLayers/stack_bidirectional_rnn/cell_0/bidirectional_rnn/fw/fw/while/Enter_3/Output_0/Data__const" precision="FP32" type="Const">
+		<layer id="23" name="shadow/LSTMLayers/stack_bidirectional_rnn/cell_0/bidirectional_rnn/fw/fw/while/Enter_4/Output_0/Data__const" precision="FP32" type="Const">
 			<output>
 				<port id="1">
 					<dim>1</dim>
@@ -459,7 +459,7 @@
 				<custom offset="22199040" size="1024"/>
 			</blobs>
 		</layer>
-		<layer id="24" name="shadow/LSTMLayers/stack_bidirectional_rnn/cell_0/bidirectional_rnn/fw/fw/while/Enter_4/Output_0/Data__const" precision="FP32" type="Const">
+		<layer id="24" name="shadow/LSTMLayers/stack_bidirectional_rnn/cell_0/bidirectional_rnn/fw/fw/while/Enter_3/Output_0/Data__const" precision="FP32" type="Const">
 			<output>
 				<port id="1">
 					<dim>1</dim>
@@ -495,13 +495,13 @@
 			</output>
 			<port_map>
 				<input axis="1" external_port_id="0" internal_layer_id="0" internal_port_id="0" start="0"/>
-				<input external_port_id="1" internal_layer_id="1" internal_port_id="2"/>
-				<input external_port_id="2" internal_layer_id="1" internal_port_id="1"/>
+				<input external_port_id="1" internal_layer_id="1" internal_port_id="1"/>
+				<input external_port_id="2" internal_layer_id="1" internal_port_id="2"/>
 				<output axis="1" external_port_id="3" internal_layer_id="2" internal_port_id="1"/>
 			</port_map>
 			<back_edges>
-				<edge from-layer="1" from-port="6" to-layer="1" to-port="2"/>
 				<edge from-layer="1" from-port="5" to-layer="1" to-port="1"/>
+				<edge from-layer="1" from-port="6" to-layer="1" to-port="2"/>
 			</back_edges>
 			<body>
 				<layers>
@@ -575,7 +575,7 @@
 				</edges>
 			</body>
 		</layer>
-		<layer id="26" name="shadow/LSTMLayers/stack_bidirectional_rnn/cell_0/bidirectional_rnn/bw/bw/while/Enter_4/Output_0/Data__const" precision="FP32" type="Const">
+		<layer id="26" name="shadow/LSTMLayers/stack_bidirectional_rnn/cell_0/bidirectional_rnn/bw/bw/while/Enter_3/Output_0/Data__const" precision="FP32" type="Const">
 			<output>
 				<port id="1">
 					<dim>1</dim>
@@ -586,7 +586,7 @@
 				<custom offset="22199040" size="1024"/>
 			</blobs>
 		</layer>
-		<layer id="27" name="shadow/LSTMLayers/stack_bidirectional_rnn/cell_0/bidirectional_rnn/bw/bw/while/Enter_3/Output_0/Data__const" precision="FP32" type="Const">
+		<layer id="27" name="shadow/LSTMLayers/stack_bidirectional_rnn/cell_0/bidirectional_rnn/bw/bw/while/Enter_4/Output_0/Data__const" precision="FP32" type="Const">
 			<output>
 				<port id="1">
 					<dim>1</dim>
@@ -622,8 +622,8 @@
 			</output>
 			<port_map>
 				<input axis="1" end="0" external_port_id="0" internal_layer_id="0" internal_port_id="0" start="-1" stride="-1"/>
-				<input external_port_id="1" internal_layer_id="1" internal_port_id="1"/>
-				<input external_port_id="2" internal_layer_id="1" internal_port_id="2"/>
+				<input external_port_id="1" internal_layer_id="1" internal_port_id="2"/>
+				<input external_port_id="2" internal_layer_id="1" internal_port_id="1"/>
 				<output axis="1" end="0" external_port_id="3" internal_layer_id="2" internal_port_id="1" start="-1" stride="-1"/>
 			</port_map>
 			<back_edges>
@@ -776,8 +776,8 @@
 				<output axis="1" external_port_id="3" internal_layer_id="2" internal_port_id="1"/>
 			</port_map>
 			<back_edges>
-				<edge from-layer="1" from-port="6" to-layer="1" to-port="2"/>
 				<edge from-layer="1" from-port="5" to-layer="1" to-port="1"/>
+				<edge from-layer="1" from-port="6" to-layer="1" to-port="2"/>
 			</back_edges>
 			<body>
 				<layers>
@@ -903,8 +903,8 @@
 				<output axis="1" end="0" external_port_id="3" internal_layer_id="2" internal_port_id="1" start="-1" stride="-1"/>
 			</port_map>
 			<back_edges>
-				<edge from-layer="1" from-port="6" to-layer="1" to-port="2"/>
 				<edge from-layer="1" from-port="5" to-layer="1" to-port="1"/>
+				<edge from-layer="1" from-port="6" to-layer="1" to-port="2"/>
 			</back_edges>
 			<body>
 				<layers>

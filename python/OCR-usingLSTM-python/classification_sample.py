@@ -43,7 +43,7 @@ def build_argparser():
                         type=str)
     parser.add_argument("--labels", help="Labels mapping file", default=None, type=str)
     parser.add_argument("-nt", "--number_top", help="Number of top results", default=10, type=int)
-    parser.add_argument("-ni", "--number_iter", help="Number of inference iterations", default=1, type=int)
+    parser.add_argument("-ni", "--number_iter", help="Number of inference iterations", default=1000, type=int)
     parser.add_argument("-pc", "--perf_counts", help="Report performance counters", default=False, action="store_true")
     parser.add_argument("-o", "--output_dir", help="If set, it will write a video here instead of displaying it",
                         default=None, type=str)
@@ -109,10 +109,12 @@ def main():
     # Start sync inference
     log.info("Starting inference ({} iterations)".format(args.number_iter))
     infer_time = []
+    t0 = time()
     for i in range(args.number_iter):
-        t0 = time()
+        #t0 = time()
         res = exec_net.infer(inputs={input_blob: images})
-        infer_time.append((time()-t0)*1000)
+        #infer_time.append((time()-t0)*1000)
+    t1 = (time() - t0)*1000
     log.info("Average running time of one iteration: {} ms".format(np.average(np.asarray(infer_time))))
     if args.perf_counts:
         perf_counts = exec_net.requests[0].get_perf_counts()
@@ -136,8 +138,13 @@ def main():
     print("The result is : " + res)
     
     #progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
+    avg_time = round((t1/args.number_iter), 1)
     with open(os.path.join(args.output_dir, 'result.txt'), 'w') as f:
-                f.write(res + "\n Inference performed in " + str(np.average(np.asarray(infer_time))) + "ms") 
+                #f.write(res + "\n Inference performed in " + str(np.average(np.asarray(infer_time))) + "ms") 
+                f.write(res + "\n Inference performed in " + str(avg_time) + "ms") 
+    with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
+                f.write(str(avg_time)+'\n')
+                f.write(str(args.number_iter)+'\n')
 
     del exec_net
     del plugin
