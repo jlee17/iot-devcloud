@@ -66,56 +66,6 @@ class Demo:
         '''.format(title=title, videos=video_string, stats_line=stats_line)
         return output
     
-    def summaryPlot22(self, x_axis, y_axis, title, plot):
-        ''' Bar plot input:
-    	x_axis: label of the x axis
-    	y_axis: label of the y axis
-    	title: title of the graph
-        '''
-        warnings.filterwarnings('ignore')
-        if plot=='time':
-            clr = 'xkcd:blue'
-        else:
-            clr = 'xkcd:azure'
-    
-        plt.figure(figsize=(15, 8))
-        plt.title(title , fontsize=28, color='black', fontweight='bold')
-        plt.ylabel(y_axis, fontsize=16, color=clr)
-        plt.xlabel(x_axis, fontsize=16, color=clr)
-        plt.xticks(fontsize=16)
-        plt.yticks(fontsize=16)
-    
-        val = []
-        arch = []
-        diff = 0
-        for edge, accel in self.jobDict.keys():
-            path = os.path.join(self.jobDict[(edge, accel)]['output'], 'stats.txt')
-            if os.path.isfile(path):
-                f = open(path, "r")
-                l1_time = float(f.readline())
-                l2_count = float(f.readline())
-                if plot=="time":
-                    val.append(round(l1_time))
-                else:
-                    val.append(round(l2_count/l1_time))
-                f.close()
-            else:
-                val.append(0)
-            arch.append('{edge}+{accel}'.format(edge=edge, accel=accel))
-    
-        offset = max(val)/100
-        for i in val:
-            if i == 0:
-                data = 'N/A'
-                y = 0
-            else:
-                data = i
-                y = i + offset   
-            plt.text(diff, y, data, fontsize=14, multialignment="center",horizontalalignment="center", verticalalignment="bottom",  color='black')
-            diff += 1
-        plt.ylim(top=(max(val)+10*offset))
-        plt.bar(arch, val, width=0.5, align='center', color=clr)
-    
     def summaryPlot(self, x_axis, y_axis, title, plot):
         ''' Bar plot input:
     	x_axis: label of the x axis
@@ -350,7 +300,7 @@ class Demo:
         
      
     def displayHW(self):
-        with open('/home/u20675/Reference-samples/iot-devcloud/demoTools/database.json') as f:
+        with open('~/Reference-samples/iot-devcloud/demoTools/database.json') as f:
             data = json.load(f)
         devlist = []
         hw = data["devices"]
@@ -372,7 +322,10 @@ class Demo:
     
     
     def jobSetup(self):
-        with open('/home/u20675/Reference-samples/iot-devcloud/demoTools/database.json') as f:
+        '''
+           
+        '''
+        with open('~/Reference-samples/iot-devcloud/demoTools/database.json') as f:
             data = json.load(f)
         devlist = []
         done = []
@@ -447,11 +400,8 @@ class Demo:
             #Check if previous job is running
             if (edge, acc) in self.jobDict.keys():
                 if self.jobStillRunning(edge, acc):
-                    #msg = widgets.HTML(value = "<h3> Another job submitted to {edge} with {acc} is still running</h3>".format(edge=edge, acc=acc))
                     msg =  "Could not submit a job to {acc} in {edge}: another job is still running".format(edge=edge, acc=acc)
-                    #self.jobDict[(edge, acc)]['msg'].append(msg)
                     status.value = msg
-                    #display(msg)
                     return
                 else:
                     for x in self.jobDict[(edge, acc)]['msg']:
