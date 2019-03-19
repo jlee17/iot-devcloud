@@ -300,7 +300,7 @@ class Demo:
         
      
     def displayHW(self):
-        with open('~/Reference-samples/iot-devcloud/demoTools/database.json') as f:
+        with open(os.path.expanduser('~')+'/Reference-samples/iot-devcloud/demoTools/database.json') as f:
             data = json.load(f)
         devlist = []
         hw = data["devices"]
@@ -325,7 +325,7 @@ class Demo:
         '''
            
         '''
-        with open('~/Reference-samples/iot-devcloud/demoTools/database.json') as f:
+        with open(os.path.expanduser('~')+'/Reference-samples/iot-devcloud/demoTools/database.json') as f:
             data = json.load(f)
         devlist = []
         done = []
