@@ -82,7 +82,7 @@ class Demo:
         plt.title(title , fontsize=20, color='black', fontweight='bold')
         plt.ylabel(y_axis, fontsize=16, color=clr)
         plt.xlabel(x_axis, fontsize=16, color=clr)
-        plt.xticks(fontsize=16)
+        plt.xticks(fontsize=16, rotation=45, rotation_mode='anchor', horizontalalignment="right")
         plt.yticks(fontsize=16)
     
         val = []
@@ -103,7 +103,7 @@ class Demo:
                 else:
                     arch[edge]['val'].append(round(l2_count/l1_time))
                 f.close()
-                arch[edge]['target'].append('{accel}'.format(accel=accel).replace(" ", "\n", 2))
+                arch[edge]['target'].append('{accel}'.format(accel=accel).replace(" ", "\n", 2).replace("\n", " ", 1))
         if len(arch) != 0:
             # set offset
             max_val = []
