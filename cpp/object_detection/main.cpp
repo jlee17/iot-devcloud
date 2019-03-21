@@ -25,6 +25,7 @@
 #include <string>
 #include <chrono>
 #include <gflags/gflags.h>
+#include <fstream>
 
 #include <omp.h>
 #include <ie_device.hpp>
