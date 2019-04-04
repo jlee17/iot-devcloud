@@ -49,6 +49,15 @@
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 
+void WriteStats(std::string job_id, int totalFrames, double totalTime)
+{
+       std::ofstream stats;
+       stats.open("results/stats_"+job_id+".txt");
+       stats<<std::to_string(totalFrames)+'\n';
+       stats<<totalTime<<'\n';
+       stats.close();
+}
+
 // -------------------------Generic routines for detection networks-------------------------------------------------
 bool ParseAndCheckCommandLine(int argc, char *argv[]) {
     // ---------------------------Parsing and validation of input args--------------------------------------
@@ -114,6 +123,9 @@ int main(int argc, char *argv[]) {
         if (!(FLAGS_i == "cam" ? cap.open(0) : cap.open(FLAGS_i))) {
             throw std::invalid_argument("Cannot open input file or camera: " + FLAGS_i);
         }
+
+        const size_t totalLength = (size_t) cap.get(cv::CAP_PROP_FRAME_COUNT);
+        std::string job_id = getenv("PBS_JOBID");
 
         // ---------------------Load plugins for inference engine------------------------------------------------
         std::map<std::string, InferenceEngine::InferencePlugin> pluginsForDevices;
@@ -214,7 +226,8 @@ int main(int argc, char *argv[]) {
 	//-----------------------Define regions of interest-----------------------------------------------------
         RegionsOfInterest scene;
 
-	cap.read(scene.orig);
+        if (!cap.read(scene.orig))
+              throw std::runtime_error("Finished! Video is over!");
 	// Do deep copy to preserve original frame
 	scene.aux = scene.orig.clone();
 	scene.out = scene.orig.clone();
@@ -321,9 +334,23 @@ int main(int argc, char *argv[]) {
                         inputFramePtrs_clean.pop();
                         if(FLAGS_show_selection){
                             haveMoreFrames = cap.read(*curFrame_clean);
+                            if(!haveMoreFrames){
+                                    std::cout<<"Finished! Video is over!"<<std::endl;
+                                    wallclockEnd = std::chrono::high_resolution_clock::now();
+                                    ms total_wallclock_time = std::chrono::duration_cast<ms>(wallclockEnd - wallclockStart);
+                                    WriteStats(job_id, totalFrames, total_wallclock_time.count());
+                                    return 0;
+                            }
                             cv::bitwise_and(*curFrame_clean,aux_mask,*curFrame);
                         }else{
                             haveMoreFrames = cap.read(*curFrame);
+                            if (!haveMoreFrames) {
+                                    std::cout<<"Finished! Video is over!"<<std::endl;
+                                    wallclockEnd = std::chrono::high_resolution_clock::now();
+                                    ms total_wallclock_time = std::chrono::duration_cast<ms>(wallclockEnd - wallclockStart);
+                                    WriteStats(job_id, totalFrames, total_wallclock_time.count());
+                                    return 0;
+                            }
                             curFrame_clean = curFrame;
                         }
 					}else{
@@ -637,6 +664,8 @@ int main(int argc, char *argv[]) {
                     << avgTimePerFrameMs << " ms "
                     << "(" << 1000.0F / avgTimePerFrameMs << " fps)";
 
+        WriteStats(job_id, totalFrames, total_wallclock_time.count());
+
         // ---------------------------Some perf data--------------------------------------------------
         if (FLAGS_pc) {
             VehicleDetection.printPerformanceCounts();
@@ -644,6 +673,9 @@ int main(int argc, char *argv[]) {
 
         delete [] inputFrames;
 
+    }
+    catch (const std::runtime_error& error) {
+        std::cout << "Unable to read for some reason" << std::endl;
     }
     catch (const std::exception& error) {
         BOOST_LOG_TRIVIAL(error) << error.what();
