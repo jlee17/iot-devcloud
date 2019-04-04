@@ -94,8 +94,6 @@ static const char run_yolo[] = "Running Yolo v3 as detector.";
 
 static const char intersection_over_union_yolo[] = "Intersection over Yolo ROI threshold";
 
-static const char show_graph_message[] = "Running graph server on 127.0.0.1";
-
 /// \brief Define flag for showing help message <br>
 DEFINE_bool(h, false, help_message);
 
@@ -148,7 +146,6 @@ DEFINE_bool(no_show, false, no_show_processed_video);
 DEFINE_uint32(n_async, 1, async_depth_message);
 
 ///
-DEFINE_bool(show_graph, false, show_graph_message);
 DEFINE_bool(show_selection, false, show_interest_areas_selection);
 DEFINE_bool(tracking, false, do_tracking);
 DEFINE_bool(collision, false, do_collision);
@@ -200,7 +197,6 @@ static void showUsage() {
     std::cout << "\t-show_selection\t\t\t\t" << show_interest_areas_selection << std::endl; // NOSONAR
     std::cout << "\t-tracking\t\t\t\t" << do_tracking << std::endl; // NOSONAR
     std::cout << "\t-collision\t\t\t\t" << do_collision << std::endl; // NOSONAR
-    std::cout << "\t-show_graph\t\t\t\t" << show_graph_message << std::endl; // NOSONAR
     std::cout << "\t-yolo\t\t\t\t" << run_yolo << std::endl; // NOSONAR
     std::cout << "\t-iou_t\t\t\t\t" << intersection_over_union_yolo << std::endl;
     std::cout << "\t-pc\t\t\t\t" << performance_counter_message << std::endl; // NOSONAR

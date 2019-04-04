@@ -310,22 +310,6 @@ int SingleTracker::doSingleTracking(cv::Mat* _mat_img, std::vector<cv::Mat>* mas
 	this->no_update_counter++;
 	this->markForDeletion();
 
-#ifdef ENABLED_DB
-	if(dbEnable){
-		PipeItem document;
-		document.frame = *totalFrames; 
-		document.Id = this->getTargetID();
-		document.vel_x = this->getVelX_q()[0];
-		document.vel_y = this->getVelY_q()[0]; 
-		document.vel = this->getVel_q()[0]; 
-		document.acc_x = this->getAccX_q()[0];
-		document.acc_y = this->getAccY_q()[0]; 
-		document.acc = this->getAcc_q()[0]; 
-		document.objectClass = getLabelStr(this->getLabel());
-		buffer->push_back(document);
-	}
-#endif
-	
 	return SUCCESS;
 }
 
@@ -379,16 +363,6 @@ int TrackerManager::insertTracker(cv::Rect* _init_rect, cv::Scalar* _color, int 
 		this->id_list = _target_id + 1; // Next ID
 		
 		std::string a,b,c,d,aux_str;
-#ifdef ENABLED_DB
-		if(*dbEnable){
-			PipeItem document;
-			document.Id = this->id_list-1;
-			document.frame = *totalFrames;
-			document.event = "Start being tracked";
-			document.objectClass = getLabelStr(_label);
-			buffer -> push_back(document); 
-		}
-#endif
 		a = "========================== Notice! ==========================";
 		b = "Target ID : " + std::to_string(this->id_list-1) + " is now been tracked";
 		BOOST_LOG_TRIVIAL(info) << b;
@@ -539,16 +513,6 @@ Delete SingleTracker object which has ID : _target_id in the TrackerManager::tra
 int TrackerManager::deleteTracker(int _target_id, std::string *last_event, bool* dbEnable, int* totalFrames, Pipe* buffer)
 {
 	int result_idx = this->findTrackerByID(_target_id);
-#ifdef ENABLED_DB
-	if(*dbEnable){
-		PipeItem document;
-		document.Id = _target_id;
-		document.frame = *totalFrames;
-		document.event = "Stop being tracked";
-		document.objectClass = getLabelStr(this->getTrackerLabel(result_idx));
-		buffer -> push_back(document); 
-	}
-#endif
 
 	if (result_idx == FAIL)
 	{
@@ -668,9 +632,6 @@ int TrackingSystem::updateTrackingSystem(std::vector<std::pair<cv::Rect, int>> u
 				return FAIL;
 		}
 	}
-#ifdef ENABLED_DB
-	this->dbWrite(&this->events, &this->buffer_events);
-#endif
 	return SUCCESS;
 }
 
@@ -729,9 +690,6 @@ int TrackingSystem::startTracking(cv::Mat& _mat_img)
 	for (int i = 0; i < thread_pool.size(); i++)
 		thread_pool[i].join();
 
-#ifdef ENABLED_DB
-	std::thread t1(&TrackingSystem::dbWrite, this, &this->tracker, &this->buffer_tracker);
-#endif
 	bool person_cw = false;
 	bool car_cw = false;
 
@@ -765,10 +723,6 @@ int TrackingSystem::startTracking(cv::Mat& _mat_img)
 	for(auto && i : tracker_erase){
 		int a = manager.deleteTracker(i,this->last_event, &this->dbEnable, &this->totalFrames, &this->buffer_events);
 	}
-#ifdef ENABLED_DB
-	this->dbWrite(&this->events, &this->buffer_events);
-	t1.join();
-#endif
 
 	return SUCCESS;
 }
@@ -908,57 +862,6 @@ bool isValidCollision(std::pair<double, int> area1, std::pair<double, int> area2
 	return FALSE;
 }
 
-#ifdef ENABLED_DB
-void TrackingSystem::dbWrite(mongocxx::v_noabi::collection* col, Pipe* buffer_ptr){
-	//std::this_thread::sleep_for(std::chrono::microseconds(10));
-	if(buffer_ptr->size() != 0){
-		
-	std::vector<bsoncxx::document::value> documents;
-	while(buffer_ptr->size() != 0){
-        //std::cout << "thread" << buffer_ptr->size() << std::endl;
-		PipeItem aux = buffer_ptr->back();
-		buffer_ptr -> pop_back();
-		documents.push_back(
-			bsoncxx::builder::stream::document{} 
-			<< "frame" << aux.frame
-			<< "Id" << aux.Id
-			<< "vel_x" << aux.vel_x
-			<< "vel_y" << aux.vel_y 
-			<< "vel" << aux.vel
-			<< "acc_x" << aux.acc_x
-			<< "acc_y" << aux.acc_y 
-			<< "acc" << aux.acc
-			<< "ob1" << aux.ob1
-			<< "ob2" << aux.ob2
-			<< "event" << aux.event
-			<< "nearMiss" << aux.nearMiss
-			<< "class" << aux.objectClass
-			<< bsoncxx::builder::stream::finalize
-		);
-		}
-		//std::cout << documents.size () << std::endl;
-		this -> dbWrite_mutex.lock();
-		col -> insert_many(documents);
-		this -> dbWrite_mutex.unlock();
-	}
-}
-
-void TrackingSystem::setUpCollections(){
-	this -> conn.start_session();
-	this -> dbEnable = true;
-	this -> tracker = this -> conn["smart_city_metadata"]["tracker_data"];
-	this -> tracker.drop();
-	this -> tracker.insert_one({});
-	this -> collisions = this -> conn["smart_city_metadata"]["collisions_data"];
-	this -> collisions.drop();
-	this -> collisions.insert_one({});
-	this -> events = this -> conn["smart_city_metadata"]["events"];
-	this -> events.drop();
-	this -> events.insert_one({});
-
-}
-#endif
-
 /* -----------------------------------------------------------------------------------
 
 Function : detectCollisions
@@ -1036,18 +939,6 @@ int TrackingSystem::detectCollisions()
 								<< sqrt(threshold_x*threshold_x+threshold_y*threshold_y);
 		
 		if (threshold_x > 4 || threshold_y >= 3 /*&& !same_sign && !inc_speed*/) {
-#ifdef ENABLED_DB
-			if(this -> dbEnable && !iRef.getNearMiss()){
-				PipeItem document;
-				document.frame = totalFrames;
-				document.Id = iRef.getTargetID();
-				document.event = "Strong speed change";
-				document.nearMiss = true;
-				document.objectClass = getLabelStr(iRef.getLabel());
-				this->buffer_events.push_back(document); 
-			}
-			std::thread t3(&TrackingSystem::dbWrite, this, &this->events, &this->buffer_events);
-#endif
 			iRef.setNearMiss(true);
 			for (auto j = trackerVec.begin(); j != trackerVec.end(); ++j) {
 				SingleTracker& jRef = *(*j);
@@ -1075,9 +966,6 @@ int TrackingSystem::detectCollisions()
 						document.ob2 = ob2;
 						this->buffer_collisions.push_back(document); 
 					}
-#ifdef ENABLED_DB
-					std::thread t2(&TrackingSystem::dbWrite, this, &this->collisions, &this->buffer_collisions);
-#endif
 					BOOST_LOG_TRIVIAL(error)<< "$" << totalFrames << "$Collision between object $"<<iRef.getTargetID()<<"$ and $"<< jRef.getTargetID() << "$";
 					
 					
@@ -1090,14 +978,8 @@ int TrackingSystem::detectCollisions()
 						iRef.setColor(cv::Scalar(0,165,255)); // Orange
 						jRef.setColor(cv::Scalar(0,165,255));
 					}
-#ifdef ENABLED_DB
-					t2.join();
-#endif
 				}
 			}
-#ifdef ENABLED_DB
-			t3.join();
-#endif
 		}
 	}
 	

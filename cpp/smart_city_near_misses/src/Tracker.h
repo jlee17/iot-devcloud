@@ -19,15 +19,6 @@
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <algorithm>
 
-//MongoDB
-#ifdef ENABLED_DB
-#include <iostream>
-#include <bsoncxx/builder/stream/document.hpp>
-#include <bsoncxx/json.hpp>
-#include <mongocxx/client.hpp>
-#include <mongocxx/instance.hpp>
-#endif
-
 constexpr int FAIL = -1;
 constexpr int SUCCESS = 1;
 constexpr int FALSE = 0;
@@ -281,14 +272,6 @@ class TrackingSystem
 		std::vector<cv::Mat>		d_cws;
 		int 			totalFrames;
 		bool dbEnable;
-#ifdef ENABLED_DB
-		mongocxx::instance inst{};
-		mongocxx::client conn{mongocxx::uri{}};
-		mongocxx::v_noabi::collection  	tracker;
-		mongocxx::v_noabi::collection  	collisions;
-		mongocxx::v_noabi::collection	events; 	
-		std::mutex dbWrite_mutex;
-#endif
 		Pipe buffer_tracker;
 		Pipe buffer_collisions;
 		Pipe buffer_events;
@@ -340,11 +323,4 @@ class TrackingSystem
 
 	// Terminate program
 	void terminateSystem();
-
-#ifdef ENABLED_DB
-	//clear Mongo collections
-	void setUpCollections();
-
-	void dbWrite(mongocxx::v_noabi::collection* col, Pipe* buffer_ptr);
-#endif
 };
