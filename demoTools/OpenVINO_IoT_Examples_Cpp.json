@@ -28,7 +28,8 @@
 	"labs":
 	[
 	    "cpp/object_detection/object_detection_demo.ipynb",
-	    "cpp/interactive_face_detection_demo/FaceDetectionDemo.ipynb"
+	    "cpp/interactive_face_detection_demo/FaceDetectionDemo.ipynb",
+	    "cpp/smart_city_near_misses/SmartCityDemo.ipynb"
 	],
 	"messages":
 	{
