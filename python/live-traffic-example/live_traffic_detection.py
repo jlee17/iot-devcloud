@@ -88,7 +88,6 @@ def placeBoxes(res, labels_map, frame, is_async_mode):
   return frame
 
 def postProcess(result_list, width, height, labels_map, out_path, is_async_mode, ren_progress_file_path=None):
-  post_process_t = time.time()
   vw = cv2.VideoWriter(out_path, 0x00000021, 30.0, (width, height), True)
   for i in range(len(result_list)):
     frame,res = result_list[i]
@@ -97,7 +96,6 @@ def postProcess(result_list, width, height, labels_map, out_path, is_async_mode,
     vw.write(frame)
     if not ren_progress_file_path is None:
       progressUpdate(ren_progress_file_path, time.time()-post_process_t, i+1, len(result_list))
-  print("Post processing time: {0} sec" .format(time.time()-post_process_t))
   vw.release()
 
 def main():
@@ -228,7 +226,9 @@ def main():
         f.write(str(frame_count)+'\n')
 
     o_video = os.path.join(args.output_dir, 'output_'+str(job_id)+'.mp4')
+    post_process_t = time.time()
     postProcess(result_list, int(initial_w), int(initial_h), labels_map, o_video, is_async_mode, ren_progress_file_path)
+    log.info("Post processing time: {0} sec" .format(time.time()-post_process_t))
 
   finally:
     del exec_net
