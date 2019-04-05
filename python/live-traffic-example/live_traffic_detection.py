@@ -79,7 +79,11 @@ def placeBoxes(res, labels_map, frame, is_async_mode):
     async_mode_message = "Async mode is on. Processing request {}".format(frame_count) if is_async_mode else \
             "Async mode is off. Processing request {}".format(frame_count)
     color = (min(class_id * 12.5, 255), min(class_id * 7, 255), min(class_id * 5, 255))
-    cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
+    try:
+      cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
+    except:
+      print(obj)
+      raise
     det_label = labels_map[class_id] if labels_map else str(class_id)
     label_message = "{} {}%".format(det_label, int(est))
     cv2.putText(frame, label_message, (xmin, ymin - 7), cv2.FONT_HERSHEY_COMPLEX, 0.6, color, 1)
@@ -88,6 +92,7 @@ def placeBoxes(res, labels_map, frame, is_async_mode):
   return frame
 
 def postProcess(result_list, width, height, labels_map, out_path, is_async_mode, ren_progress_file_path=None):
+  post_process_t = time.time()
   vw = cv2.VideoWriter(out_path, 0x00000021, 30.0, (width, height), True)
   for i in range(len(result_list)):
     frame,res = result_list[i]
