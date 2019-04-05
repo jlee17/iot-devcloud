@@ -94,6 +94,8 @@ static const char run_yolo[] = "Running Yolo v3 as detector.";
 
 static const char intersection_over_union_yolo[] = "Intersection over Yolo ROI threshold";
 
+static const char output_path[] = "Path where to write the output.";
+
 /// \brief Define flag for showing help message <br>
 DEFINE_bool(h, false, help_message);
 
@@ -164,6 +166,7 @@ DEFINE_string(m_vp, "", vp_model_message);
 DEFINE_uint32(n_vp, 1, num_batch_message);
 DEFINE_string(d_vp, "CPU", target_device_message_vp);
 
+DEFINE_string(o, ".", output_path);
 /**
 * \brief This function show a help message
 */
@@ -202,4 +205,5 @@ static void showUsage() {
     std::cout << "\t-pc\t\t\t\t" << performance_counter_message << std::endl; // NOSONAR
     std::cout << "\t-r\t\t\t\t" << raw_output_message << std::endl; // NOSONAR
     std::cout << "\t-t\t\t\t\t" << thresh_output_message << std::endl; // NOSONAR
+    std::cout << "\t-o\t\t\t\t" << output_path << std::endl; // NOSONAR
 }

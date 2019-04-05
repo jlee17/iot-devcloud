@@ -19,26 +19,26 @@
 * \file object_detection_sample_ssd/main.cpp
 * \example object_detection_sample_ssd/main.cpp
 */
-#include <gflags/gflags.h>
-#include <functional>
-#include <iostream>
-#include <fstream>
-#include <random>
-#include <memory>
-#include <chrono>
 #include <algorithm>
+#include <chrono>
+#include <functional>
+#include <fstream>
+#include <gflags/gflags.h>
+#include <iostream>
 #include <iterator>
+#include <random>
 #include <map>
-#include <string>
-#include <vector>
+#include <memory>
+#include <omp.h>
 #include <queue>
-#include <utility>
 #include <stdlib.h> 
+#include <string>
+#include <utility>
+#include <vector>
 
 #include <opencv2/opencv.hpp>
 #include "customflags.hpp"
 #include "drawer.hpp"
-
 #include "Tracker.h"
 #include "object_detection.hpp"
 #include "yolo_detection.hpp"
@@ -49,15 +49,43 @@
 #include <boost/log/utility/setup/file.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 
-void WriteStats(std::string job_id, int totalFrames, double totalTime)
+void WriteStats(std::string stats_data, int totalFrames, double totalTime)
 {
        std::ofstream stats;
-       stats.open("results/stats_"+job_id+".txt");
+       stats.open(stats_data);
        stats<<std::to_string(totalFrames)+'\n';
        stats<<totalTime<<'\n';
        stats.close();
 }
 
+void WriteProgress(std::string progress_data, int currFrame, int totalFrames, double t1)
+{
+	std::ofstream progress;
+
+	if (currFrame%10 == 0  || currFrame%totalFrames == 0){
+		double t2 = omp_get_wtime()-t1;
+		progress.open(progress_data);
+		std::string cur_progress = std::to_string(int(100*currFrame/totalFrames))+'\n';
+		std::string remaining_time = std::to_string(int((t2/currFrame)*(totalFrames-currFrame)))+'\n';
+		std::string estimated_time = std::to_string(int((t2/currFrame)*totalFrames))+'\n';
+		progress<<cur_progress;
+		progress<<remaining_time;
+		progress<<estimated_time;
+
+		progress.flush();
+		progress.close();
+	}
+}
+
+void WriteVideo(std::vector<cv::Mat>& processed_frames, std::string video_file, int orig_fps, int width, int height)
+{
+	if (processed_frames.size() > 0) {
+		cv::VideoWriter outVideo;
+		outVideo.open(video_file, 0x21, orig_fps, cv::Size(width, height), true);
+		for (cv::Mat frame: processed_frames)
+			outVideo.write(frame);
+	}
+}
 // -------------------------Generic routines for detection networks-------------------------------------------------
 bool ParseAndCheckCommandLine(int argc, char *argv[]) {
     // ---------------------------Parsing and validation of input args--------------------------------------
@@ -104,6 +132,7 @@ void init_logging(std::string base)
     );
     boost::log::add_common_attributes();
 }
+
 int main(int argc, char *argv[]) {
     try {
         // ---------------------------Init Log-------------------------------
@@ -125,7 +154,14 @@ int main(int argc, char *argv[]) {
         }
 
         const size_t totalLength = (size_t) cap.get(cv::CAP_PROP_FRAME_COUNT);
+        const size_t orig_width     = (size_t) cap.get(cv::CAP_PROP_FRAME_WIDTH);
+        const size_t orig_height    = (size_t) cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+        const size_t orig_fps = (size_t) cap.get(cv::CAP_PROP_FPS);
         std::string job_id = getenv("PBS_JOBID");
+        std::string stats_data = FLAGS_o+"/stats_"+job_id+".txt";
+	std::string progress_data = FLAGS_o+"/i_progress_"+job_id+".txt";
+        std::string video_file = FLAGS_o+"/output_"+job_id+".mp4";
+	double prog_t1 = omp_get_wtime();
 
         // ---------------------Load plugins for inference engine------------------------------------------------
         std::map<std::string, InferenceEngine::InferencePlugin> pluginsForDevices;
@@ -300,6 +336,7 @@ int main(int argc, char *argv[]) {
         const int update_frame = 0;
         int update_counter = 0;
         std::string last_event;
+        std::vector<cv::Mat> processed_frames;
         TrackingSystem tracking_system(&last_event);
         if(FLAGS_show_selection){
             tracking_system.setMask(&aux_mask, &mask_crosswalk, &mask_sidewalk, &mask_streets);
@@ -338,7 +375,8 @@ int main(int argc, char *argv[]) {
                                     std::cout<<"Finished! Video is over!"<<std::endl;
                                     wallclockEnd = std::chrono::high_resolution_clock::now();
                                     ms total_wallclock_time = std::chrono::duration_cast<ms>(wallclockEnd - wallclockStart);
-                                    WriteStats(job_id, totalFrames, total_wallclock_time.count());
+                                    WriteStats(stats_data, totalFrames, total_wallclock_time.count());
+                                    WriteVideo(processed_frames, video_file, orig_fps, orig_width, orig_height);
                                     return 0;
                             }
                             cv::bitwise_and(*curFrame_clean,aux_mask,*curFrame);
@@ -348,7 +386,8 @@ int main(int argc, char *argv[]) {
                                     std::cout<<"Finished! Video is over!"<<std::endl;
                                     wallclockEnd = std::chrono::high_resolution_clock::now();
                                     ms total_wallclock_time = std::chrono::duration_cast<ms>(wallclockEnd - wallclockStart);
-                                    WriteStats(job_id, totalFrames, total_wallclock_time.count());
+                                    WriteStats(stats_data, totalFrames, total_wallclock_time.count());
+                                    WriteVideo(processed_frames, video_file, orig_fps, orig_width, orig_height);
                                     return 0;
                             }
                             curFrame_clean = curFrame;
@@ -366,7 +405,7 @@ int main(int argc, char *argv[]) {
                     if (firstFrame && !FLAGS_no_show) {
                         BOOST_LOG_TRIVIAL(info) << "Press 's' key to save a snapshot, press any other key to stop";
                     }
-
+                    WriteProgress(progress_data, totalFrames, totalLength, prog_t1);
                     firstFrame = false;
                 }
                 pipeS0Fifo.push(ps0);
@@ -593,14 +632,14 @@ int main(int argc, char *argv[]) {
                     out << ": " << std::fixed << std::setprecision(2) << detection_time.count()
                         << " ms ("
                         << 1000.F * numSyncFrames / detection_time.count() << " fps)";
-                    cv::putText(outputFrame_clean, out.str(), cv::Point2f(0, 75), cv::FONT_HERSHEY_TRIPLEX, 0.5,
-                                cv::Scalar(255, 0, 0));
+                    //cv::putText(outputFrame_clean, out.str(), cv::Point2f(0, 75), cv::FONT_HERSHEY_TRIPLEX, 0.5, cv::Scalar(255, 0, 0));
 
                 }
 
                 // -----------------------Display Results ---------------------------------------------
                 t0 = std::chrono::high_resolution_clock::now();
-                if (!FLAGS_no_show) {
+		processed_frames.push_back(outputFrame_clean.clone());
+		if (!FLAGS_no_show) {
                     std::string winname = "Detection result";
                     cv::namedWindow(winname);
                     cv::moveWindow(winname, 10, 10);
@@ -663,8 +702,6 @@ int main(int argc, char *argv[]) {
         BOOST_LOG_TRIVIAL(info) << "   Average time per frame:" << std::fixed << std::setprecision(2)
                     << avgTimePerFrameMs << " ms "
                     << "(" << 1000.0F / avgTimePerFrameMs << " fps)";
-
-        WriteStats(job_id, totalFrames, total_wallclock_time.count());
 
         // ---------------------------Some perf data--------------------------------------------------
         if (FLAGS_pc) {
