@@ -61,9 +61,6 @@ add_executable(${TARGET_NAME} ${MAIN_SRC} ${MAIN_HEADERS})
 add_dependencies(${TARGET_NAME} gflags)
 add_definitions(-DBOOST_LOG_DYN_LINK)
 add_definitions(-DINTEL_CVSDK_VER=$ENV{INTEL_CVSDK_VER})
-if( ENABLED_DB )
-  add_definitions(-DENABLED_DB)
-endif()
 
 set_target_properties(${TARGET_NAME} PROPERTIES "CMAKE_CXX_FLAGS" "${CMAKE_CXX_FLAGS} -fPIE"
 COMPILE_PDB_NAME ${TARGET_NAME})
