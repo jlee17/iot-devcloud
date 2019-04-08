@@ -79,11 +79,7 @@ def placeBoxes(res, labels_map, frame, is_async_mode):
     async_mode_message = "Async mode is on. Processing request {}".format(frame_count) if is_async_mode else \
             "Async mode is off. Processing request {}".format(frame_count)
     color = (min(class_id * 12.5, 255), min(class_id * 7, 255), min(class_id * 5, 255))
-    try:
-      cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
-    except:
-      print(obj)
-      raise
+    cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
     det_label = labels_map[class_id] if labels_map else str(class_id)
     label_message = "{} {}%".format(det_label, int(est))
     cv2.putText(frame, label_message, (xmin, ymin - 7), cv2.FONT_HERSHEY_COMPLEX, 0.6, color, 1)
