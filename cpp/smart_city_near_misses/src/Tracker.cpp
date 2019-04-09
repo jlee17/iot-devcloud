@@ -575,8 +575,8 @@ int TrackingSystem::initTrackingSystem()
 	for( auto && i : this->init_target){
 		color = getLabelColor(i.second);
 		label = i.second;
-//		if ((double)i.first.area()/(double)(getFrameWidth()*getFrameHeight()) < 0.009 && label == LABEL_CAR)
-//			continue;
+		if ((double)i.first.area()/(double)(getFrameWidth()*getFrameHeight()) < 0.009 && label == LABEL_CAR)
+			continue;
 		if (this->manager.insertTracker(&i.first, &color, index, label, false, this->last_event, &this->dbEnable,&this->totalFrames, &this->buffer_events) == FAIL)
 		{
 			BOOST_LOG_TRIVIAL(error) << "====================== Error Occured! =======================";
@@ -621,8 +621,8 @@ int TrackingSystem::updateTrackingSystem(std::vector<std::pair<cv::Rect, int>> u
 		int index;
 		color = getLabelColor(i.second);
 		label = i.second;
-//		if ((double)i.first.area()/(double)(getFrameWidth()*getFrameHeight()) < 0.009 && label == LABEL_CAR)
-//			continue;
+		if ((double)i.first.area()/(double)(getFrameWidth()*getFrameHeight()) < 0.009 && label == LABEL_CAR)
+			continue;
 		index = this->manager.findTracker(i.first, label);
 		if ( index != -1 && this->manager.insertTracker(&i.first, &color, index, label, true,this->last_event, &this->dbEnable,&this->totalFrames, &this->buffer_events) == FAIL ) {
 				BOOST_LOG_TRIVIAL(error) << "====================== Error Occured! =======================";
