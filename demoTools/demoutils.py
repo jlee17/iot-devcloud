@@ -10,6 +10,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import os 
 import warnings
+import xml.etree.ElementTree as ET
 
 def videoHTML(title, videos_list, stats=None):
     '''
@@ -112,6 +113,22 @@ def liveQstat():
     sb.on_click(_stop_qstat)
     display(qstat)
     display(sb)
+
+def qjobWait(id_list, timeout=-1):
+  start_time = time.time()
+  while True:
+    time.sleep(0.5)
+    cmd = ['qstat', '-x']
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+    output,_ = p.communicate()
+    qstat_out = ET.fromstring(output.decode())
+    if not any([i.find('Job_Id').text in id_list for i in qstat_out]):
+      print('Jobs are completed')
+      break
+    if timeout > 0 and int(time.time()-start_time) > timeout:
+      print('Timeout reached. Exiting')
+      break
+
 
    
 def progressIndicator(path, file_name , title, min_, max_):
