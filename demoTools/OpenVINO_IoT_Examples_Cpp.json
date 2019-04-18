@@ -24,7 +24,7 @@
     "intro": false,
     "list":
     {
-	"header": "List of IoT Examples for the Intel® Distribution of OpenVINO™ Toolkit in C++",
+	"header": "List of IoT examples for Intel® Distribution of the OpenVINO™ in C++",
 	"labs":
 	[
 	    "cpp/object_detection/object_detection_demo.ipynb",

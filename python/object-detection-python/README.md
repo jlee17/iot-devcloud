@@ -1,6 +1,6 @@
 ### Object Detection
 
-This advanced sample builds on the concepts introduced in the Flaw Detector Sample. The Object Detection Sample introduces the powerful capabilities of the Intel® Distribution of the OpenVINO™ toolkit to perform object detection using pre-trained deep learning models on the Intel® Core™ i5-6500TE processor,  Intel® Xeon® E3-1268L processor v5, Intel® HD Graphics 530, or Intel® Movidius™ NCS.
+This advanced sample builds on the concepts introduced in the Flaw Detector Sample. The Object Detection Sample introduces the powerful capabilities of the Intel® Distribution of OpenVINO™ toolkit to perform object detection using pre-trained deep learning models on the Intel® Core™ i5-6500TE,  Intel® Xeon® Processor E3-1268L v5, Intel® HD Graphics 530, or Intel® Movidius™ NCS.
 
 The Object Detection Sample provides a short video clip of cars. The sample presents the video frame-by-frame to the Inference Engine (IE) which subsequently uses an optimized trained neural network, mobilenet-ssd, to detect the vehicles. This public model is a mobilenet neural network (SSD – Single Shot MultiBox Detector framework) that has been pre-trained to detect objects in a video clip.
 

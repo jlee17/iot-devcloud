@@ -24,7 +24,7 @@
     "intro": false,
     "list":
     {
-	"header": "List of Tutorials for the Intel® Distribution of OpenVINO™ Toolkit",
+	"header": "List of Tutorials for Intel® Distribution of the OpenVINO™",
 	"labs":
 	[
 	    "Tutorials/classification/tutorial_classification_sample.ipynb",

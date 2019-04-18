@@ -1,1 +1,1 @@
-### Classification with the Intel® Distribution of OpenVINO™ toolkit
+### Classification with Intel® Distribution of OpenVINO™ toolkit
