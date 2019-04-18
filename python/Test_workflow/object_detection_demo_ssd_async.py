@@ -28,7 +28,7 @@ from openvino.inference_engine import IENetwork, IEPlugin
 from pathlib import Path
 sys.path.insert(0, str(Path().resolve().parent.parent))
 from demoTools.demoutils import progressUpdate
-
+import json
 
 def build_argparser():
     parser = ArgumentParser()
@@ -134,12 +134,8 @@ def main():
     log.info("Starting inference in async mode...")
     log.info("To switch between sync and async modes press Tab button")
     log.info("To stop the sample execution press Esc button")
-    job_id = os.environ['PBS_JOBID']
-    #result_file = open(os.path.join(args.output_dir,'output_'+str(job_id)+'.txt'), "w")
     result_file = open(os.path.join(args.output_dir,'output.txt'), "w")
-    progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
-    #progress_file_path = os.path.join(args.output_dir,'i_progress.txt')
-    print(progress_file_path)
+    progress_file_path = os.path.join(args.output_dir,'i_progress.txt')
 
     is_async_mode = True
     render_time = 0
@@ -150,16 +146,14 @@ def main():
     try:
         infer_time_start = time.time()
         while cap.isOpened():
-            read_time = time.time()
             ret, frame = cap.read()
             if not ret:
                 break
-            initial_w = cap.get(3)
-            initial_h = cap.get(4)
-
             in_frame = cv2.resize(frame, (w, h))
             in_frame = in_frame.transpose((2, 0, 1))  # Change data layout from HWC to CHW
             in_frame = in_frame.reshape((n, c, h, w))
+            initial_w = cap.get(3)
+            initial_h = cap.get(4)
             # Main sync point:
             # in the truly Async mode we start the NEXT infer request, while waiting for the CURRENT to complete
             # in the regular mode we start the CURRENT request and immediately wait for it's completion
@@ -193,16 +187,20 @@ def main():
                 cur_request_id, next_request_id = next_request_id, cur_request_id
 
  	##End while loop /
+        total_time = time.time() - infer_time_start
         cap.release()
         result_file.close()
+        stats = {}
+        stats['time'] = round(time.time() - infer_time_start, 2)
+        stats['frame'] = frame_count
+        stats['fps'] = round(frame_count/(time.time() - infer_time_start), 2)
+        stats_file = args.output_dir+'/stats.json'
 
         if args.output_dir is None:
             cv2.destroyAllWindows()
         else:
-            total_time = time.time() - infer_time_start
-            with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
-                f.write(str(round(total_time, 1))+'\n')
-                f.write(str(frame_count)+'\n')
+            with open(stats_file, 'w') as f:
+                json.dump(stats, f)
 
 
     finally:
