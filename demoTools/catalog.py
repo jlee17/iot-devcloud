@@ -64,7 +64,7 @@ class DemoCatalog:
                 readme.close()
                 data += cont
             title = cont[0]
-            data += "\n<a href='"+lab+"' target='_blank' class='big-jupyter-button'>"+self.conf['list']['messages']['goto']+": "+lab+"</a>\n"
+            data += "\n<br /><a href='"+lab+"' target='_blank' class='big-jupyter-button'>"+self.conf['list']['messages']['goto']+": "+lab+"</a>\n"
         display(Markdown(data))
 
     def GetStatus(self):
