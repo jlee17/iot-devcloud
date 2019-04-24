@@ -27,6 +27,9 @@
 	"header": "List of IoT examples for Intel® Distribution of the OpenVINO™ in Python",
 	"labs":
 	[
+	    "Tutorials/classification/tutorial_classification_sample.ipynb",
+	    "Tutorials/object_detection/tutorial_object_detection_ssd.ipynb",
+	    "Tutorials/style_transfer/tutorial_style_transfer_sample.ipynb",
 	    "python/flaw-detector-python/flawdetector-demo.ipynb",
 	    "python/object-detection-python/object_detection_demo.ipynb",
 	    "python/live-traffic-example/live_traffic_detection_demo.ipynb",
