@@ -59,19 +59,6 @@ diagonal_length_of_image_plane = 0
 AssemblyInfo = namedtuple("AssemblyInfo", "inc_total, defect, area, length, width, show, rects")
 info2 = AssemblyInfo(inc_total="false", defect="false", area="0", length="0", width="0", show="false", rects=[])
 
-# Parse the command line arguments
-def build_argparser():
-  parser = ArgumentParser()
-  parser.add_argument("-maxl", "--maxlength1", help="Maximum length of assembly object", default = 0)
-  parser.add_argument("-minl", "--minlength1", help="Minimum length of assembly object", default=0)
-  parser.add_argument("-maxw", "--maxwidth1", help="Maximum width of assembly object", default=0)
-  parser.add_argument("-minw", "--minwidth1", help="Minimum width of assembly object", default=0)
-  parser.add_argument("-d", "--distance", help="Distance between camera and object in millimeters", default=None, required=False, type=float)
-  parser.add_argument("-fv", "--fieldofview", help="Field of view of camera", default=None, required=False, type=float)
-  parser.add_argument('-f', '--vid', default=0, help="Name of the video file")
-
-  return parser
-
 # Updates the current AssemblyInfo for the application to the latest detected values
 def updateInfo(info1):
   global total_parts
@@ -193,16 +180,14 @@ def frameRunner():
     assembly = AssemblyInfo(inc_total=inc_total, defect=defect, area=part_area, length=maxlength, width=maxwidth, show=prev_defect, rects=rect)
     updateInfo(assembly)
 
-def runObjectDetector(vid_path = 0,max_length = 0,min_length = 0,max_width = 0,min_width= 0, draw_callback = None):
+def runObjectDetector(vid_path = 0,max_length = 0,min_length = 0,max_width = 0,min_width= 0, distance= 0, filedofview= 0, draw_callback = None):
   global delay
   global frame
   global total_parts
   global total_defect
   global one_pixel_length
   global diagonal_length_of_image_plane
-  global args
-  args = build_argparser().parse_args()
-  if args.vid:
+  #if args.vid:
     #if args.vid == 'CAM':
      # capture = cv2.VideoCapture(0)
      # if not capture.isOpened():
@@ -210,25 +195,21 @@ def runObjectDetector(vid_path = 0,max_length = 0,min_length = 0,max_width = 0,m
        # sys.exit(0)
       #fps = capture.get(cv2.CAP_PROP_FPS)
       #delay = (int)(1000 / fps)
-    capture = cv2.VideoCapture(vid_path)
-    if not capture.isOpened():
-      print("\nUnable to open video file... Exiting...\n")
-      sys.exit(0)
-    fps = capture.get(cv2.CAP_PROP_FPS)
-    delay = (int)(1000 / fps)
-    if args.distance and args.fieldofview:
-        width_of_video = capture.get(3)
-        height_of_video = capture.get(4)
-        radians = (args.fieldofview/2) * 0.0174533 # Convert degrees to radians
-        diagonal_length_of_image_plane = abs(2 *(args.distance/10) * math.tan(radians))
-        diagonal_length_in_pixel = math.sqrt(math.pow(width_of_video, 2) + math.pow(height_of_video, 2))
-        one_pixel_length = (diagonal_length_of_image_plane / diagonal_length_in_pixel)
-    else:
-        one_pixel_length = 0.0264583333
-  else:
-    print("\nPlease provide video input... Exiting...\n")
+  capture = cv2.VideoCapture(vid_path)
+  if not capture.isOpened():
+    print("\nUnable to open video file... Exiting...\n")
     sys.exit(0)
-
+  fps = capture.get(cv2.CAP_PROP_FPS)
+  delay = (int)(1000 / fps)
+  if distance and fieldofview:
+      width_of_video = capture.get(3)
+      height_of_video = capture.get(4)
+      radians = (fieldofview/2) * 0.0174533 # Convert degrees to radians
+      diagonal_length_of_image_plane = abs(2 *(distance/10) * math.tan(radians))
+      diagonal_length_in_pixel = math.sqrt(math.pow(width_of_video, 2) + math.pow(height_of_video, 2))
+      one_pixel_length = (diagonal_length_of_image_plane / diagonal_length_in_pixel)
+  else:
+      one_pixel_length = 0.0264583333
   signal.signal(signal.SIGINT, signal_handler)
 
   if max_length < min_length:
@@ -290,4 +271,4 @@ def runObjectDetector(vid_path = 0,max_length = 0,min_length = 0,max_width = 0,m
       vw.release()
       capture.release()
 if __name__ == '__main__':
-  runObjectDetector(vid_path,max_length,min_length,max_width,min_width)
+  runObjectDetector(vid_path, max_length, min_length, max_width, min_width, filedofview)
