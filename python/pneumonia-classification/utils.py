@@ -1,5 +1,28 @@
-"""Utilities for real-time data augmentation on image data.
+"""Utility to read the images
+
+COPYRIGHT
+
+Copyright (c) 2015 - 2018, the respective contributors.
+All rights reserved.
+
+Each contributor holds copyright over their respective contributions.
+The project versioning (Git) records all such contribution source information.
+The initial code of this repository came from https://github.com/keras-team/keras
+(the Keras repository), hence, for author information regarding commits
+that occured earlier than the first commit in the present repository,
+please see the original Keras repository.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 """
+
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
