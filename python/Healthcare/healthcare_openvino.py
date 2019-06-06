@@ -153,19 +153,13 @@ def load_data():
     return input_data, msks_data, img_indicies
 
 
-def load_model(fp16=False):
+def load_model( ):
     """
     Load the OpenVINO model.
     """
     log.info("Loading U-Net model to the plugin")
-
-    if fp16:  # Floating point 16 is for Myriad X
-        model_xml = "/data/Healthcare_app/output/IR_models/FP16/saved_model.xml"
-    else:     # FP32 for most devices
-        model_xml = "/data/Healthcare_app/output/IR_models/FP32/saved_model.xml"
-
-    model_bin = os.path.splitext(model_xml)[0] + ".bin"
-
+    model_xml = args.intermediate_rep +".xml"
+    model_bin = args.intermediate_rep +".bin"
     return model_xml, model_bin
 
 def calc_dice(y_true, y_pred, smooth=1.):
@@ -274,7 +268,9 @@ if args.cpu_extension and "CPU" in args.device:
 
 # Read IR
 # If using MYRIAD then we need to load FP16 model version
-model_xml, model_bin = load_model(args.device == "MYRIAD" or args.device == "HDDL")
+#model_xml, model_bin = load_model(args.device == "MYRIAD" or args.device == "HDDL")
+model_xml, model_bin = load_model()
+
 
 log.info("Loading network files:\n\t{}\n\t{}".format(model_xml, model_bin))
 net = IENetwork(model=model_xml, weights=model_bin)

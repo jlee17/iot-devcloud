@@ -1,5 +1,0 @@
-1. Open 1-StockTF-MKLTF-Inference-Demo.ipynb and 2-OpenVINO-Inference-Demo.ipynb in Jupyter notebook located at /home/abhishek/pocs/brainsegment/medical-decathlon/single-node
-2. Goto 1-StockTF-MKLTF-Inference-Demo.ipynb and ensure selected Kernel is 'stocktf' (Kernel->Change Kernel->[choose kernel]).
-3. Go to Cells and clear all output, and then 'Run All', the Cell at the end will display the performance on <selected tensorflow type i.e. stocktf (without mkl-dnn) and mkltf (with mkl-dnn)
-4. Repeat step 2 and 3 for Kernel 'mkltf', you would see performane better with mkltf without losing accuracy
-5. Goto 2-OpenVINO-Inference-Demo.ipynb and Click on cell->Run All (you may choose to clear all output like before). You will see performance using OpenVINO optimized model, again you can see that performance increase without losing accuracy.
