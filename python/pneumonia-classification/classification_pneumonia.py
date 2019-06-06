@@ -60,6 +60,8 @@ def main():
 
     n,c,h,w=net.inputs[input_blob].shape
     files=glob.glob(os.getcwd()+args.input[0])
+    if not os.path.isdir(args.output_dir):
+        os.makedirs(args.output_dir, exist_ok=True)
     f=open(os.path.join(args.output_dir, 'result'+job_id+'.txt'), 'w')
     f1=open(os.path.join(args.output_dir, 'stats'+job_id+'.txt'), 'w') 
     time_images=[]
