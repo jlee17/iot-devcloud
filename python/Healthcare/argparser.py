@@ -122,6 +122,9 @@ parser.add_argument("-rows_per_image", "--rows_per_image",
 parser.add_argument("-stats", "--stats", help="Plot the runtime statistics",
                         default=False, action="store_true")
 
+parser.add_argument("-IR", "--intermediate_rep", help="Path to the .xml and .bin model IR files", default=False)
+
+
 args = parser.parse_args()
 
 
