@@ -1,4 +1,3 @@
-
 """Store Aisle Monitor"""
 
 """
@@ -237,7 +236,6 @@ def main():
                          (255, 255, 255), 2)
         cv2.putText(frame, people_count_message, (15, 65), cv2.FONT_HERSHEY_COMPLEX, 1,
                          (255, 255, 255), 2)
-       
         store_aisle.write(frame)
         time_interval = MULTIPLICATION_FACTOR * fps
         if frame_count % time_interval == 0:
@@ -245,7 +243,7 @@ def main():
         if frame_count%10 == 0: 
             progressUpdate(progress_file_path, int(time.time()-infer_time_start), frame_count, video_len)
         frame = next_frame
-        
+
     if args.output_dir:
         total_time = time.time() - infer_time_start
         with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
