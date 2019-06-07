@@ -50,10 +50,6 @@ def print_stats(exec_net, input_data, n_channels, batch_size, input_blob, out_bl
         t0 = time.time()
         res = exec_net.infer(inputs={input_blob: input_data_transposed_1[:,:n_channels]})
         infer_time.append((time.time() - t0) * 1000)
-        
-#         start_time = time.time()
-#         pred_mask= unet(img)[0]
-#         print ("Time for prediction ngraph: ", '%.0f'%((time.time()-start_time)*1000),"ms")
 
 
     average_inference = np.average(np.asarray(infer_time))
@@ -139,15 +135,12 @@ def load_data():
     imgs_validation = df["imgs_validation"]
     msks_validation = df["msks_validation"]
     img_indicies = range(len(imgs_validation))
-    #img_indicies = data_file["indicies_validation"]
 
     """
     OpenVINO uses channels first tensors (NCHW).
     TensorFlow usually does channels last (NHWC).
     So we need to transpose the axes.
     """
-    #input_data = imgs_validation.transpose((0,3,1,2))
-    #msks_data = msks_validation.transpose((0,3,1,2))
     input_data = imgs_validation
     msks_data = msks_validation
     return input_data, msks_data, img_indicies
@@ -215,13 +208,10 @@ def combined_dice_ce_loss(y_true, y_pred, axis=(1, 2), smooth=1.,
 def plotDiceScore(img_no,img,msk,pred_mask,plot_result, time):
     dice_score = calc_dice(pred_mask, msk)
 
-    #print("Dice score for Image #{} = {:.4f}".format(img_no,
-    #                                                 dice_score))
     if plot_result:
         plt.figure(figsize=(15, 15))
         plt.suptitle("Time for prediction TF: {} ms".format(time), x=0.1, y=0.70,  fontsize=20, va="bottom")
         plt.subplot(1, 3, 1)
-        #print(img.shape)
         plt.imshow(img[0,0,:,:], cmap="bone", origin="lower")
         plt.axis("off")
         plt.title("MRI Input", fontsize=20)
@@ -238,7 +228,6 @@ def plotDiceScore(img_no,img,msk,pred_mask,plot_result, time):
 
         png_name = os.path.join(png_directory, "pred{}.png".format(img_no))
         plt.savefig(png_name, bbox_inches="tight", pad_inches=0)
-        #print("Saved png file to {}".format(png_name))
 
 
 # Create output directory for images
@@ -254,23 +243,16 @@ model_fn = os.path.join(args.output_path, args.inference_filename)
 
 
 log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=sys.stdout)
-#     args = build_argparser().parse_args()
 
 # Plugin initialization for specified device and load extensions library if specified
 print("check")
 plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
 print(args.device)
-#args.cpu_extension="/opt/intel/computer_vision_sdk/inference_engine/lib/centos_7.4/intel64/libcpu_extension_avx2.so"
-#args.cpu_extension="/opt/intel/computer_vision_sdk/inference_engine/lib/ubuntu_16.04/intel64/libcpu_extension_avx2.so"
-#args.cpu_extension="/opt/intel/openvino/inference_engine/lib/intel64/libcpu_extension_avx2.so"
-#args.cpu_extension="/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_avx2.so"
 if args.cpu_extension and "CPU" in args.device:
-    #print(args.cpu_extension)
     plugin.add_cpu_extension(args.cpu_extension)
 
 # Read IR
 # If using MYRIAD then we need to load FP16 model version
-#model_xml, model_bin = load_model(args.device == "MYRIAD" or args.device == "HDDL")
 model_xml, model_bin = load_model()
 log.info("Loading network files:\n\t{}\n\t{}".format(model_xml, model_bin))
 net = IENetwork(model=model_xml, weights=model_bin)
@@ -322,7 +304,6 @@ for idx in indicies_validation:
     input_data_transposed=input_data[idx:(idx+batch_size)].transpose(0,3,1,2)
     start_time = time.time()
     res = exec_net.infer(inputs={input_blob:input_data_transposed[:,:n_channels]})
-    #print ("Time for prediction OpenVINO: ", '\033[1m %.0f \033[0m'%((time.time()-start_time)*1000),"ms")
     # Save the predictions to array
     predictions = res[out_blob]
     time_elapsed = time.time()-start_time
