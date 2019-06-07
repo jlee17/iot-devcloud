@@ -237,13 +237,11 @@ def main():
                          (255, 255, 255), 2)
         cv2.putText(frame, people_count_message, (15, 65), cv2.FONT_HERSHEY_COMPLEX, 1,
                          (255, 255, 255), 2)
-        final_result_overlay = cv2.addWeighted(frame, P_COUNT_FRAME_WEIGHTAGE,
-                                                    colormap_image,
-                                                    COLORMAP_FRAME_WEIGHTAGE_1, 0)
-        store_aisle.write(final_result_overlay)
+       
+        store_aisle.write(frame)
         time_interval = MULTIPLICATION_FACTOR * fps
         if frame_count % time_interval == 0:
-            apply_time_stamp_and_save(final_result_overlay, people_count, upload_azure)
+            apply_time_stamp_and_save(frame, people_count, upload_azure)
         if frame_count%10 == 0: 
             progressUpdate(progress_file_path, int(time.time()-infer_time_start), frame_count, video_len)
         frame = next_frame
