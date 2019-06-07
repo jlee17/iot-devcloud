@@ -262,37 +262,27 @@ plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
 print(args.device)
 #args.cpu_extension="/opt/intel/computer_vision_sdk/inference_engine/lib/centos_7.4/intel64/libcpu_extension_avx2.so"
 #args.cpu_extension="/opt/intel/computer_vision_sdk/inference_engine/lib/ubuntu_16.04/intel64/libcpu_extension_avx2.so"
-args.cpu_extension="/opt/intel/openvino/inference_engine/lib/intel64/libcpu_extension_avx2.so"
+#args.cpu_extension="/opt/intel/openvino/inference_engine/lib/intel64/libcpu_extension_avx2.so"
+#args.cpu_extension="/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_avx2.so"
 if args.cpu_extension and "CPU" in args.device:
+    #print(args.cpu_extension)
     plugin.add_cpu_extension(args.cpu_extension)
 
 # Read IR
 # If using MYRIAD then we need to load FP16 model version
 #model_xml, model_bin = load_model(args.device == "MYRIAD" or args.device == "HDDL")
 model_xml, model_bin = load_model()
-
-
 log.info("Loading network files:\n\t{}\n\t{}".format(model_xml, model_bin))
 net = IENetwork(model=model_xml, weights=model_bin)
-
-if "CPU" in plugin.device:
-    supported_layers = plugin.get_supported_layers(net)
-    print("List of supported layers:", supported_layers)
-    not_supported_layers = [l for l in net.layers.keys() if l not in supported_layers]
-    print("List of layers not supported:", not_supported_layers)
-    if len(not_supported_layers) != 0:
-        log.error("Following layers are not supported by the plugin for specified device {}:\n {}"\
-                  .format(plugin.device, ", ".join(not_supported_layers)))
-        log.error("Please try to specify cpu extensions library path in sample's command line parameters using -l "\
-                  "or --cpu_extension command line argument")
-        #log.error("On CPU this is usually -l ${INTEL_CVSDK_DIR}/inference_engine/lib/centos_7.4/intel64/libcpu_extension_avx2.so")
-        log.error("On CPU this is usually -l $/opt/intel/openvino/inference_engine/lib/intel64/libcpu_extension_avx2.so")
-        log.error("You may need to build the OpenVINO samples directory for this library to be created on your system.")
-        log.error("e.g. bash ${INTEL_CVSDK_DIR}/inference_engine/samples/build_samples.sh will trigger the library to be built.")
-        log.error("Replace 'centos_7.4' with the pathname on your computer e.g. ('ubuntu_16.04')")
-        sys.exit(1)
-
-
+if plugin.device == "CPU":
+        supported_layers = plugin.get_supported_layers(net)
+        not_supported_layers = [l for l in net.layers.keys() if l not in supported_layers]
+        if len(not_supported_layers) != 0:
+            log.error("Following layers are not supported by the plugin for specified device {}:\n {}".
+                      format(plugin.device, ', '.join(not_supported_layers)))
+            log.error("Please try to specify cpu extensions library path in sample's command line parameters using -l "
+                      "or --cpu_extension command line argument")
+            sys.exit(1)
 
 assert len(net.inputs.keys()) == 1, "Sample supports only single input topologies"
 assert len(net.outputs) == 1, "Sample supports only single output topologies"
