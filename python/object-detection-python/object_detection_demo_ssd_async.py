@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
- Copyright (c) 2018 Intel Corporation
+ Copyright (c) 2019 Intel Corporation
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -32,25 +32,51 @@ import json
 
 def build_argparser():
     parser = ArgumentParser()
-    parser.add_argument("-m", "--model", help="Path to an .xml file with a trained model.", required=True, type=str)
-    parser.add_argument("-i", "--input",
-                        help="Path to video file or image. 'cam' for capturing video stream from camera", required=True,
+    parser.add_argument('-m', '--model',
+                        help='Path to an .xml file with a trained model.',
+                        required=True,
                         type=str)
-    parser.add_argument("-l", "--cpu_extension",
-                        help="MKLDNN (CPU)-targeted custom layers.Absolute path to a shared library with the kernels "
-                             "impl.", type=str, default=None)
-    parser.add_argument("-pp", "--plugin_dir", help="Path to a plugin folder", type=str, default=None)
-    parser.add_argument("-d", "--device",
-                        help="Specify the target device to infer on; CPU, GPU, FPGA, MYRIAD or HDDL is acceptable. Sample "
-                             "will look for a suitable plugin for device specified (CPU by default)", default="CPU",
+    parser.add_argument('-i', '--input',
+                        help='Path to video file or image. \'cam\' for capturing video stream from camera.',
+                        required=True,
                         type=str)
-    parser.add_argument("--labels", help="Labels mapping file", default=None, type=str)
-    parser.add_argument("-pt", "--prob_threshold", help="Probability threshold for detections filtering",
-                        default=0.5, type=float)
-    parser.add_argument("-o", "--output_dir", help="If set, it will write a video here instead of displaying it",
-                        default=None, type=str)
+    parser.add_argument('-ce', '--cpu_extension',
+                        help='MKLDNN-targeted custom layers.'
+                             'Absolute path to a shared library with the kernel implementation.',
+                        type=str,
+                        default=None)
+    parser.add_argument('-pp', '--plugin_dir',
+                        help='Path to a plugin directory.',
+                        type=str,
+                        default=None)
+    parser.add_argument('-d', '--device',
+                        help='Specify the target device to infer on; CPU, GPU, FPGA, MYRIAD, or HDDL is acceptable.'
+                             'Demo will look for a suitable plugin for specified device (CPU by default).',
+                        default='CPU',
+                        type=str)
+    parser.add_argument('-nireq', '--number_infer_requests',
+                        help='Number of parallel inference requests (default is 2).',
+                        type=int,
+                        required=False,
+                        default=2)
+    parser.add_argument('-s', '--show',
+                        help='Show preview to the user.',
+                        action='store_true',
+                        required=False)
+    parser.add_argument('-l', '--labels',
+                        help='Labels mapping file.',
+                        default=None,
+                        type=str)
+    parser.add_argument('-pt', '--prob_threshold',
+                        help='Probability threshold for detection filtering.',
+                        default=0.5,
+                        type=float)
+    parser.add_argument('-o', '--output_dir',
+                        help='Location to store the results of the processing',
+                        default=None,
+                        required=True,
+                        type=str)
     return parser
-
 
 
 def processBoxes(frame_count, res, labels_map, prob_threshold, frame, initial_w, initial_h, result_file, det_time):
@@ -75,8 +101,10 @@ def processBoxes(frame_count, res, labels_map, prob_threshold, frame, initial_w,
 def main():
     log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=sys.stdout)
     args = build_argparser().parse_args()
+
     model_xml = args.model
     model_bin = os.path.splitext(model_xml)[0] + ".bin"
+
     # Plugin initialization for specified device and load extensions library if specified
     log.info("Initializing plugin for {} device...".format(args.device))
     plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
@@ -99,16 +127,20 @@ def main():
             sys.exit(1)
     assert len(net.inputs.keys()) == 1, "Sample supports only single input topologies"
     assert len(net.outputs) == 1, "Sample supports only single output topologies"
+
     input_blob = next(iter(net.inputs))
     out_blob = next(iter(net.outputs))
+
     log.info("Loading IR to the plugin...")
-    exec_net = plugin.load(network=net, num_requests=2)
+    exec_net = plugin.load(network=net, num_requests=args.number_infer_requests)
+ 
     # Read and pre-process input image
     if isinstance(net.inputs[input_blob], list):
         n, c, h, w = net.inputs[input_blob]
     else:
         n, c, h, w = net.inputs[input_blob].shape
     del net
+
     if args.input == 'cam':
         input_stream = 0
         out_file_name = 'cam'
@@ -116,9 +148,6 @@ def main():
         input_stream = args.input
         assert os.path.isfile(args.input), "Specified input file doesn't exist"
         out_file_name = os.path.splitext(os.path.basename(args.input))[0]
-
-    if args.output_dir:
-        out_path = os.path.join(args.output_dir, out_file_name+'.mp4')
 
     if args.labels:
         with open(args.labels, 'r') as f:
@@ -128,84 +157,93 @@ def main():
 
     cap = cv2.VideoCapture(input_stream)
     video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    cur_request_id = 0
-    next_request_id = 1
-  
-    log.info("Starting inference in async mode...")
-    log.info("To switch between sync and async modes press Tab button")
-    log.info("To stop the sample execution press Esc button")
-    result_file = open(os.path.join(args.output_dir,'output.txt'), "w")
-    progress_file_path = os.path.join(args.output_dir,'i_progress.txt')
 
-    is_async_mode = True
-    render_time = 0
-    fps_sum = 0
+    current_inference = 0
+    required_inference_requests_were_executed = False
+    previous_inference = 1 - args.number_infer_requests
+    step = 0
+    steps_count = args.number_infer_requests - 1
+
+    infer_requests = exec_net.requests
+  
+    log.info("Starting inference in async mode, {} requests in parallel...".format(args.number_infer_requests))
+    result_file = open(os.path.join(args.output_dir, 'output.txt'), "w")
+    progress_file_path = os.path.join(args.output_dir, 'i_progress.txt')
+
     frame_count = 0
-    inf_list = []
-    res_list = []
+    frames = []
     try:
         infer_time_start = time.time()
-        while cap.isOpened():
-            ret, frame = cap.read()
+        while not required_inference_requests_were_executed or step < steps_count or cap.isOpened():
+            read_time = time.time()
+            ret, next_frame = cap.read()
+            frames.append(next_frame)
             if not ret:
                 break
-            in_frame = cv2.resize(frame, (w, h))
-            in_frame = in_frame.transpose((2, 0, 1))  # Change data layout from HWC to CHW
-            in_frame = in_frame.reshape((n, c, h, w))
             initial_w = cap.get(3)
             initial_h = cap.get(4)
-            # Main sync point:
-            # in the truly Async mode we start the NEXT infer request, while waiting for the CURRENT to complete
-            # in the regular mode we start the CURRENT request and immediately wait for it's completion
+
+            in_frame = cv2.resize(next_frame, (w, h))
+            in_frame = in_frame.transpose((2, 0, 1))  # Change data layout from HWC to CHW
+            in_frame = in_frame.reshape((n, c, h, w))
+            
+            # In the truly Async mode, we start the NEXT infer request, while waiting for the CURRENT to complete
             inf_start = time.time()
-            if is_async_mode:
-                exec_net.start_async(request_id=next_request_id, inputs={input_blob: in_frame})
-            else:
-                exec_net.start_async(request_id=cur_request_id, inputs={input_blob: in_frame})
+            exec_net.start_async(request_id=current_inference, inputs={input_blob: in_frame})
+            
+            if previous_inference >= 0:
+                status = infer_requests[previous_inference].wait()
+                if status is not 0:
+                    raise Exception("Infer request not completed successfully")
 
-
-            if exec_net.requests[cur_request_id].wait(-1) == 0:
                 inf_end = time.time()
                 det_time = inf_end - inf_start
-                #Parse detection results of the current request
-                res = exec_net.requests[cur_request_id].outputs[out_blob]
-                processBoxes(frame_count, res, labels_map, args.prob_threshold, frame, initial_w, initial_h, result_file, det_time)
-    
-            #
-            frame_count+=1
-            #Write data to progress tracker
-            if frame_count%10 == 0: 
-                progressUpdate(progress_file_path, time.time()-infer_time_start, frame_count, video_len) 
 
-            key = cv2.waitKey(1)
-            if key == 27:
-                break
-            if (9 == key):
-                is_async_mode = not is_async_mode
-                log.info("Switched to {} mode".format("async" if is_async_mode else "sync"))
-            if is_async_mode:
-                cur_request_id, next_request_id = next_request_id, cur_request_id
+                # Parse detection results of the current request
+                res = infer_requests[previous_inference].outputs[out_blob]
+                frame = frames.pop(0)
+                processBoxes(frame_count, res, labels_map, args.prob_threshold, frame,
+                             initial_w, initial_h, result_file, det_time)
 
- 	##End while loop /
-        total_time = time.time() - infer_time_start
-        cap.release()
-        result_file.close()
+                frame_count += 1
+
+                # Write data to progress tracker
+                if frame_count%10 == 0: 
+                    progressUpdate(progress_file_path, time.time()-infer_time_start, frame_count, video_len) 
+
+            current_inference += 1
+            if current_inference >= args.number_infer_requests:
+                current_inference = 0
+                required_inference_requests_were_executed = True
+
+            previous_inference += 1
+            if previous_inference >= args.number_infer_requests:
+                previous_inference = 0
+
+            step += 1
+        # End while loop
+
+        frame_count += (args.number_infer_requests - 1)
+
         stats = {}
         stats['time'] = round(time.time() - infer_time_start, 2)
         stats['frame'] = frame_count
         stats['fps'] = round(frame_count/(time.time() - infer_time_start), 2)
-        stats_file = args.output_dir+'/stats.json'
+        stats_file = args.output_dir + '/stats.json'
 
-        if args.output_dir is None:
-            cv2.destroyAllWindows()
-        else:
-            with open(stats_file, 'w') as f:
-                json.dump(stats, f)
+        with open(stats_file, 'w') as f:
+            json.dump(stats, f)
 
+        cap.release()
+        result_file.close()
+
+        progressUpdate(progress_file_path, time.time()-infer_time_start, frame_count, video_len)
 
     finally:
+        log.info("Processing done...")
         del exec_net
         del plugin
+
 
 if __name__ == '__main__':
     sys.exit(main() or 0)

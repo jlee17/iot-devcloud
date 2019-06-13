@@ -57,7 +57,7 @@ def summaryPlot(results_list, x_axis, y_axis, title, plot):
     val = []
     arch = []
     diff = 0
-    for path, hw in results_list:
+    for path, hw in results_list.items():
         if os.path.isfile(path):
             f = open(path, "r")
             l1_time = float(f.readline())
@@ -190,6 +190,15 @@ def progressIndicator(path, file_name , title, min_, max_):
     thread.start()
     time.sleep(0.1)
 
+
+def simpleProgressUpdate(file_name, current_time, estimated_time):
+    progress = round(100*current_time/estimated_time, 1)
+    remaining_time = round(estimated_time-current_time, 1)
+    estimated_time = round(estimated_time, 1)
+    with  open(file_name, "w") as progress_file:
+        progress_file.write(str(progress)+'\n')
+        progress_file.write(str(remaining_time)+'\n')
+        progress_file.write(str(estimated_time)+'\n')
 
 
 def progressUpdate(file_name, time_diff, frame_count, video_len):
