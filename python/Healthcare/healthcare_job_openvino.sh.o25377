@@ -1,0 +1,88 @@
+
+########################################################################
+#      Date:           Fri Jun 14 14:27:08 PDT 2019
+#    Job ID:           25377.c003
+#      User:           u27467
+# Resources:           neednodes=1:tank-870:i5-6500te:iei-mustang-v100-mx8,nodes=1:tank-870:i5-6500te:iei-mustang-v100-mx8,walltime=01:00:00
+########################################################################
+
+[setupvars.sh] OpenVINO environment initialized
+We are using Tensorflow version 1.9.0 with Intel(R) MKL disabled
+check
+HDDL
+[ INFO ] Loading U-Net model to the plugin
+[ INFO ] Loading network files:
+	output/IR_models/FP16/saved_model.xml
+	output/IR_models/FP16/saved_model.bin
+Failed to use HDDL BSL configure file in ${HDDL_INSTALL_DIR}/config,
+it may not exist or format is wrong
+Error is:	BSL_ERROR_NO_DEVICE_FOUND
+Automatically detect reset device...
+scan ioexpander device...
+found 1 ioexpander device
+[ion_close][69]close ion_fd = 7
+Failed to use HDDL BSL configure file in ${HDDL_INSTALL_DIR}/config,
+it may not exist or format is wrong
+Error is:	BSL_ERROR_NO_DEVICE_FOUND
+Automatically detect reset device...
+scan ioexpander device...
+found 1 ioexpander device
+## HDDL_INSTALL_DIR: /opt/intel/openvino_2019.1.094/deployment_tools/inference_engine/external/hddl
+[14:27:30.4853][32713]I[ConfigParser.cpp:176] Config file '/opt/intel/openvino_2019.1.094/deployment_tools/inference_engine/external/hddl/config/hddl_service.config' has been loaded
+[14:27:30.5629][32713]I[FileHelper.cpp:272] Set file:/var/tmp/hddl_service_alive.mutex owner: user-'no_change', group-'c003', mode-'0660'
+[14:27:30.5848][32713]I[FileHelper.cpp:272] Set file:/var/tmp/hddl_service_ready.mutex owner: user-'no_change', group-'c003', mode-'0660'
+[14:27:30.5884][32713]I[FileHelper.cpp:272] Set file:/var/tmp/hddl_start_exit.mutex owner: user-'no_change', group-'c003', mode-'0660'
+[14:27:30.6015][32713]I[AutobootStarter.cpp:150] Info: No running autoboot process. Start autoboot daemon...
+[14:27:35.1314][32713]I[AutobootStarter.cpp:83] Info: Autoboot is running.
+[1;36;40m[14:27:35.1625][32713]W[ConfigParser.cpp:266] Warning: Cannot find key, path=scheduler_config.max_graph_per_device subclass=0, use default value: 1.[0m
+[14:27:35.1626][32713]I[DeviceSchedulerFactory.cpp:52] Info: ## DeviceSchedulerFacotry ## Created Squeeze Device-Scheduler2.
+[14:27:35.1631][32713]I[DeviceManager.cpp:456] ## SqueezeScheduler created ##
+[usblink_open:460] open vsc device succ:32,path=/dev/myriad7
+[14:27:37.1709][32713]I[DeviceManager.cpp:582] worker(Wt10.2) created on device(10.2), type(0)
+[usblink_open:460] open vsc device succ:33,path=/dev/myriad6
+[14:27:39.1749][32713]I[DeviceManager.cpp:582] worker(Wt10.1) created on device(10.1), type(0)
+[usblink_open:460] open vsc device succ:34,path=/dev/myriad1
+[14:27:41.1787][32713]I[DeviceManager.cpp:582] worker(Wt8.2) created on device(8.2), type(0)
+[usblink_open:460] open vsc device succ:35,path=/dev/myriad0
+[14:27:43.1824][32713]I[DeviceManager.cpp:582] worker(Wt8.1) created on device(8.1), type(0)
+[usblink_open:460] open vsc device succ:36,path=/dev/myriad4
+[14:27:45.1860][32713]I[DeviceManager.cpp:582] worker(Wt6.1) created on device(6.1), type(0)
+[usblink_open:460] open vsc device succ:37,path=/dev/myriad3
+[14:27:47.1909][32713]I[DeviceManager.cpp:582] worker(Wt5.2) created on device(5.2), type(0)
+[usblink_open:460] open vsc device succ:38,path=/dev/myriad2
+[14:27:49.1947][32713]I[DeviceManager.cpp:582] worker(Wt4.2) created on device(4.2), type(0)
+[usblink_open:460] open vsc device succ:39,path=/dev/myriad5
+[14:27:51.1982][32713]I[DeviceManager.cpp:582] worker(Wt4.1) created on device(4.1), type(0)
+[14:27:51.1982][32713]I[DeviceManager.cpp:122] DEVICE FOUND : 8
+[14:27:51.1983][32713]I[DeviceManager.cpp:123] DEVICE OPENED : 8
+[14:27:51.1984][32713]I[DeviceManagerCreator.cpp:53] New device manager(DeviceManager0) created with subclass(0), deviceCount(8)
+[14:27:51.2105][32713]I[TaskSchedulerFactory.cpp:45] Info: ## TaskSchedulerFactory ## Created Polling Task-Scheduler.
+[14:27:51.2145][32713]I[FileHelper.cpp:272] Set file:/var/tmp/hddl_snapshot.sock owner: user-'no_change', group-'c003', mode-'0660'
+[14:27:51.2181][32713]I[FileHelper.cpp:272] Set file:/var/tmp/hddl_service.sock owner: user-'no_change', group-'c003', mode-'0660'
+[14:27:51.2182][32713]I[MessageDispatcher.cpp:86] Message Dispatcher initialization finished
+[14:27:51.2182][32713]I[main.cpp:115] SERVICE IS READY ...
+[14:27:30.1679][32622]I[ServiceStarter.cpp:93] Info: Found HDDL Service is not running. To start HDDL Service ...
+[14:27:30.1997][32622]I[ServiceStarter.cpp:40] Info: Waiting for HDDL Service getting ready ...
+[14:27:51.2274][32622]I[ServiceStarter.cpp:45] Info: Found HDDL Service is running.
+[HDDLPlugin] [14:27:51.2538][32622]I[ConfigParser.cpp:176] Config file '/opt/intel/openvino_2019.1.094/deployment_tools/inference_engine/external/hddl/config/hddl_api.config' has been loaded
+Hddl api version:2.2
+[HDDLPlugin] [14:27:51.2539][32622]I[HddlClient.cpp:259] Info: Create Dispatcher2.
+[HDDLPlugin] [14:27:51.2545][545]I[Dispatcher2.cpp:148] Info: SenderRoutine starts.
+[HDDLPlugin] [14:27:51.2547][32622]I[HddlClient.cpp:270] Info: RegisterClient HDDLPlugin.
+Client Id:1
+Starting inference (5 iterations)
+Average running time of one batch: 65.09137 ms
+Images per second = 15.363
+[ INFO ] Performance counters:
+[ INFO ] name                                                                   layer_type      exec_type       status          real_time, us
+[HDDLPlugin] [14:27:53.6069][32622]I[HddlBlob.cpp:165] Info: HddlBlob initialize ion ...
+[HDDLPlugin] [14:27:53.6070][32622]I[HddlBlob.cpp:175] Info: HddlBlob initialize ion successfully.
+[HDDLPlugin] [14:28:00.5688][546]I[Dispatcher2.cpp:212] Info: Listen Thread wake up and to exit.
+[HDDLPlugin] [14:28:00.5689][32622]I[Dispatcher2.cpp:81] Info: Client dispatcher exit.
+[HDDLPlugin] [14:28:00.5692][32622]I[HddlClient.cpp:203] Info: Hddl client unregistered.
+
+########################################################################
+# End of output for job 25377.c003
+# Date: Fri Jun 14 14:28:00 PDT 2019
+########################################################################
+
