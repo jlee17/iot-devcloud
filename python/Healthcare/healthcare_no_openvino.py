@@ -169,7 +169,7 @@ def predict(img_no, plot_result):
         #print ("Time for prediction TF: ", '\033[1m %.0f \033[0m'%((time.time()-start_time)*1000),"ms")
        	end_time = (time.time()-start_time)*1000 
         print(end_time)
-    plotDiceScore(img_no,img,msk,pred_mask,plot_result, end_time)
+    plotDiceScore(img_no,img,msk,pred_mask,plot_result, round(end_time))
     return end_time
 
 indicies_validation = [40, 63, 43, 55, 99, 101, 19, 46] #[40]

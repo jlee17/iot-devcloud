@@ -1,0 +1,88 @@
+
+########################################################################
+#      Date:           Mon Jun 17 08:22:56 PDT 2019
+#    Job ID:           25855.c003
+#      User:           u27467
+# Resources:           neednodes=1:tank-870:i5-6500te:iei-mustang-f100-a10,nodes=1:tank-870:i5-6500te:iei-mustang-f100-a10,walltime=01:00:00
+########################################################################
+
+[setupvars.sh] OpenVINO environment initialized
+Adding to Path (OpenVINO AOCL)
+INTELFPGAOCLSDKROOT is set to /opt/altera/aocl-pro-rte/aclrte-linux64. Using that.
+
+aoc was not found, but aocl was found. Assuming only RTE is installed.
+
+AOCL_BOARD_PACKAGE_ROOT is set to /opt/altera/aocl-pro-rte/aclrte-linux64/board/a10_1150_sg1. Using that.
+Adding /opt/altera/aocl-pro-rte/aclrte-linux64/bin to PATH
+Adding /opt/altera/aocl-pro-rte/aclrte-linux64/host/linux64/lib to LD_LIBRARY_PATH
+Adding /opt/altera/aocl-pro-rte/aclrte-linux64/board/a10_1150_sg1/linux64/lib to LD_LIBRARY_PATH
+[setupvars.sh] OpenVINO environment initialized
+aocl program: Running program from /opt/altera/aocl-pro-rte/aclrte-linux64/board/a10_1150_sg1/linux64/libexec
+Programming device: a10gx_2ddr : Intel Vision Accelerator Design with Intel Arria 10 FPGA (acla10_1150_sg10)
+Program succeed. 
+We are using Tensorflow version 1.9.0 with Intel(R) MKL disabled
+check
+HETERO:FPGA,CPU
+[ INFO ] Loading U-Net model to the plugin
+[ INFO ] Loading network files:
+	output/IR_models/FP32/saved_model.xml
+	output/IR_models/FP32/saved_model.bin
+Starting inference (5 iterations)
+Average running time of one batch: 40.59019 ms
+Images per second = 24.636
+[ INFO ] Performance counters:
+[ INFO ] name                                                                   layer_type      exec_type       status          real_time, us
+[ INFO ] subgraph1: out_upE/ResizeBilinear                                      Output          unknown_FP32    NOT_RUN         0         
+[ INFO ] subgraph6: 1. input preprocessing (mean data/FPGA)                                                     EXECUTED        1195      
+[ INFO ] subgraph0: 5. FPGA output postprocessing                                                               EXECUTED        1         
+[ INFO ] subgraph7: out_upA/ResizeBilinear                                      Output          unknown_FP32    NOT_RUN         0         
+[ INFO ] subgraph3: out_upC/ResizeBilinear                                      Output          unknown_FP32    NOT_RUN         0         
+[ INFO ] subgraph0: 4. output transfer from DDR                                                                 EXECUTED        968       
+[ INFO ] subgraph1: encodeEb/Relu_nchw_nChw8c_upE/ResizeBilinear                Reorder         reorder_FP32    EXECUTED        36        
+[ INFO ] subgraph7: upA/ResizeBilinear_nChw8c_nchw_out_upA/ResizeBilinear       Reorder         reorder_FP32    EXECUTED        1160      
+[ INFO ] subgraph9: out_PredictionMask/Sigmoid                                  Output          unknown_FP32    NOT_RUN         0         
+[ INFO ] subgraph4: 3. FPGA execute time                                                                        EXECUTED        1183      
+[ INFO ] subgraph0: 1. input preprocessing (mean data/FPGA)                                                     EXECUTED        236       
+[ INFO ] subgraph8: 2. input transfer to DDR                                                                    EXECUTED        1659      
+[ INFO ] subgraph0: 6. copy to IE blob                                                                          EXECUTED        896       
+[ INFO ] subgraph5: upB/ResizeBilinear                                          Interp          unknown_FP32    EXECUTED        627       
+[ INFO ] subgraph4: 2. input transfer to DDR                                                                    EXECUTED        283       
+[ INFO ] subgraph1: upE/ResizeBilinear                                          Interp          unknown_FP32    EXECUTED        197       
+[ INFO ] subgraph0: 2. input transfer to DDR                                                                    EXECUTED        779       
+[ INFO ] subgraph3: upC/ResizeBilinear                                          Interp          unknown_FP32    EXECUTED        346       
+[ INFO ] subgraph4: 5. FPGA output postprocessing                                                               EXECUTED        0         
+[ INFO ] subgraph9: PredictionMask/Sigmoid                                      sigmoid         jit_avx2_FP32   EXECUTED        81        
+[ INFO ] subgraph8: 6. copy to IE blob                                                                          EXECUTED        75        
+[ INFO ] subgraph0: 3. FPGA execute time                                                                        EXECUTED        2365      
+[ INFO ] subgraph8: 5. FPGA output postprocessing                                                               EXECUTED        1         
+[ INFO ] subgraph5: out_upB/ResizeBilinear                                      Output          unknown_FP32    NOT_RUN         0         
+[ INFO ] subgraph8: 4. output transfer from DDR                                                                 EXECUTED        605       
+[ INFO ] subgraph8: 3. FPGA execute time                                                                        EXECUTED        3297      
+[ INFO ] subgraph6: 2. input transfer to DDR                                                                    EXECUTED        540       
+[ INFO ] subgraph2: 6. copy to IE blob                                                                          EXECUTED        107       
+[ INFO ] subgraph4: 1. input preprocessing (mean data/FPGA)                                                     EXECUTED        920       
+[ INFO ] subgraph7: upA/ResizeBilinear                                          Interp          unknown_FP32    EXECUTED        1615      
+[ INFO ] subgraph5: upB/ResizeBilinear_nChw8c_nchw_out_upB/ResizeBilinear       Reorder         reorder_FP32    EXECUTED        306       
+[ INFO ] subgraph4: 6. copy to IE blob                                                                          EXECUTED        192       
+[ INFO ] subgraph2: 4. output transfer from DDR                                                                 EXECUTED        418       
+[ INFO ] subgraph3: decodeCb/Relu_nchw_nChw8c_upC/ResizeBilinear                Reorder         reorder_FP32    EXECUTED        64        
+[ INFO ] subgraph6: 5. FPGA output postprocessing                                                               EXECUTED        2         
+[ INFO ] subgraph1: upE/ResizeBilinear_nChw8c_nchw_out_upE/ResizeBilinear       Reorder         reorder_FP32    EXECUTED        90        
+[ INFO ] subgraph3: upC/ResizeBilinear_nChw8c_nchw_out_upC/ResizeBilinear       Reorder         reorder_FP32    EXECUTED        165       
+[ INFO ] subgraph6: 6. copy to IE blob                                                                          EXECUTED        692       
+[ INFO ] subgraph7: decodeAb/Relu_nchw_nChw8c_upA/ResizeBilinear                Reorder         reorder_FP32    EXECUTED        222       
+[ INFO ] subgraph2: 5. FPGA output postprocessing                                                               EXECUTED        0         
+[ INFO ] subgraph4: 4. output transfer from DDR                                                                 EXECUTED        411       
+[ INFO ] subgraph2: 3. FPGA execute time                                                                        EXECUTED        872       
+[ INFO ] subgraph5: decodeBb/Relu_nchw_nChw8c_upB/ResizeBilinear                Reorder         reorder_FP32    EXECUTED        100       
+[ INFO ] subgraph2: 1. input preprocessing (mean data/FPGA)                                                     EXECUTED        900       
+[ INFO ] subgraph2: 2. input transfer to DDR                                                                    EXECUTED        152       
+[ INFO ] subgraph6: 4. output transfer from DDR                                                                 EXECUTED        713       
+[ INFO ] subgraph6: 3. FPGA execute time                                                                        EXECUTED        1591      
+[ INFO ] subgraph8: 1. input preprocessing (mean data/FPGA)                                                     EXECUTED        2772      
+
+########################################################################
+# End of output for job 25855.c003
+# Date: Mon Jun 17 08:23:31 PDT 2019
+########################################################################
+

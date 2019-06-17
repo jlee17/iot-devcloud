@@ -1,0 +1,3 @@
+0.3342
+7
+Frames processed per second = 21 

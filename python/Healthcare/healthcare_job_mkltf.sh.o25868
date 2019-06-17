@@ -1,0 +1,28 @@
+
+########################################################################
+#      Date:           Mon Jun 17 08:30:08 PDT 2019
+#    Job ID:           25868.c003
+#      User:           u27467
+# Resources:           neednodes=1:tank-870:i5-6500te,nodes=1:tank-870:i5-6500te,walltime=01:00:00
+########################################################################
+
+[setupvars.sh] OpenVINO environment initialized
+We are using Tensorflow version 1.12.0 with Intel(R) MKL enabled
+We are using Tensorflow version 1.12.0 with Intel(R) MKL enabled
+/data/Healthcare_app/data/144x144/Task01_BrainTumour.h5
+/data/Healthcare_app/output/unet_model_for_decathlon.hdf5
+Done
+443.0367946624756
+44.32535171508789
+47.0738410949707
+42.12522506713867
+46.92435264587402
+41.95284843444824
+41.422367095947266
+41.40758514404297
+
+########################################################################
+# End of output for job 25868.c003
+# Date: Mon Jun 17 08:30:33 PDT 2019
+########################################################################
+

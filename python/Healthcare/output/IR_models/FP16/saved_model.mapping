@@ -153,12 +153,12 @@
 		<IR id="37" name="upB/ResizeBilinear" out_port_id="1"/>
 	</map>
 	<map>
-		<framework name="concatB/concat" out_port_id="0"/>
-		<IR id="38" name="concatB/concat" out_port_id="2"/>
-	</map>
-	<map>
 		<framework name="decodeAa/Relu" out_port_id="0"/>
 		<IR id="40" name="decodeAa/Relu" out_port_id="1"/>
+	</map>
+	<map>
+		<framework name="concatB/concat" out_port_id="0"/>
+		<IR id="38" name="concatB/concat" out_port_id="2"/>
 	</map>
 	<map>
 		<framework name="decodeAb/Relu" out_port_id="0"/>
