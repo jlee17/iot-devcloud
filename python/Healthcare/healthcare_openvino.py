@@ -308,7 +308,7 @@ for idx in indicies_validation:
     predictions = res[out_blob]
     time_elapsed = time.time()-start_time
     infer_time += time_elapsed
-    plotDiceScore(idx,input_data_transposed,label_data[[idx]].transpose(0,3,1,2),predictions,True, time_elapsed*1000)
+    plotDiceScore(idx,input_data_transposed,label_data[[idx]].transpose(0,3,1,2),predictions,True, round(time_elapsed*1000))
     progressUpdate(progress_file_path, time.time()-process_time_start, val_id, len(indicies_validation)) 
     val_id += 1
 

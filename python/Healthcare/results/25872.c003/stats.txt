@@ -1,0 +1,3 @@
+0.3533
+9
+Frames processed per second = 25

@@ -1,0 +1,191 @@
+
+########################################################################
+#      Date:           Mon Jun 17 08:27:38 PDT 2019
+#    Job ID:           25863.c003
+#      User:           u27467
+# Resources:           neednodes=1:tank-870:i5-6500te:intel-ncs2,nodes=1:tank-870:i5-6500te:intel-ncs2,walltime=01:00:00
+########################################################################
+
+[setupvars.sh] OpenVINO environment initialized
+We are using Tensorflow version 1.9.0 with Intel(R) MKL disabled
+check
+MYRIAD
+[ INFO ] Loading U-Net model to the plugin
+[ INFO ] Loading network files:
+	output/IR_models/FP16/saved_model.xml
+	output/IR_models/FP16/saved_model.bin
+Starting inference (5 iterations)
+Average running time of one batch: 61.13710 ms
+Images per second = 16.357
+[ INFO ] Performance counters:
+[ INFO ] name                                                                   layer_type      exec_type       status          real_time, us
+[ INFO ] encodeBb/convolution@soh=3/3 + injected[encodeBb/convolution@concat-output@input=1@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        127       
+[ INFO ] decodeBa/convolution@soh=7/17@remove-junk                              Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=9/17 + injected[decodeBa/convolution@concat-output@input=7@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        744       
+[ INFO ] poolA/MaxPool                                                          Pooling         MyriadXHwOp     EXECUTED        198       
+[ INFO ] decodeBa/convolution@soh=3/17@remove-junk                              Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=17/17@remove-junk                             Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] concatC/concat                                                         Concat          Concat          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=10/17 + injected[decodeBa/convolution@concat-output@input=0@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        744       
+[ INFO ] decodeAb/convolution@soh=2/3                                           Convolution     MyriadXHwOp     EXECUTED        645       
+[ INFO ] PredictionMask/Sigmoid@FP16                                            <Extra>         Convert_f16f32  EXECUTED        41        
+[ INFO ] encodeAb/convolution@soh=3/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeEa/convolution                                                   Convolution     MyriadXHwOp     EXECUTED        954       
+[ INFO ] decodeAb/convolution@soh=1/3                                           Convolution     MyriadXHwOp     EXECUTED        645       
+[ INFO ] decodeBa/convolution@soh=5/17@remove-junk                              Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] upE/ResizeBilinear                                                     Interp          Interp          EXECUTED        580       
+[ INFO ] decodeBa/convolution@soh=8/17@remove-junk                              Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeEb/convolution@soc=2/2                                           Convolution     MyriadXHwOp     EXECUTED        912       
+[ INFO ] decodeBb/Relu@adjust-strides@move-to-DDR                               Interp          Copy            EXECUTED        47        
+[ INFO ] decodeAa/convolution@sow=2/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOutb/convolution@soh=3/4 + injected[convOutb/convolution@concat-output@input=1@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        729       
+[ INFO ] convOutb/convolution@concat-output@input=3@copy-for-concat             Convolution     Copy            EXECUTED        18        
+[ INFO ] decodeAa/convolution@sow=1/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeEb/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] encodeAa/convolution@soh=3/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeEb/convolution@soc=2/2@ReLU                                      Convolution     Relu            EXECUTED        74        
+[ INFO ] decodeAa/convolution@sow=2/3                                           Convolution     MyriadXHwOp     EXECUTED        1929      
+[ INFO ] decodeBa/convolution@soh=14/17@remove-junk                             Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeCb/convolution                                                   Convolution     MyriadXHwOp     EXECUTED        1793      
+[ INFO ] poolB/MaxPool                                                          Pooling         MyriadXHwOp     EXECUTED        135       
+[ INFO ] encodeBa/convolution@soh=1/3                                           Convolution     MyriadXHwOp     EXECUTED        374       
+[ INFO ] encodeBb/convolution@soh=1/3                                           Convolution     MyriadXHwOp     EXECUTED        655       
+[ INFO ] encodeAb/convolution@soh=1/4                                           Convolution     MyriadXHwOp     EXECUTED        710       
+[ INFO ] encodeBb/convolution@soh=2/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=3/3@sow=1/3@remove-junk                       Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeAb/convolution@soh=2/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=12/17 + injected[decodeBa/convolution@concat-output@input=10@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        744       
+[ INFO ] poolD/MaxPool + injected[concatD/concat@input=1@copy-for-concat]       Pooling         MyriadXHwOp + injected[Copy] EXECUTED        100       
+[ INFO ] concatD/concat                                                         Concat          Concat          OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=2/3@sow=2/3 + injected[convOuta/convolution@concat-output@input=3@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        1114      
+[ INFO ] convOuta/convolution@soh=1/3@sow=2/3@remove-junk                       Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=1/3@sow=1/3                                   Convolution     MyriadXHwOp     EXECUTED        1087      
+[ INFO ] decodeBa/convolution@soh=2/17 + injected[decodeBa/convolution@concat-output@input=16@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        743       
+[ INFO ] convOuta/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] encodeBb/convolution@soh=2/3 + injected[encodeBb/convolution@concat-output@input=0@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        691       
+[ INFO ] upC/ResizeBilinear                                                     Interp          Interp          EXECUTED        1213      
+[ INFO ] encodeAa/convolution@soh=1/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeCa/convolution                                                   Convolution     MyriadXHwOp     EXECUTED        652       
+[ INFO ] convOutb/convolution@soh=1/4                                           Convolution     MyriadXHwOp     EXECUTED        708       
+[ INFO ] decodeAa/convolution@sow=3/3 + injected[decodeAa/convolution@sow=2/3@align-output-ptr] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        667       
+[ INFO ] decodeAb/convolution@soh=2/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeAa/convolution@concat-output@input=0@copy-for-concat             Convolution     Copy            EXECUTED        84        
+[ INFO ] encodeBa/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] encodeAb/convolution@soh=4/4 + injected[encodeAb/convolution@concat-output@input=2@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        125       
+[ INFO ] convOuta/convolution@soh=2/3@sow=1/3@remove-junk                       Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=2/3@sow=2/3@remove-junk                       Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeBa/convolution@soh=2/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeAa/convolution@sow=3/3@align-output-ptr                          Convolution     Copy            EXECUTED        23        
+[ INFO ] decodeAb/convolution@concat-output                                     Convolution     Concat          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=13/17@remove-junk                             Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] upB/ResizeBilinear                                                     Interp          Interp          EXECUTED        1555      
+[ INFO ] decodeBa/convolution@soh=7/17 + injected[decodeBa/convolution@concat-output@input=5@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        744       
+[ INFO ] MRImages@FP16                                                          <Extra>         Convert_f32f16  EXECUTED        202       
+[ INFO ] encodeBa/convolution@soh=3/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeBb/convolution@concat-output@input=2@copy-for-concat             Convolution     Copy            EXECUTED        14        
+[ INFO ] encodeAa/convolution@soh=4/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=11/17 + injected[decodeBa/convolution@concat-output@input=9@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        743       
+[ INFO ] decodeBa/convolution@soh=4/17 + injected[decodeBa/convolution@concat-output@input=2@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        742       
+[ INFO ] decodeBa/convolution@soh=2/17@remove-junk                              Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeAb/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=1/3@sow=2/3 + injected[convOuta/convolution@concat-output@input=0@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        1085      
+[ INFO ] encodeAb/convolution@soh=3/4 + injected[encodeAb/convolution@concat-output@input=1@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        727       
+[ INFO ] encodeBa/convolution@soh=3/3 + injected[encodeBa/convolution@concat-output@input=1@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        65        
+[ INFO ] PredictionMask/convolution                                             Convolution     MyriadXHwOp     EXECUTED        870       
+[ INFO ] encodeDa/convolution                                                   Convolution     MyriadXHwOp     EXECUTED        727       
+[ INFO ] encodeAb/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] encodeAa/convolution@soh=4/4 + injected[encodeAa/convolution@concat-output@input=2@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        68        
+[ INFO ] decodeBa/convolution@concat-output@input=8@copy-for-concat             Convolution     Copy            EXECUTED        12        
+[ INFO ] decodeAb/convolution@soh=3/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=2/3@sow=3/3@remove-junk                       Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeAa/convolution@concat-output@input=3@copy-for-concat             Convolution     Copy            EXECUTED        22        
+[ INFO ] decodeBa/convolution@soh=8/17 + injected[decodeBa/convolution@concat-output@input=6@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        743       
+[ INFO ] encodeAb/convolution@soh=1/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=3/3@sow=1/3 + injected[convOuta/convolution@soh=2/3@sow=3/3@align-output-ptr] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        210       
+[ INFO ] decodeCa/convolution@soc=2/2@accum                                     Convolution     Sum             EXECUTED        167       
+[ INFO ] convOuta/convolution@soh=3/3@sow=2/3 + injected[convOuta/convolution@concat-output@input=6@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        101       
+[ INFO ] convOuta/convolution@soh=3/3@sow=2/3@remove-junk                       Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=10/17@remove-junk                             Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOutb/convolution@soh=4/4 + injected[convOutb/convolution@concat-output@input=2@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        122       
+[ INFO ] convOuta/convolution@soh=3/3@sow=3/3@remove-junk                       Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=3/17 + injected[decodeBa/convolution@concat-output@input=1@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        744       
+[ INFO ] convOuta/convolution@concat-output                                     Convolution     Concat          OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=1/3@sow=3/3 + injected[convOuta/convolution@soh=1/3@sow=2/3@align-output-ptr] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        427       
+[ INFO ] decodeAb/convolution@soh=1/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeAb/convolution@concat-output@input=0@copy-for-concat             Convolution     Copy            EXECUTED        41        
+[ INFO ] encodeAa/convolution@soh=3/4 + injected[encodeAa/convolution@concat-output@input=1@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        358       
+[ INFO ] decodeCa/convolution@soc=2/2@ReLU                                      Convolution     Relu            EXECUTED        148       
+[ INFO ] convOuta/convolution@soh=3/3@sow=3/3 + injected[convOuta/convolution@soh=3/3@sow=2/3@align-output-ptr] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        52        
+[ INFO ] decodeBa/convolution@soh=13/17 + injected[decodeBa/convolution@concat-output@input=11@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        743       
+[ INFO ] decodeAa/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=15/17@remove-junk                             Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeAb/convolution@concat-output@input=2@copy-for-concat             Convolution     Copy            EXECUTED        15        
+[ INFO ] convOutb/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=11/17@remove-junk                             Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] <none>                                                                 ReLU            <none>          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=5/17 + injected[decodeBa/convolution@concat-output@input=3@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        743       
+[ INFO ] convOutb/convolution@soh=4/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOutb/convolution@soh=1/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeCa/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=1/3@sow=3/3@remove-junk                       Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeAa/convolution@concat-output                                     Convolution     Concat          OPTIMIZED_OUT   0         
+[ INFO ] encodeEb/convolution@soc=2/2@accum                                     Convolution     Sum             EXECUTED        102       
+[ INFO ] decodeBa/convolution@soh=14/17 + injected[decodeBa/convolution@concat-output@input=12@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        741       
+[ INFO ] decodeBa/convolution@soh=16/17 + injected[decodeBa/convolution@concat-output@input=14@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        743       
+[ INFO ] concatB/concat                                                         Concat          Concat          OPTIMIZED_OUT   0         
+[ INFO ] encodeAa/convolution@soh=2/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@concat-output                                     Convolution     Concat          OPTIMIZED_OUT   0         
+[ INFO ] decodeCa/convolution@soc=1/2                                           Convolution     MyriadXHwOp     EXECUTED        2519      
+[ INFO ] decodeBa/convolution@soh=1/17@remove-junk                              Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=2/3@sow=1/3 + injected[convOuta/convolution@soh=1/3@sow=3/3@align-output-ptr] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        1105      
+[ INFO ] decodeBa/convolution@soh=6/17@remove-junk                              Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] upA/ResizeBilinear                                                     Interp          Interp          EXECUTED        2828      
+[ INFO ] encodeBa/convolution@soh=1/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeAa/convolution@concat-output                                     Convolution     Concat          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=6/17 + injected[decodeBa/convolution@concat-output@input=4@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        742       
+[ INFO ] encodeCb/convolution                                                   Convolution     MyriadXHwOp     EXECUTED        1356      
+[ INFO ] encodeBb/convolution@concat-output                                     Convolution     Concat          OPTIMIZED_OUT   0         
+[ INFO ] decodeAa/convolution@sow=3/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeAb/convolution@soh=2/4 + injected[encodeAb/convolution@concat-output@input=0@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        727       
+[ INFO ] encodeBa/convolution@concat-output@input=2@copy-for-concat             Convolution     Copy            EXECUTED        14        
+[ INFO ] concatA/concat                                                         Concat          Concat          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] convOutb/convolution@concat-output                                     Convolution     Concat          OPTIMIZED_OUT   0         
+[ INFO ] encodeBb/convolution@soh=3/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=3/3@sow=3/3@align-output-ptr                  Convolution     Copy            EXECUTED        20        
+[ INFO ] decodeBa/convolution@soh=4/17@remove-junk                              Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeBb/convolution@soh=1/3@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeAa/convolution@soh=1/4                                           Convolution     MyriadXHwOp     EXECUTED        360       
+[ INFO ] decodeCa/convolution@soc=2/2                                           Convolution     MyriadXHwOp     EXECUTED        2471      
+[ INFO ] poolC/MaxPool + injected[concatC/concat@input=1@copy-for-concat]       Pooling         MyriadXHwOp + injected[Copy] EXECUTED        139       
+[ INFO ] decodeBa/convolution@soh=15/17 + injected[decodeBa/convolution@concat-output@input=13@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        742       
+[ INFO ] encodeAb/convolution@concat-output                                     Convolution     Concat          OPTIMIZED_OUT   0         
+[ INFO ] convOutb/convolution@soh=2/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=16/17@remove-junk                             Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeBa/convolution@concat-output                                     Convolution     Concat          OPTIMIZED_OUT   0         
+[ INFO ] decodeAb/convolution@soh=3/3 + injected[decodeAb/convolution@concat-output@input=1@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        103       
+[ INFO ] decodeBa/convolution@soh=9/17@remove-junk                              Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeAa/convolution@soh=2/4 + injected[encodeAa/convolution@concat-output@input=0@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        354       
+[ INFO ] encodeBb/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=12/17@remove-junk                             Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] decodeBa/convolution@soh=1/17                                          Convolution     MyriadXHwOp     EXECUTED        745       
+[ INFO ] encodeAb/convolution@concat-output@input=3@copy-for-concat             Convolution     Copy            EXECUTED        18        
+[ INFO ] decodeBa/convolution@soh=17/17 + injected[decodeBa/convolution@concat-output@input=15@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        743       
+[ INFO ] decodeAa/convolution@sow=1/3                                           Convolution     MyriadXHwOp     EXECUTED        1937      
+[ INFO ] convOuta/convolution@soh=2/3@sow=3/3 + injected[convOuta/convolution@soh=2/3@sow=2/3@align-output-ptr] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        420       
+[ INFO ] encodeDb/convolution                                                   Convolution     MyriadXHwOp     EXECUTED        1535      
+[ INFO ] encodeAa/convolution@split-input                                       Convolution     Split           OPTIMIZED_OUT   0         
+[ INFO ] convOuta/convolution@soh=1/3@sow=1/3@remove-junk                       Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] convOutb/convolution@soh=2/4 + injected[convOutb/convolution@concat-output@input=0@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        724       
+[ INFO ] decodeBb/convolution                                                   Convolution     MyriadXHwOp     EXECUTED        1356      
+[ INFO ] encodeEb/convolution@soc=1/2                                           Convolution     MyriadXHwOp     EXECUTED        933       
+[ INFO ] PredictionMask/Sigmoid                                                 sigmoid         Sigmoid         EXECUTED        87        
+[ INFO ] encodeBa/convolution@soh=2/3 + injected[encodeBa/convolution@concat-output@input=0@copy-for-concat] Convolution     MyriadXHwOp + injected[Copy] EXECUTED        380       
+[ INFO ] convOutb/convolution@soh=3/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+[ INFO ] encodeAb/convolution@soh=4/4@remove-junk                               Convolution     Shrink          OPTIMIZED_OUT   0         
+
+########################################################################
+# End of output for job 25863.c003
+# Date: Mon Jun 17 08:28:07 PDT 2019
+########################################################################
+

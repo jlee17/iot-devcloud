@@ -1,0 +1,84 @@
+
+########################################################################
+#      Date:           Mon Jun 17 08:27:33 PDT 2019
+#    Job ID:           25860.c003
+#      User:           u27467
+# Resources:           neednodes=1:tank-870:i5-6500te,nodes=1:tank-870:i5-6500te,walltime=01:00:00
+########################################################################
+
+[setupvars.sh] OpenVINO environment initialized
+We are using Tensorflow version 1.9.0 with Intel(R) MKL disabled
+check
+CPU
+[ INFO ] Loading U-Net model to the plugin
+[ INFO ] Loading network files:
+	output/IR_models/FP32/saved_model.xml
+	output/IR_models/FP32/saved_model.bin
+Starting inference (5 iterations)
+Average running time of one batch: 35.11100 ms
+Images per second = 28.481
+[ INFO ] Performance counters:
+[ INFO ] name                                                                   layer_type      exec_type       status          real_time, us
+[ INFO ] convOutb/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] encodeCb/convolution___concatC/concat                                  Reorder         reorder_FP32    EXECUTED        38        
+[ INFO ] concatA/concat                                                         Concat          unknown_FP32    EXECUTED        1         
+[ INFO ] encodeEb/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] decodeCb/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        1297      
+[ INFO ] out_PredictionMask/Sigmoid                                             Output          unknown_FP32    NOT_RUN         0         
+[ INFO ] encodeBb/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] encodeCa/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] encodeDa/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        677       
+[ INFO ] encodeDb/convolution___concatD/concat                                  Reorder         reorder_FP32    EXECUTED        16        
+[ INFO ] decodeBa/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] encodeAa/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] decodeCa/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        3859      
+[ INFO ] encodeAb/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] concatC/concat                                                         Concat          unknown_FP32    EXECUTED        1         
+[ INFO ] PredictionMask/convolution                                             Convolution     jit_avx2_1x1_FP32 EXECUTED        177       
+[ INFO ] encodeAb/convolution___concatA/concat                                  Reorder         reorder_FP32    EXECUTED        378       
+[ INFO ] poolB/MaxPool                                                          Pooling         jit_avx_FP32    EXECUTED        46        
+[ INFO ] poolD/MaxPool                                                          Pooling         jit_avx_FP32    EXECUTED        9         
+[ INFO ] encodeAa/convolution                                                   Convolution     jit_sse42_FP32  EXECUTED        1254      
+[ INFO ] decodeBa/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        3671      
+[ INFO ] poolC/MaxPool                                                          Pooling         jit_avx_FP32    EXECUTED        19        
+[ INFO ] encodeCb/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        1250      
+[ INFO ] upA/ResizeBilinear                                                     Interp          unknown_FP32    EXECUTED        806       
+[ INFO ] convOutb/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        1266      
+[ INFO ] PredictionMask/Sigmoid                                                 sigmoid         undef           NOT_RUN         0         
+[ INFO ] encodeCb/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] encodeDb/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] encodeEb/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        1470      
+[ INFO ] PredictionMask/convolution_nChw8c_nchw_out_PredictionMask/Sigmoid      Reorder         reorder_FP32    EXECUTED        60        
+[ INFO ] encodeEa/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        764       
+[ INFO ] encodeDb/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        1121      
+[ INFO ] decodeBb/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        1252      
+[ INFO ] encodeEa/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] decodeAb/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        1107      
+[ INFO ] decodeAb/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] upB/ResizeBilinear                                                     Interp          unknown_FP32    EXECUTED        416       
+[ INFO ] decodeCb/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] convOuta/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] encodeAb/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        1464      
+[ INFO ] poolA/MaxPool                                                          Pooling         jit_avx_FP32    EXECUTED        187       
+[ INFO ] decodeBb/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] decodeAa/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        3784      
+[ INFO ] encodeBb/convolution___concatB/concat                                  Reorder         reorder_FP32    EXECUTED        117       
+[ INFO ] decodeAa/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] concatD/concat                                                         Concat          unknown_FP32    EXECUTED        2         
+[ INFO ] encodeBb/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        1348      
+[ INFO ] encodeBa/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        622       
+[ INFO ] upE/ResizeBilinear                                                     Interp          unknown_FP32    EXECUTED        131       
+[ INFO ] decodeCa/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] encodeDa/Relu                                                          ReLU            undef           NOT_RUN         0         
+[ INFO ] encodeCa/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        628       
+[ INFO ] convOuta/convolution                                                   Convolution     jit_avx2_FP32   EXECUTED        3812      
+[ INFO ] MRImages_nchw_nChw8c_encodeAa/convolution                              Reorder         reorder_FP32    EXECUTED        172       
+[ INFO ] upC/ResizeBilinear                                                     Interp          unknown_FP32    EXECUTED        234       
+[ INFO ] concatB/concat                                                         Concat          unknown_FP32    EXECUTED        1         
+[ INFO ] encodeBa/Relu                                                          ReLU            undef           NOT_RUN         0         
+
+########################################################################
+# End of output for job 25860.c003
+# Date: Mon Jun 17 08:27:59 PDT 2019
+########################################################################
+
