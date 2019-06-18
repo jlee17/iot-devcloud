@@ -180,7 +180,7 @@ def frameRunner():
     assembly = AssemblyInfo(inc_total=inc_total, defect=defect, area=part_area, length=maxlength, width=maxwidth, show=prev_defect, rects=rect)
     updateInfo(assembly)
 
-def runObjectDetector(vid_path = 0,maxlength = 0 ,minlength = 0 ,maxwidth = 0 ,minwidth = 0 , distance = 0 , filedofview = 0 , draw_callback = None):
+def runObjectDetector(vid_path = 0,maxlength = 0 ,minlength = 0 ,maxwidth = 0 ,minwidth = 0 , distance = 0 , fieldofview = 0 , draw_callback = None):
   global delay
   global frame
   global max_length
@@ -279,4 +279,4 @@ def runObjectDetector(vid_path = 0,maxlength = 0 ,minlength = 0 ,maxwidth = 0 ,m
       vw.release()
       capture.release()
 if __name__ == '__main__':
-    runObjectDetector(vid_path, maxlength, minlength, maxwidth, minwidth, distance, filedofview)
+    runObjectDetector(vid_path, maxlength, minlength, maxwidth, minwidth, distance, fieldofview)
