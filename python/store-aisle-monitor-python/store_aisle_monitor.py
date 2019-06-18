@@ -33,14 +33,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path().resolve().parent.parent))
 from demoTools.demoutils import *
 
-# Weightage/ratio to merge (for Heatmap) original frame and colorMap frame(sum of both should be 1)
-INITIAL_FRAME_WEIGHTAGE = 0.65
-COLORMAP_FRAME_WEIGHTAGE = 0.35
-
-# Weightage/ratio to merge (for integrated output) people count frame and colorMap frame(sum of both should be 1)
-P_COUNT_FRAME_WEIGHTAGE = 0.65
-COLORMAP_FRAME_WEIGHTAGE_1 = 0.35
-
 # Multiplication factor to compute time interval for uploading snapshots to the cloud
 MULTIPLICATION_FACTOR = 5
 
@@ -173,13 +165,10 @@ def main():
     video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     store_aisle = cv2.VideoWriter(os.path.join(args.output_dir, "store_aisle.mp4"),0x00000021, fps, (initial_w, initial_h), True)
-    frame_count1 = 0
     job_id = os.environ['PBS_JOBID']
     progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
     infer_time_start = time.time()
     frame_count = 1
-    accumulated_image = np.zeros((initial_h, initial_w), np.uint8)
-    mog = cv2.createBackgroundSubtractorMOG2()
     ret, frame = cap.read()
     while cap.isOpened():
         ret, next_frame = cap.read()
@@ -199,21 +188,7 @@ def main():
         det_time = time.time() - inf_start
 
         people_count = 0
-
-        # Converting to Grayscale
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        # Remove the background
-        fgbgmask = mog.apply(gray)
-        # Thresholding the image
-        thresh = 2
-        max_value = 2
-        threshold_image = cv2.threshold(fgbgmask, thresh, max_value,
-                                                      cv2.THRESH_BINARY)[1]
-        # Adding to the accumulated image
-        accumulated_image = cv2.add(threshold_image, accumulated_image)
-        colormap_image = cv2.applyColorMap(accumulated_image, cv2.COLORMAP_HOT)
-
+        
         # Results of the output layer of the network
         res = infer_network.get_output(0)
         for obj in res[0][0]:
@@ -255,3 +230,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main() or 0)
+
