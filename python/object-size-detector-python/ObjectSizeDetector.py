@@ -180,13 +180,21 @@ def frameRunner():
     assembly = AssemblyInfo(inc_total=inc_total, defect=defect, area=part_area, length=maxlength, width=maxwidth, show=prev_defect, rects=rect)
     updateInfo(assembly)
 
-def runObjectDetector(vid_path = 0,max_length = 0,min_length = 0,max_width = 0,min_width= 0, distance= 0, filedofview= 0, draw_callback = None):
+def runObjectDetector(vid_path = 0,maxlength = 0 ,minlength = 0 ,maxwidth = 0 ,minwidth = 0 , distance = 0 , filedofview = 0 , draw_callback = None):
   global delay
   global frame
+  global max_length
+  global min_length
+  global max_width
+  global min_width
   global total_parts
   global total_defect
   global one_pixel_length
   global diagonal_length_of_image_plane
+  max_length = maxlength
+  min_length = minlength
+  max_width = maxwidth
+  min_width = minwidth
   #if args.vid:
     #if args.vid == 'CAM':
      # capture = cv2.VideoCapture(0)
@@ -271,4 +279,4 @@ def runObjectDetector(vid_path = 0,max_length = 0,min_length = 0,max_width = 0,m
       vw.release()
       capture.release()
 if __name__ == '__main__':
-  runObjectDetector(vid_path, max_length, min_length, max_width, min_width, filedofview)
+    runObjectDetector(vid_path, maxlength, minlength, maxwidth, minwidth, filedofview)
