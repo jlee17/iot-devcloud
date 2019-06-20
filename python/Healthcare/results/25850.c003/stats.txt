@@ -1,0 +1,3 @@
+0.2421
+9
+Frames processed per second = 37
