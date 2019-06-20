@@ -1,3 +1,0 @@
-0.227
-9
-Frames processed per second = 40
