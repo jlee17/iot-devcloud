@@ -51,52 +51,52 @@
 		    {
 			"display_name": "Intel Movidius\nNeural Compute Stick",
 			"properties": "intel-ncs", 
-			"arguments": "MYRIAD -f FP16"
+			"arguments": "MYRIAD -f FP16 -n 2"
 		    },
 		    {
 			"display_name": "Intel\nNeural Compute Stick 2 (2018)",
 			"properties": "intel-ncs2",
-			"arguments": "MYRIAD -f FP16"
+			"arguments": "MYRIAD -f FP16 -n 4"
 		    },
 		    {
 			"display_name": "IEI\nMustang-V100-MX8",
 			"properties": "iei-mustang-v100-mx8",
-			"arguments": "MYRIAD -f FP16"
+			"arguments": "HDDL -f FP16 -n 128"
 		    },
 		    {
 			"display_name": "Intel\nHD Graphics 505",
 			"properties": "intel-hd-505",
-			"arguments": "GPU -f FP32"
+			"arguments": "GPU -f FP16 -n 2"
 		    },
 		    {
 			"display_name": "Intel\nHD Graphics P530",
 			"properties": "intel-hd-p530",
-			"arguments": "GPU -f FP32"
+			"arguments": "GPU -f FP16 -n 2"
 		    },
 		    {
 			"display_name": "Intel\nHD Graphics 530",
 			"properties": "intel-hd-530",
-			"arguments": "GPU -f FP32"
+			"arguments": "GPU -f FP16 -n 2"
 		    },
 		    {
 			"display_name": "IEI\nMustang-F100-A10",
 			"properties": "iei-mustang-f100-a10",
-			"arguments": "HETERO:FPGA,CPU -f FP32"
+			"arguments": "HETERO:FPGA,CPU -f FP32 -n 4"
 		    },
 		    {
 			"display_name": "Intel Core\ni5-6500TE",
 			"properties": "i5-6500te",
-			"arguments": "CPU -f FP32"
+			"arguments": "CPU -f FP32 -n 4"
 		    },
 		    {
 			"display_name": "Intel Xeon Processor\nE3-1268L v5",
 			"properties": "e3-1268l-v5",
-			"arguments": "CPU -f FP32"
+			"arguments": "CPU -f FP32 -n 4"
 		    },
 		    {
 			"display_name": "Intel Atom\nx7-E3950",
 			"properties": "e3950",
-			"arguments": "CPU -f FP32"
+			"arguments": "CPU -f FP32 -n 4"
 		    }
 		]
 	    }
