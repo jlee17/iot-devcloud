@@ -1,20 +1,39 @@
 {
     "jobs": 
-    {
-	"script": "",
-	"results_path": "-r results/",
-	"plot_details":"",
-	"plot_selector":"",
-	"progress_indicator":
+
+    {	
+	"command" : "",
+	"output_type" : "text",
+	"results_path" : "results/",
+	"results_prefix" : "-r",
+	"results_defines" : "-F",
+	"plots":
 	[
-	    {
-		"file name": "i_progress.txt",
-		"title": "Inference"
-	    },
-	    {
-		"file name": "v_progress.txt",
-		"title": "Rendering"
-	    }
+		{	"title": "plot title",
+			"selector": ""
+		}
+	],
+	"progress_indicators":
+	[
+		{
+			"file name": "i_progress.txt",
+			"title": "Inference"
+	    	},
+	    	{
+			"file name": "v_progress.txt",
+			"title": "Rendering"
+	    	}
+	],
+
+	"defines_types" : 
+	[
+		{
+			"-l" : ""
+		},
+		{
+			"-F" : "'"
+		}
+		
 	]
     },
 

@@ -29,105 +29,135 @@ def progressUpdate(file_name, time_diff, frame_count, video_len):
 class Demo:
 
 	def __init__(self, config):
+		container_list = []
+		self.command = config["job"]["command"] if "command" in config["job"] else ""
+		self.output_type = config["job"]["output_type"]
+		self.results_path = config["job"]["results_path"]
+		if "results_defines" in config["job"]:
+			self.results_defines = config["job"]["results_defines"]
+			self.command = self.command.replace(self.results_defines, self.results_path)
+		self.progress_list = config["job"]["progress_indicators"] if "progress_indicators" in config["job"] else None
+		if "plots" in config["job"]:
+			self.plot = config["job"]["plots"]
+			self.plot_button = widgets.Button(description='Plot results' , disabled=True, button_style='info')
+			self.plot_img = widgets.HTML('')
+			container_list = [self.plot_button, self.plot_img]
+		else:
+			self.plot = None
+		self.status = widgets.HTML("No jobs submitted yet")
+		self.submit = widgets.Button(description='Submit', disabled=False, button_style='info')
+		self.submit.disabled = False if "inputs" in config else True
+		self.input_ = []
 		self.jobDict = {}
-		self.input_ = {}
-		self.jobscript = config["jobs"]["script"]
 		self.tab = widgets.Tab()
-		self.plot_button = widgets.Button(description='Plot results' , disabled=True, button_style='info')
-		self.plot_img = widgets.HTML('')
-
 		self.tab.children = []
 		self.display_tab = False
-		index=0
-		data=config["inputs"]
-		self.results = config["jobs"]["results_path"].split()[1]
-		self.results_prefix = config["jobs"]["results_path"].split()[0]
-		self.summary_plot = config["jobs"]["plot_details"]
-		self.plot_selector = config["jobs"]["plot_selector"]
-		self.progress_list = config["jobs"]["progress_indicator"]
-		self.output_plot = widgets.Output()
+		data=config["inputs"] if "inputs" in config else []
+		self.container = widgets.VBox([self.status, self.tab]+container_list)
+
+
+	                  
 		for item in data:
 			for key, val in item.items():
-				self.input_[key] = {}
+				dict_ = {}
+				name = key
+				dict_['name'] = key
 				if val['type'] == "select":
-
 					list_ = []
-					dict_ = {}
 					for x in val['options']:
-						list_.append(x['display_name'])
-						dict_[x['display_name']] = {}
-						dict_[x['display_name']]['args'] = x['arguments']
-						dict_[x['display_name']]['torque'] = x['properties']
-					select_wid = widgets.Select(options=list_, description='', disabled=False, rows=len(list_), layout = Layout(width='fixed'))
-					self.input_[key]['index'] = index
-					self.input_[key]['widget'] = select_wid
-					self.input_[key]['type'] = 'select'
-					self.input_[key]['prefix'] = val['prefix'] 
-					self.input_[key]['title'] = widgets.Label(val['display_name'])
-					self.input_[key]['value'] = dict_
+						list_.append(x['name'])
+					widget = widgets.Select(options=list_, description='', disabled=False, rows=len(list_), layout = Layout(width='fixed'))
+					dict_["options"] = val["options"]
 				elif val['type'] == "text":
-					text_wid = widgets.Text(value=val['default'], description="", layout = Layout(width='100%'), disabled=False)
-					self.input_[key]['index'] = index
-					self.input_[key]['widget'] = text_wid
-					self.input_[key]['type'] = 'text'
-					self.input_[key]['prefix'] = val['prefix'] 
-					self.input_[key]['title'] = widgets.Label(val['display_name'])
-					self.input_[key]['value'] = val['default']
-				index += 1
-	                               
+					widget = widgets.Text(value=val['default'], description="", layout = Layout(width='100%'), disabled=False)
+				dict_['widget'] = widget
+				dict_['type'] = val["type"]
+				dict_['defines'] = val['defines'] 
+				dict_['title'] = widgets.Label(val['display_name'])
+				self.input_.append(dict_)
 
-	def displayUI(self):
-		n_widgets = list(range(len(self.input_)))
-		for key, val in self.input_.items():
-			n_widgets[val['index']] = widgets.VBox([val['title'], val['widget']])
-		UI = widgets.VBox(n_widgets)
-		display(UI)		
-		status = widgets.HTML("")
-		submit = widgets.Button(description='Submit', disabled=False, button_style='info')
-		display(status)
-		display(submit)
-		def submitJob(event): 
-			command = "qsub {script} ".format(script=self.jobscript)
-			torq = "-l nodes=1:"
-			args = ""
-			for key, val in self.input_.items():
-				if val['type'] == "select":
-					args += val['prefix']+val['value'][val['widget'].value]['args']+" "
-					torq += val['value'][val['widget'].value]['torque']
-				elif val['type'] == "text":
-					args += val['prefix']+val['widget'].value+" "
-			command += " {torq} -F \" {args} {prefix} {results}\"".format(torq=torq, args=args, prefix=self.results_prefix, results=self.results)
-			if not command in self.jobDict.keys():
-				self.jobDict[command] = {}
-				self.jobDict[command]['box_id'] = None
-			elif self.jobStillRunning(command):
-				status.value = "<span style='color:red'>&#10008;</span> Unable to submit: another job with the same arguments is still running"
-				return
+	def submitJob(self, command): 
+		self.command = command
+		for widget in self.input_:
 
-			p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
-			output,_ = p.communicate()
-			jobid = output.decode("utf-8").rstrip()
-			self.jobDict[command]['jobid'] = jobid 
-			std_path = self.results+jobid
-			command2 = "qalter -o {outpath} -e {errorpath} {jobid}".format(outpath=std_path+"/stdout", errorpath=std_path+"/stderr", jobid=jobid)
-			p2 = subprocess.Popen(command2, stdout=subprocess.PIPE, shell=True)
-			output2,_ = p2.communicate()
-			self.jobDict[command]['selector'] = {}
-			for key, val in self.input_.items():
-				self.jobDict[command]['selector'][val['title'].value] = val['widget'].value
-			self.jobDict[command]['output_path'] = self.results+jobid
-			if output != "":
-				status.value = "<span style='color:green'>&#10004;</span> Job submitted, job ID: {jobid}".format(jobid=jobid)
-			else:
-				status.value = "<span style='color:red'>&#9888;</span> Job submission failed"
-				return
+			value = widget["widget"].value
+			if widget["type"] == "select":
+				try:
+					defines_dict = next(item for item in widget["options"] if item['name'] == value)
+				except:
+					self.status.value = "<span style='color:red'>&#9888;</span> Job submission failed, Invalid selection"
+					return
 
-			self.progressIndicator(jobid, command, 0, 100)
+				if 'defines' in defines_dict:
+					for key2, val2 in defines_dict['defines'].items():
+						command = command.replace(key2, val2)
+				elif "dummy" in defines_dict and defines_dict["dummy"] == "True":
+					self.status.value = "<span style='color:red'>&#9888;</span> Job submission failed, {}".format(defines_dict['name'])
+					return
+			else:	
+				for item in widget['defines']:
+					command = command.replace(item, value) 
+		if not command in self.jobDict.keys():
+			self.jobDict[command] = {}
+			self.jobDict[command]['box_id'] = None
+		elif self.jobStillRunning(command):
+			self.status.value = "<span style='color:red'>&#10008;</span> Unable to submit: another job with the same arguments is still running"
+			return
+
+		p = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
+		output,_ = p.communicate()
+		jobid = output.decode("utf-8").rstrip()
+		if jobid != "":
+			self.status.value = "<span style='color:green'>&#10004;</span> Job submitted, job ID: {jobid}".format(jobid=jobid)
+		else:
+			self.status.value = "<span style='color:red'>&#9888;</span> Job submission failed"
+			return
+
+		self.jobDict[command]['jobid'] = jobid 
+		std_path = self.results_path+jobid
+		if not os.path.isdir(std_path):
+			os.makedirs(std_path, exist_ok=True)
+		command2 = "qalter -o {outpath} -e {errorpath} {jobid}".format(outpath=std_path+"/stdout", errorpath=std_path+"/stderr", jobid=jobid)
+		p2 = subprocess.Popen(command2, stdout=subprocess.PIPE, shell=True)
+		output2,_ = p2.communicate()
+		self.jobDict[command]['selector'] = {}
+		for item in self.input_:
+			self.jobDict[command]['selector'][item['title'].value] = item['widget'].value
+		self.jobDict[command]['output_path'] = self.results_path+jobid
+		self.outputDisplay(jobid, command, 0, 100)
+		if self.plot:
 			self.plot_button.on_click(self.summaryPlot)
 
-		submit.on_click(submitJob)
+	def displayUI(self):
+		n_widgets = []
+		for widget in self.input_:
+			n_widgets.append(widgets.VBox([widget['title'], widget['widget']]))
+		UI = widgets.VBox(n_widgets)
+		display(UI)		
+		if not self.submit.disabled:
+			display(self.submit)
+		display(self.container)
 
-	def progressIndicator(self, jobid, command, min_, max_):
+		def on_value_change(change):
+			controller = next(widget for widget in self.input_ if widget['widget'].description == change['owner'].description) 
+			selected = next( option for option in controller['options'] if option['name'] == change['new'])
+			for key, val in selected['controls'].items():
+				controlled = next(widget for widget in self.input_ if widget['name'] == key)
+				controlled['widget'].options = val
+
+		for widget in self.input_:
+			if widget['type'] == 'select':
+				for item in widget['options']:
+					observer = True if 'controls' in item else False
+				widget['observer'] = observer
+			if 'observer' in widget and widget['observer']:
+				widget['widget'].observe(on_value_change, 'value') 
+		def wrapSubmit(event):
+			self.submitJob(self.command)
+				
+		self.submit.on_click(self.submitJob)
+
+	def outputDisplay(self, jobid, command, min_, max_):
 		'''
 		Progress indicator reads first line in the file "path" 
 		jobid: id of the job submitted
@@ -135,91 +165,33 @@ class Demo:
 		min_: min_ value for the progress bar
 		max_: max value in the progress bar
 		'''
-		prog_list = []
-		path = self.results+jobid
-		for item in self.progress_list:
-			prog_list.append((path+'/'+item['file name'], item['title']))
+		progress_info = []
+		progress_wid = []
+		path = self.results_path+jobid
 		style = {'description_width': 'initial'}
 		title = widgets.HTML("")
-		progress_bar_1 = widgets.FloatProgress(
-			 value=min_,
-			 min=min_,
-			 max=max_,
-			 description='',
-			 bar_style='info',
-			 orientation='horizontal',
-			 style=style
-		 )
-		remain_time_1 = widgets.HTML(
-			 value='...waiting to start',
-			 placeholder='0',
-			 description='',
-			 style=style
-		 )
-		est_time_1 = widgets.HTML(
-			 value='',
-			 placeholder='0',
-			 description='',
-			 style=style
-		 )
-		progress_bar_2 = widgets.FloatProgress(
-			 value=min_,
-			 min=min_,
-			 max=max_,
-			 description='',
-			 bar_style='info',
-			 orientation='horizontal',
-			 style=style
-		 )
-		remain_time_2 = widgets.HTML(
-			 value='...waiting to start',
-			 placeholder='',
-			 description='',
-			 style=style
-		 )
-		est_time_2 = widgets.HTML(
-			 value='',
-			 placeholder='0',
-			 description='',
-			 style=style
-		 )
-		op_display = widgets.Button(
-			 description='Display output',
-			 disabled=True,
-			 button_style='info' 
-		 )
-		op_video = widgets.HTML(
-			 value='',
-			 placeholder='',
-			 description='',
-			 style=style
-		 )
+		if self.progress_list:
+			for item in self.progress_list:
+				progress_info.append(path+'/'+item['file_name'])
+				progress_wid.append(widgets.FloatProgress(value=min_, min=min_, max=max_, description=item["title"], bar_style='info', orientation='horizontal', style=style))
+				progress_wid.append(widgets.HTML(value='...waiting to start', placeholder='0', description='', style=style))  #Estimated time
+				progress_wid.append(widgets.HTML(value='', placeholder='0', description='', style=style))			#Remaining time
 
-		#Check if results directory exists, if not create it and create the progress data file 
-		if not os.path.isdir(path):
-			os.makedirs(path, exist_ok=True)
-		file_name = [] 
-		for name, title in prog_list:
-			f = open(name, "w")
-			f.close()
-		
+			for name in progress_info:
+				f = open(name, "w")
+				f.close()
 		def _work():
 			box_layout = widgets.Layout(display='flex', flex_flow='column', align_items='stretch', border='ridge', width='100%', height='')
 			frame_layout = widgets.Layout(display='flex', flex_flow='column', align_items='stretch', border='', width='100%', height='')
-			widget_list = []
 			table = '''<table><style type="text/css" scoped>td{ padding:5px; border: 1px solid #9e9e9e; line-height:1.2em;}td:first-child{font-weight:bold;}</style><tbody>'''
-			for i in range(len(self.input_.items())):
-				val = next((val for key, val in self.input_.items() if val['index'] == i))
-				table += '''<tr><td>{name}</td><td>{value}</td></tr>'''.format(name=val['title'].value, value=val['widget'].value)
+			for item in self.input_:
+				table += '''<tr><td>{name}</td><td>{value}</td></tr>'''.format(name=item['title'].value, value=item['widget'].value)
 			table += '''<tr><td>Submission command</td><td>{command}</td></tr>'''.format(command=command)
 			table += '''</tbody></table>'''
 			title = widgets.HTML(value = '''{table}'''.format(table=table))
-			progress_bar_1.description = prog_list[0][1]
-			if len(prog_list) > 1:
-				progress_bar_2.description = prog_list[1][1]
-				widget_list = [title, progress_bar_1, est_time_1, remain_time_1, progress_bar_2, est_time_2, remain_time_2, op_display, op_video]
-			else:
-				widget_list = [title, progress_bar_1, est_time_1, remain_time_1, op_display, op_video]
+			op_display_button = widgets.Button(description='Display output', disabled=True, button_style='info')
+			op_display = widgets.HTML(value='')
+			widget_list = [title]+progress_wid+[op_display_button, op_display]
 
 			if self.jobDict[command]['box_id'] == None:
 				frame = widgets.HBox(widget_list, layout=frame_layout)
@@ -233,24 +205,33 @@ class Demo:
 			else:
 				frame_id = self.jobDict[command]['box_id']
 				frame = self.tab.children[frame_id]
-				prev_frame = list(frame.children)
-				for item in prev_frame:
-					item.close()
+				#output.value = ""
+				op_display_button.disabled=True
 				frame.children = widget_list
 				self.tab.set_title(str(frame_id), '{jobid}'.format(jobid=jobid.split(".")[0]))
 				self.tab.selected_index = frame_id
-			if not self.display_tab: 
-				display(self.tab)
-				display(self.plot_button)
-				display(self.plot_img)
-				self.display_tab = True
+			#if not self.display_tab: 
+				#display(self.tab)
+			#	if self.plot:
+			#		display(self.plot_button)
+			#		display(self.plot_img)
+			#	self.display_tab = True
 			# progress
-			id_ = 1
+			id_ = 0
 			self.tab.set_title(str(frame_id), 'Queued: {jobid}'.format(jobid=jobid.split(".")[0]))
-			for output_file, title in prog_list: 
-				progress_bar =  widget_list[id_]
-				est_time =  widget_list[id_+1]
-				remain_time =  widget_list[id_+2]
+			cmd = "qstat | grep "+jobid
+			running = False
+			while not running:
+				p = subprocess.Popen([cmd], stdout=subprocess.PIPE, shell=True)
+				output,_ = p.communicate()
+				stat = output.decode("utf-8").rsplit()
+				running = True if stat[4]=='R' else False
+ 
+			self.tab.set_title(str(frame_id), 'Running: {jobid}'.format(jobid=jobid.split(".")[0]))
+			for output_file in progress_info: 
+				progress_bar =  progress_wid[id_]
+				est_time =  progress_wid[id_+1]
+				remain_time =  progress_wid[id_+2]
 				last_status = 0.0
 				remain_val = '0'
 				est_val = '0'
@@ -266,9 +247,8 @@ class Demo:
 								est_val = line3
 							progress_bar.value = last_status
 							if remain_val > '0':
-								self.tab.set_title(str(frame_id), 'Running: {jobid}'.format(jobid=jobid.split(".")[0]))
-								remain_time.value = 'Remaining: '+remain_val+' seconds' 
-								est_time.value = 'Total estimated: '+est_val+' seconds' 
+								remain_time.value = 'Remaining: {} seconds'.format(remain_val)
+								est_time.value = 'Total estimated: {} seconds'.format(est_val) 
 							else:
 								remain_time.value = '...waiting to start' 
 					else:
@@ -279,12 +259,17 @@ class Demo:
 				remain_time.value = 'Done' 
 				os.remove(output_file)
 				id_ += 3
-			op_display.disabled=False
-			self.plot_button.disabled=False
+
+			while self.jobStillRunning(command):
+				time.sleep(0.1) 
+			if self.plot:
+				self.plot_button.disabled=False
 			self.tab.set_title(str(frame_id), 'Done: {jobid}'.format(jobid=jobid.split(".")[0]))
-			def wrapVideoHTML(event):
-				op_video.value = self.videoHTML(path)
-			op_display.on_click(wrapVideoHTML)
+			op_display_button.disabled=False
+			def wrapHTML(event):
+				op_display.value = self.outputHTML(path)
+
+			op_display_button.on_click(wrapHTML)
 
 		thread = threading.Thread(target=_work, args=())
 		thread.start()
@@ -299,15 +284,15 @@ class Demo:
 		output,_ = p.communicate()
 		return output.decode("utf-8").rstrip() != ''
 
-	def videoHTML(self, result_path):
+	def outputHTML(self, result_path):
 		'''
 		device: tuple of edge and accelerator
 		'''
-		videos_list = []
+		op_list = []
 		stats = result_path+'/stats.json'
-		for vid in os.listdir(result_path):
-			if vid.endswith(".mp4"):
-				videos_list.append(result_path+'/'+vid)
+		for file_ in os.listdir(result_path):
+			if file_.endswith(self.output_type):
+				op_list.append(result_path+'/'+file_)
 		if os.path.isfile(stats):
 			with open(stats) as f:
 				data = json.load(f)
@@ -316,14 +301,24 @@ class Demo:
 			stats_line = "<p>{frames} frames processed in {time} seconds</p>".format(frames=frames, time=time)
 		else:
 			stats_line = ""
-		video_string = ""
-		height = '480' if len(videos_list) == 1 else '240'
-		for x in range(len(videos_list)):
-			video_string += "<video alt=\"\" controls autoplay height=\""+height+"\"><source src=\""+videos_list[x]+"\" type=\"video/mp4\" /></video>"
-		output ='''{stats_line}{videos}'''.format(videos=video_string, stats_line=stats_line)
-		return output
+		string = ""
+		height = '480' if len(op_list) == 1 else '240'
+		if self.output_type == ".mp4":
+			for x in op_list:
+				string += "<video alt=\"\" controls autoplay height=\"{height}\"><source src=\"{op}\" type=\"video/mp4\" /></video>".format(op=x, height=height)
+		elif self.output_type == ".png":
+			for x in op_list:
+				string += "<img src='{img}' width='783' height='{height}'>".format(img=x, height=height)
+		elif self.output_type == ".txt":
+			for x in op_list:
+				with open(x, 'r') as f:
+					string += str(f.readlines())
 
-
+		return '''<h2></h2>
+    				{stats_line}
+    				{op}
+    				'''.format(op=string, stats_line=stats_line)
+					
 
 	def summaryPlot(self, event):
 		''' Bar plot input:
@@ -331,31 +326,35 @@ class Demo:
 		   y_axis: label of the y axis
 		   title: title of the graph
 		'''
+		
 		warnings.filterwarnings('ignore')
 		clr = 'xkcd:blue'
 		html = '''<html><body>'''
-		for item in self.summary_plot: 
+		for item in self.plot: 
 			fig = plt.figure(figsize=(15, 5))
-			plot = list(item.keys())[0]
-			title = item[plot]['title']
-			y_axis = item[plot]['ylabel'] if 'ylabel' in item[plot] else plot 
-			x_axis = item[plot]['xlabel'] if 'xlabel' in item[plot] else self.plot_selector 
+			title = item['title']
+			type = item['type']
+			y_axis = item['ylabel'] if 'ylabel' in item else None 
+			x_axis = item['xlabel'] if 'xlabel' in item else None 
+			selector = item['selector'] if 'selector' in item else None
 			plt.title(title , fontsize=20, color='black', fontweight='bold')
 			plt.ylabel(y_axis, fontsize=16, color=clr)
 			plt.xlabel(x_axis, fontsize=16, color=clr)
 			val = []
 			arch = {}
 			diff = 0
+
 			for key, val in self.jobDict.items():
 				job = self.jobDict[key]
 				path = os.path.join(val['output_path'], 'stats.json')
-				label = val['selector'][self.plot_selector]
+				label = {"selector" : val['selector'][selector]} if selector else {"selector" : val["jobid"]}
 				if os.path.isfile(path) and not self.jobStillRunning(key):
 					with open(path, "r") as f:
 						data = json.load(f)
-					value = float(data[plot])
-					arch[label] = round(value)
-					f.close()
+					value = float(data[item["type"]])
+					for key2, val2 in label.items():
+						arch[val2] = round(value, 2)
+
 			if len(arch) <= 9:
 				rotation=0
 				align="center"
