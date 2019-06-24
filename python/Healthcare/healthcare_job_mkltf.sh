@@ -1,4 +1,8 @@
 
+# Prevent error and output files from being saved to DevCloud
+#PBS -e /dev/null
+#PBS -o /dev/null
+
 cd $PBS_O_WORKDIR 
 # Running the code inside mkltf conda env
 SAMPLEPATH=$PBS_O_WORKDIR
