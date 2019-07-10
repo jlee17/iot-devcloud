@@ -26,10 +26,11 @@ import numpy as np
 import io
 from openvino.inference_engine import IENetwork, IEPlugin
 from pathlib import Path
-from qarpo import progressUpdate
-import json
-from numpy_ringbuffer import RingBuffer
-import collections
+sys.path.insert(0, str(Path().resolve().parent.parent))
+from demoTools.demoutils import *
+from IPython.display import display
+
+
 def build_argparser():
     parser = ArgumentParser()
     parser.add_argument('-m', '--model',
@@ -78,18 +79,17 @@ def build_argparser():
                         type=str)
     return parser
 
-def processBoxes(frame_count, res, labels_map, prob_threshold, initial_w, initial_h, result_file, det_time):
+def processBoxes(frame_count, res, labels_map, prob_threshold, initial_w, initial_h, result_file):
     for obj in res[0][0]:
         dims = ""
        # Draw only objects when probability more than specified threshold
         if obj[2] > prob_threshold:
-           dims = "{frame_id} {xmin} {ymin} {xmax} {ymax} {class_id} {est} {time} \n".format(frame_id=frame_count, xmin=int(obj[3] * initial_w), ymin=int(obj[4] * initial_h), xmax=int(obj[5] * initial_w), ymax=int(obj[6] * initial_h), class_id=int(obj[1]), est=round(obj[2]*100, 1), time=round(det_time*1000))
+           dims = "{frame_id} {xmin} {ymin} {xmax} {ymax} {class_id} {est} {time} \n".format(frame_id=frame_count, xmin=int(obj[3] * initial_w), ymin=int(obj[4] * initial_h), xmax=int(obj[5] * initial_w), ymax=int(obj[6] * initial_h), class_id=int(obj[1]), est=round(obj[2]*100, 1), time='N/A')
            result_file.write(dims)
 
 def main():
     log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=sys.stdout)
     args = build_argparser().parse_args()
-
     model_xml = args.model
     model_bin = os.path.splitext(model_xml)[0] + ".bin"
 
@@ -149,7 +149,7 @@ def main():
     cap = cv2.VideoCapture(input_stream)
     video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     if video_len < args.number_infer_requests:
-        args.number_infer_requests = vidoe_len 
+        args.number_infer_requests = video_len 
     #Pre inference processing, read mp4 frame by frame, process using openCV and write to binary file
     width = int(cap.get(3))
     height = int(cap.get(4))
@@ -178,52 +178,35 @@ def main():
     
     current_inference = 0
     previous_inference = 1 - args.number_infer_requests
-    step = 0
     infer_requests = exec_net.requests
     frame_count = 0
 
     try:
         infer_time_start = time.time()
-        t_blk1 = 0
-        t_blk2 = 0
-        t_blk3 = 0
-        t_sub_blk2 = 0
-        t_async = 0
-        async = 0
         with open(processed_vid, "rb") as data:
             while frame_count < video_len:
-                 
-                read_time = time.time()
-                blk1 = time.time() 
+                # Read next frame from input stream if available and submit it for inference 
                 byte = data.read(CHUNKSIZE)
-                t_blk1 += (time.time() - blk1)
                 if not byte == b"":
                     deserialized_bytes = np.frombuffer(byte, dtype=np.uint8)
                     in_frame = np.reshape(deserialized_bytes, newshape=(n, c, h, w))
-                    async = time.time()
                     exec_net.start_async(request_id=current_inference, inputs={input_blob: in_frame})
-                    t_async += (time.time() - async)
-
-                blk2 = time.time() 
+                
+                # Retrieve the output of an earlier inference request
                 if previous_inference >= 0:
                     status = infer_requests[previous_inference].wait()
                     if status is not 0:
                         raise Exception("Infer request not completed successfully")
-                    det_time = time.time() - async
-                    # Parse detection results of the current request
+                    # Parse inference results
                     res = infer_requests[previous_inference].outputs[out_blob]
-                    sub_blk2 = time.time()
-                    processBoxes(frame_count, res, labels_map, args.prob_threshold, width, height, result_file, det_time)
-                    t_sub_blk2 += (time.time() - sub_blk2)
+                    processBoxes(frame_count, res, labels_map, args.prob_threshold, width, height, result_file)
                     frame_count += 1
 
-                t_blk2 += (time.time() - blk2)
                 # Write data to progress tracker
-                blk3 = time.time() 
-                step += 1
                 if frame_count % 10 == 0: 
                     progressUpdate(infer_file, time.time()-infer_time_start, frame_count+1, video_len+1) 
-                 
+
+                # Increment counter for the inference queue and roll them over if necessary 
                 current_inference += 1
                 if current_inference >= args.number_infer_requests:
                     current_inference = 0
@@ -232,30 +215,11 @@ def main():
                 if previous_inference >= args.number_infer_requests:
                     previous_inference = 0
 
-                t_blk3 += (time.time() - blk3)
-
-                print("cur = {cur}, prev = {prev}".format(cur=current_inference, prev=previous_inference))
-                print("frame count {}".format(frame_count))
         # End while loop
-        total_time = round(time.time() - infer_time_start, 2)
+        total_time = time.time() - infer_time_start
         with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
-                f.write('{} \n'.format(total_time))
+                f.write('{:.3g} \n'.format(total_time))
                 f.write('{} \n'.format(frame_count))
-
-
-        stats = {}
-        stats['time'] = round(time.time() - infer_time_start, 2)
-        stats['frame'] = frame_count
-        stats['fps'] = round(frame_count/(time.time() - infer_time_start), 2)
-        stats_file = args.output_dir + '/stats.json'
-        
-        print("block 1 time: {}".format(t_blk1))
-        print("block 1 async time: {}".format(t_async))
-        print("block 2 time: {}".format(t_blk2))
-        print("process boxes time: {}".format(t_sub_blk2))
-        print("block 3 time: {}".format(t_blk3))
-        with open(stats_file, 'w') as f:
-            json.dump(stats, f)
 
         cap.release()
         result_file.close()

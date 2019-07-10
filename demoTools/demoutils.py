@@ -57,28 +57,32 @@ def summaryPlot(results_list, x_axis, y_axis, title, plot):
     val = []
     arch = []
     diff = 0
-    for path, hw in results_list.items():
+    for path, hw in results_list:
         if os.path.isfile(path):
             f = open(path, "r")
             l1_time = float(f.readline())
             l2_count = float(f.readline())
             if plot=="time":
-                val.append(round(l1_time))
+                val.append(l1_time)
             else:
-                val.append(round(l2_count/l1_time))
+                val.append((l2_count/l1_time))
             f.close()
         else:
             val.append(0)
         arch.append(hw)
 
     offset = max(val)/100
-    for i in val:
-        if i == 0:
+    for v in val:
+        if v == 0:
             data = 'N/A'
             y = 0
         else:
-            data = i
-            y = i + offset   
+            precision = 2 
+            if v >= pow(10, precision):
+                data = '{:.0f}'.format(round(v/pow(10, precision+1), precision)*pow(10, precision+1))
+            else:
+                data = '{{:.{:d}g}}'.format(round(precision)).format(v)
+            y = v + offset   
         plt.text(diff, y, data, fontsize=14, multialignment="center",horizontalalignment="center", verticalalignment="bottom",  color='black')
         diff += 1
     plt.ylim(top=(max(val)+10*offset))
