@@ -63,6 +63,7 @@ class DemoCatalog:
                 cont=readme.read()
                 readme.close()
                 data += cont
+            data += "  "  # forces a newline
             title = cont[0]
             data += "\n<a href='"+lab+"' target='_blank' class='big-jupyter-button'>"+self.conf['list']['messages']['goto']+": "+lab+"</a>\n"
         display(Markdown(data))

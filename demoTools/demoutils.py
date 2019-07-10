@@ -34,6 +34,44 @@ def videoHTML(title, videos_list, stats=None):
     {videos}
     '''.format(title=title, videos=video_string, stats_line=stats_line))
 
+
+
+def outputHTML(title, result_path, output_type, stats=None):
+		'''
+		device: tuple of edge and accelerator
+		'''
+		op_list = []
+		stats = result_path+'/stats.txt'
+		for vid in os.listdir(result_path):
+			if vid.endswith(output_type):
+				op_list.append(result_path+'/'+vid)
+		if os.path.isfile(stats):
+			with open(stats) as f:
+				time = f.readline()
+				frames = f.readline()
+				text = f.readline()
+			if text:
+				stats_line = text
+			else:
+				stats_line = "<p>{frames} frames processed in {time} seconds</p>".format(frames=frames, time=time)
+		else:
+			stats_line = ""
+		op_string = ""
+		height = '480' if len(op_list) == 1 else '120'
+		if output_type == ".mp4":
+			for x in range(len(op_list)):
+				op_string += "<video alt=\"\" controls autoplay height=\""+height+"\"><source src=\""+op_list[x]+"\" type=\"video/mp4\" /></video>"
+		elif output_type == ".png":
+			for x in range(len(op_list)):
+				op_string += "<img src='{img}' width='783' height='{height}'>".format(img=op_list[x], height=height)
+		return HTML('''<h2>{title}</h2>
+    				{stats_line}
+    				{op}
+    				'''.format(title=title, op=op_string, stats_line=stats_line))
+
+
+
+
 def summaryPlot(results_list, x_axis, y_axis, title, plot):
     ''' Bar plot input:
 	results_dict: dictionary of path to result file and label {path_to_result:label}
