@@ -26,10 +26,10 @@ import numpy as np
 import io
 from openvino.inference_engine import IENetwork, IEPlugin
 from pathlib import Path
-sys.path.insert(0, str(Path().resolve().parent.parent))
-from demoTools.demoutils import progressUpdate
+from qarpo import progressUpdate
 import json
-
+from numpy_ringbuffer import RingBuffer
+import collections
 def build_argparser():
     parser = ArgumentParser()
     parser.add_argument('-m', '--model',
@@ -78,25 +78,13 @@ def build_argparser():
                         type=str)
     return parser
 
-
-def processBoxes(frame_count, res, labels_map, prob_threshold, frame, initial_w, initial_h, result_file, det_time):
+def processBoxes(frame_count, res, labels_map, prob_threshold, initial_w, initial_h, result_file, det_time):
     for obj in res[0][0]:
         dims = ""
-        # Draw only objects when probability more than specified threshold
+       # Draw only objects when probability more than specified threshold
         if obj[2] > prob_threshold:
-            xmin = str(int(obj[3] * initial_w))
-            ymin = str(int(obj[4] * initial_h))
-            xmax = str(int(obj[5] * initial_w))
-            ymax = str(int(obj[6] * initial_h))
-            class_id = str(int(obj[1]))
-            est = str(round(obj[2]*100, 1))
-            time = round(det_time*1000)
-            out_list = [str(frame_count), xmin, ymin, xmax, ymax, class_id, est, str(time)]
-            for i in range(len(out_list)):
-                dims += out_list[i]+' '
-            dims += '\n'
-            result_file.write(dims)
-
+           dims = "{frame_id} {xmin} {ymin} {xmax} {ymax} {class_id} {est} {time} \n".format(frame_id=frame_count, xmin=int(obj[3] * initial_w), ymin=int(obj[4] * initial_h), xmax=int(obj[5] * initial_w), ymax=int(obj[6] * initial_h), class_id=int(obj[1]), est=round(obj[2]*100, 1), time=round(det_time*1000))
+           result_file.write(dims)
 
 def main():
     log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=sys.stdout)
@@ -131,16 +119,6 @@ def main():
     input_blob = next(iter(net.inputs))
     out_blob = next(iter(net.outputs))
 
-    log.info("Loading IR to the plugin...")
-    exec_net = plugin.load(network=net, num_requests=args.number_infer_requests)
- 
-    # Read and pre-process input image
-    if isinstance(net.inputs[input_blob], list):
-        n, c, h, w = net.inputs[input_blob]
-    else:
-        n, c, h, w = net.inputs[input_blob].shape
-    del net
-
     if args.input == 'cam':
         input_stream = 0
         out_file_name = 'cam'
@@ -149,95 +127,138 @@ def main():
         assert os.path.isfile(args.input), "Specified input file doesn't exist"
         out_file_name = os.path.splitext(os.path.basename(args.input))[0]
 
+    log.info("Loading IR to the plugin...")
+    exec_net = plugin.load(network=net, num_requests=args.number_infer_requests)
+ 
+
+    log.info("Starting inference in async mode, {} requests in parallel...".format(args.number_infer_requests))
+    result_file = open(os.path.join(args.output_dir, 'output.txt'), "w")
+    pre_infer_file = os.path.join(args.output_dir, 'pre_progress.txt')
+    infer_file = os.path.join(args.output_dir, 'i_progress.txt')
+    processed_vid = '/tmp/processed_vid.bin'
+
+
+    # Read and pre-process input image
+    if isinstance(net.inputs[input_blob], list):
+        n, c, h, w = net.inputs[input_blob]
+    else:
+        n, c, h, w = net.inputs[input_blob].shape
+    del net
+
+
+    cap = cv2.VideoCapture(input_stream)
+    video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    if video_len < args.number_infer_requests:
+        args.number_infer_requests = vidoe_len 
+    #Pre inference processing, read mp4 frame by frame, process using openCV and write to binary file
+    width = int(cap.get(3))
+    height = int(cap.get(4))
+    CHUNKSIZE = n*c*w*h
+    id_ = 0
+    with open(processed_vid, 'w+b') as f:
+        time_start = time.time()
+        while cap.isOpened():
+            ret, next_frame = cap.read()
+            if not ret:
+                break
+            in_frame = cv2.resize(next_frame, (w, h))
+            in_frame = in_frame.transpose((2, 0, 1))  # Change data layout from HWC to CHW
+            in_frame = in_frame.reshape((n, c, h, w))
+            bin_frame = bytearray(in_frame) 
+            f.write(bin_frame)
+            id_ += 1
+            if id_%10 == 0: 
+                progressUpdate(pre_infer_file, time.time()-time_start, id_, video_len) 
+
     if args.labels:
         with open(args.labels, 'r') as f:
             labels_map = [x.strip() for x in f]
     else:
         labels_map = None
-
-    cap = cv2.VideoCapture(input_stream)
-    video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
+    
     current_inference = 0
-    required_inference_requests_were_executed = False
     previous_inference = 1 - args.number_infer_requests
     step = 0
-    steps_count = args.number_infer_requests - 1
-
     infer_requests = exec_net.requests
-  
-    log.info("Starting inference in async mode, {} requests in parallel...".format(args.number_infer_requests))
-    result_file = open(os.path.join(args.output_dir, 'output.txt'), "w")
-    progress_file_path = os.path.join(args.output_dir, 'i_progress.txt')
-
     frame_count = 0
-    frames = []
+
     try:
         infer_time_start = time.time()
-        while not required_inference_requests_were_executed or step < steps_count or cap.isOpened():
-            read_time = time.time()
-            ret, next_frame = cap.read()
-            frames.append(next_frame)
-            if not ret:
-                break
-            initial_w = cap.get(3)
-            initial_h = cap.get(4)
+        t_blk1 = 0
+        t_blk2 = 0
+        t_blk3 = 0
+        t_sub_blk2 = 0
+        t_async = 0
+        async = 0
+        with open(processed_vid, "rb") as data:
+            while frame_count < video_len:
+                 
+                read_time = time.time()
+                blk1 = time.time() 
+                byte = data.read(CHUNKSIZE)
+                t_blk1 += (time.time() - blk1)
+                if not byte == b"":
+                    deserialized_bytes = np.frombuffer(byte, dtype=np.uint8)
+                    in_frame = np.reshape(deserialized_bytes, newshape=(n, c, h, w))
+                    async = time.time()
+                    exec_net.start_async(request_id=current_inference, inputs={input_blob: in_frame})
+                    t_async += (time.time() - async)
 
-            in_frame = cv2.resize(next_frame, (w, h))
-            in_frame = in_frame.transpose((2, 0, 1))  # Change data layout from HWC to CHW
-            in_frame = in_frame.reshape((n, c, h, w))
-            
-            # In the truly Async mode, we start the NEXT infer request, while waiting for the CURRENT to complete
-            inf_start = time.time()
-            exec_net.start_async(request_id=current_inference, inputs={input_blob: in_frame})
-            
-            if previous_inference >= 0:
-                status = infer_requests[previous_inference].wait()
-                if status is not 0:
-                    raise Exception("Infer request not completed successfully")
+                blk2 = time.time() 
+                if previous_inference >= 0:
+                    status = infer_requests[previous_inference].wait()
+                    if status is not 0:
+                        raise Exception("Infer request not completed successfully")
+                    det_time = time.time() - async
+                    # Parse detection results of the current request
+                    res = infer_requests[previous_inference].outputs[out_blob]
+                    sub_blk2 = time.time()
+                    processBoxes(frame_count, res, labels_map, args.prob_threshold, width, height, result_file, det_time)
+                    t_sub_blk2 += (time.time() - sub_blk2)
+                    frame_count += 1
 
-                inf_end = time.time()
-                det_time = inf_end - inf_start
-
-                # Parse detection results of the current request
-                res = infer_requests[previous_inference].outputs[out_blob]
-                frame = frames.pop(0)
-                processBoxes(frame_count, res, labels_map, args.prob_threshold, frame,
-                             initial_w, initial_h, result_file, det_time)
-
-                frame_count += 1
-
+                t_blk2 += (time.time() - blk2)
                 # Write data to progress tracker
-                if frame_count%10 == 0: 
-                    progressUpdate(progress_file_path, time.time()-infer_time_start, frame_count, video_len) 
+                blk3 = time.time() 
+                step += 1
+                if frame_count % 10 == 0: 
+                    progressUpdate(infer_file, time.time()-infer_time_start, frame_count+1, video_len+1) 
+                 
+                current_inference += 1
+                if current_inference >= args.number_infer_requests:
+                    current_inference = 0
 
-            current_inference += 1
-            if current_inference >= args.number_infer_requests:
-                current_inference = 0
-                required_inference_requests_were_executed = True
+                previous_inference += 1
+                if previous_inference >= args.number_infer_requests:
+                    previous_inference = 0
 
-            previous_inference += 1
-            if previous_inference >= args.number_infer_requests:
-                previous_inference = 0
+                t_blk3 += (time.time() - blk3)
 
-            step += 1
+                print("cur = {cur}, prev = {prev}".format(cur=current_inference, prev=previous_inference))
+                print("frame count {}".format(frame_count))
         # End while loop
+        total_time = round(time.time() - infer_time_start, 2)
+        with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
+                f.write('{} \n'.format(total_time))
+                f.write('{} \n'.format(frame_count))
 
-        frame_count += (args.number_infer_requests - 1)
 
         stats = {}
         stats['time'] = round(time.time() - infer_time_start, 2)
         stats['frame'] = frame_count
         stats['fps'] = round(frame_count/(time.time() - infer_time_start), 2)
         stats_file = args.output_dir + '/stats.json'
-
+        
+        print("block 1 time: {}".format(t_blk1))
+        print("block 1 async time: {}".format(t_async))
+        print("block 2 time: {}".format(t_blk2))
+        print("process boxes time: {}".format(t_sub_blk2))
+        print("block 3 time: {}".format(t_blk3))
         with open(stats_file, 'w') as f:
             json.dump(stats, f)
 
         cap.release()
         result_file.close()
-
-        progressUpdate(progress_file_path, time.time()-infer_time_start, frame_count, video_len)
 
     finally:
         log.info("Processing done...")
@@ -247,3 +268,4 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main() or 0)
+

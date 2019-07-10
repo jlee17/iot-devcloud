@@ -59,7 +59,7 @@ int main(int argc, char ** argv)
 	//argv[4]:(float)resl-> scale ratio of the output frame (0.75, 0.5, 1)
 	string input_stream = argv[1];
 	string input_data = string(argv[2])+"/output.txt";
-	string progress_data = string(argv[2])+"/v_progress.txt";
+	string progress_data = string(argv[2])+"/post_progress.txt";
 	string output_result = string(argv[2])+"/output.mp4";
 	int skip_frame = stoi(argv[3]);
 	float resl = stof(argv[4]);
