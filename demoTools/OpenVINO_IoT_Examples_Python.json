@@ -37,7 +37,12 @@
 	    "python/safety-gear-detection-python/safety_gear_detection.ipynb",
 	    "python/OCR-usingLSTM-python/OCR.ipynb",
 	    "python/pneumonia-classification/classification_pneumonia.ipynb",
-	    "python/Healthcare/Start_here.ipynb"
+	    "python/Healthcare/Start_here.ipynb",
+            "python/intruder-detector-python/intruder-detector-jupyter.ipynb",
+            "python/people-counter-python/people_counter.ipynb",
+            "python/restricted-zone-notifier-python/restricted_zone_notifier.ipynb",
+            "python/shopper-gaze-monitor-python/shopper_gaze_monitor.ipynb",
+            "python/store-aisle-monitor-python/store_aisle_monitor.ipynb"
 	],
 	"messages":
 	{
