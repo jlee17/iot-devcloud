@@ -60,7 +60,7 @@ int main(int argc, char ** argv)
 	string job_id = getenv("PBS_JOBID");
 	string input_stream = argv[1];
 	string input_data = string(argv[2])+"/output_"+job_id+".txt";
-	string progress_data = string(argv[2])+"/v_progress_"+job_id+".txt";
+	string progress_data = string(argv[2])+"/post_progress_"+job_id+".txt";
 	string output_result = string(argv[2])+"/output_"+job_id+".mp4";
 	int skip_frame = stoi(argv[3]);
 	float resl = stof(argv[4]);

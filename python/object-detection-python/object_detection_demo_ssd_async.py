@@ -28,7 +28,6 @@ from openvino.inference_engine import IENetwork, IEPlugin
 from pathlib import Path
 sys.path.insert(0, str(Path().resolve().parent.parent))
 from demoTools.demoutils import *
-from IPython.display import display
 
 
 def build_argparser():
@@ -132,9 +131,10 @@ def main():
  
 
     log.info("Starting inference in async mode, {} requests in parallel...".format(args.number_infer_requests))
-    result_file = open(os.path.join(args.output_dir, 'output.txt'), "w")
-    pre_infer_file = os.path.join(args.output_dir, 'pre_progress.txt')
-    infer_file = os.path.join(args.output_dir, 'i_progress.txt')
+    job_id = str(os.environ['PBS_JOBID'])
+    result_file = open(os.path.join(args.output_dir, 'output_'+job_id+'.txt'), "w")
+    pre_infer_file = os.path.join(args.output_dir, 'pre_progress_'+job_id+'.txt')
+    infer_file = os.path.join(args.output_dir, 'i_progress_'+job_id+'.txt')
     processed_vid = '/tmp/processed_vid.bin'
 
 
@@ -169,6 +169,7 @@ def main():
             id_ += 1
             if id_%10 == 0: 
                 progressUpdate(pre_infer_file, time.time()-time_start, id_, video_len) 
+    cap.release()
 
     if args.labels:
         with open(args.labels, 'r') as f:
@@ -217,11 +218,10 @@ def main():
 
         # End while loop
         total_time = time.time() - infer_time_start
-        with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
+        with open(os.path.join(args.output_dir, 'stats_{}.txt'.format(job_id)), 'w') as f:
                 f.write('{:.3g} \n'.format(total_time))
                 f.write('{} \n'.format(frame_count))
 
-        cap.release()
         result_file.close()
 
     finally:
