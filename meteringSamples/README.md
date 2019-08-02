@@ -7,13 +7,13 @@
 1.  Metering account will be automatically created on the first login. Follow the below steps to login.
 2.  Go to IoT DevCloud home page and click on connect. Copy the user name and password from the connect page as shown in the below Image.
 
-<img alt="Connect page" src="meteringSamples/assets/connect.png" width="50%" />
+<img alt="Connect page" src="assets/connect.png" width="50%" />
 
 
 3.  Go to Metering login page at https://metering.colfaxconnect.com/
 4.  Use the same user name and password to login to Metering as shown below. Click on submit.
 
-<img alt="Metering login page" src="meteringSamples/assets/login.png" width="25%" />
+<img alt="Metering login page" src="assets/login.png" width="25%" />
 5.  It might take some time if you are logging in for the first time as it need to create account.
 
 
@@ -26,7 +26,7 @@
 2.  Open any Jupyter notebook from iot-devcloud/meteringSamples. 
 3.  Go to “Job queue submission” cell and select the node on which you want to run the job. As shown in the below Image.
 
-<img alt="job script" src="meteringSamples/assets/job.png" width="70%" />
+<img alt="job script" src="assets/job.png" width="70%" />
 
 **Note :**  As of now Metering is enabled on edge compute nodes with ID’s from c003-n003 to c003-n012
 
@@ -41,9 +41,9 @@
 2.  Follow step 1 to login to Metering.
 3.  Once you are able to login. Click on the “Home” drop down as shown in the below screenshot.
 
-<img alt="Connect page" src="meteringSamples/assets/home.png" width="30%" />
+<img alt="Connect page" src="assets/home.png" width="30%" />
 
 
 4.	From the drop down search and select the dashboard with {Job ID} as shown in the below image below.
 
-<img alt="Connect page" src="meteringSamples/assets/dashboard.png" width="70%" />
+<img alt="Connect page" src="assets/dashboard.png" width="70%" />
