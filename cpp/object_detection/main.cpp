@@ -25,6 +25,7 @@
 #include <string>
 #include <chrono>
 #include <gflags/gflags.h>
+#include <fstream>
 
 #include <omp.h>
 #include <ie_device.hpp>
@@ -140,7 +141,7 @@ int main(int argc, char *argv[]) {
         //in some cases it might be possible to skip this step, but most models use these extensions to run on CPU
         if (FLAGS_d.find("CPU")!=string::npos)
         {
-            string s_ext_plugin = "/opt/intel/computer_vision_sdk/deployment_tools/inference_engine/samples/build/intel64/Release/lib/libcpu_extension.so";
+            string s_ext_plugin = "/opt/intel/openvino_2019.1.094/deployment_tools/inference_engine/lib/intel64/libcpu_extension_avx2.so";
             auto extension_ptr = make_so_pointer<InferenceEngine::IExtension>(s_ext_plugin);
             plugin.AddExtension(extension_ptr);
         }

@@ -333,7 +333,7 @@ def main():
 
     # Read IR
     print("Reading IR...")
-    net = IENetwork.from_ir(model=model_xml, weights=model_bin)
+    net = IENetwork(model=model_xml, weights=model_bin)
     assert len(net.inputs.keys()) == 1, "Sample supports only single input topologies"
     assert len(net.outputs) == 1, "Sample supports only single output topologies"
     input_blob = next(iter(net.inputs))

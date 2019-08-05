@@ -35,7 +35,44 @@ def videoHTML(title, videos_list, stats=None):
     '''.format(title=title, videos=video_string, stats_line=stats_line))
 
 
-def summaryPlot(results_dict, x_axis, y_axis, title):
+
+def outputHTML(title, result_path, output_type, stats=None):
+		'''
+		device: tuple of edge and accelerator
+		'''
+		op_list = []
+		stats = result_path+'/stats.txt'
+		for vid in os.listdir(result_path):
+			if vid.endswith(output_type):
+				op_list.append(result_path+'/'+vid)
+		if os.path.isfile(stats):
+			with open(stats) as f:
+				time = f.readline()
+				frames = f.readline()
+				text = f.readline()
+			if text:
+				stats_line = text
+			else:
+				stats_line = "<p>{frames} frames processed in {time} seconds</p>".format(frames=frames, time=time)
+		else:
+			stats_line = ""
+		op_string = ""
+		height = '480' if len(op_list) == 1 else '120'
+		if output_type == ".mp4":
+			for x in range(len(op_list)):
+				op_string += "<video alt=\"\" controls autoplay height=\""+height+"\"><source src=\""+op_list[x]+"\" type=\"video/mp4\" /></video>"
+		elif output_type == ".png":
+			for x in range(len(op_list)):
+				op_string += "<img src='{img}' width='783' height='{height}'>".format(img=op_list[x], height=height)
+		return HTML('''<h2>{title}</h2>
+    				{stats_line}
+    				{op}
+    				'''.format(title=title, op=op_string, stats_line=stats_line))
+
+
+
+
+def summaryPlot(results_list, x_axis, y_axis, title, plot):
     ''' Bar plot input:
 	results_dict: dictionary of path to result file and label {path_to_result:label}
 	x_axis: label of the x axis
@@ -43,37 +80,51 @@ def summaryPlot(results_dict, x_axis, y_axis, title):
 	title: title of the graph
     '''
     warnings.filterwarnings('ignore')
-    plt.figure(figsize=(15, 10))
-    plt.title(title , fontsize=16, color='blue')
-    plt.ylabel(y_axis, fontsize=16, color='blue')
-    plt.xlabel(x_axis, fontsize=16, color='blue')
+    if plot=='time':
+        clr = 'xkcd:blue'
+    else:
+        clr = 'xkcd:azure'
+
+    plt.figure(figsize=(15, 8))
+    plt.title(title , fontsize=28, color='black', fontweight='bold')
+    plt.ylabel(y_axis, fontsize=16, color=clr)
+    plt.xlabel(x_axis, fontsize=16, color=clr)
     plt.xticks(fontsize=16)
     plt.yticks(fontsize=16)
-    time = []
+
+    val = []
     arch = []
     diff = 0
-    for path, hw in results_dict.items():
+    for path, hw in results_list:
         if os.path.isfile(path):
             f = open(path, "r")
-            label = round(float(f.readline()))
-            time.append(label)
+            l1_time = float(f.readline())
+            l2_count = float(f.readline())
+            if plot=="time":
+                val.append(l1_time)
+            else:
+                val.append((l2_count/l1_time))
             f.close()
         else:
-            time.append(0)
+            val.append(0)
         arch.append(hw)
 
-    offset = max(time)/100
-    for i in time:
-        if i == 0:
+    offset = max(val)/100
+    for v in val:
+        if v == 0:
             data = 'N/A'
             y = 0
         else:
-            data = i
-            y = i + offset   
+            precision = 2 
+            if v >= pow(10, precision):
+                data = '{:.0f}'.format(round(v/pow(10, precision+1), precision)*pow(10, precision+1))
+            else:
+                data = '{{:.{:d}g}}'.format(round(precision)).format(v)
+            y = v + offset   
         plt.text(diff, y, data, fontsize=14, multialignment="center",horizontalalignment="center", verticalalignment="bottom",  color='black')
         diff += 1
-    plt.ylim(top=(max(time)+10*offset))
-    plt.bar(arch, time, width=0.8, align='center')
+    plt.ylim(top=(max(val)+10*offset))
+    plt.bar(arch, val, width=0.8, align='center', color=clr)
 
 
 def liveQstat():
@@ -181,6 +232,15 @@ def progressIndicator(path, file_name , title, min_, max_):
     thread.start()
     time.sleep(0.1)
 
+
+def simpleProgressUpdate(file_name, current_time, estimated_time):
+    progress = round(100*current_time/estimated_time, 1)
+    remaining_time = round(estimated_time-current_time, 1)
+    estimated_time = round(estimated_time, 1)
+    with  open(file_name, "w") as progress_file:
+        progress_file.write(str(progress)+'\n')
+        progress_file.write(str(remaining_time)+'\n')
+        progress_file.write(str(estimated_time)+'\n')
 
 
 def progressUpdate(file_name, time_diff, frame_count, video_len):
