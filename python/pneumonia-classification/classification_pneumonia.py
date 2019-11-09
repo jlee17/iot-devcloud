@@ -4,7 +4,7 @@ import os,glob
 import numpy as np
 import logging as log
 from time import time
-from openvino.inference_engine import IENetwork, IEPlugin
+from openvino.inference_engine import IENetwork, IECore
 from PIL import Image
 from argparse import ArgumentParser
 
@@ -44,7 +44,8 @@ def main():
     device=args.device
 
     # Plugin initialization for specified device and load extensions library if specified
-    plugin = IEPlugin(device=device)
+    #plugin = IEPlugin(device=device)
+    ie = IECore()
 
     # Read IR
     net = IENetwork(model=model_xml, weights=model_bin)
@@ -56,7 +57,8 @@ def main():
 
     net.batch_size = 1
 
-    exec_net = plugin.load(network=net)
+    #exec_net = plugin.load(network=net)
+    exec_net=ie.load_network(network=net, num_requests=2, device_name=args.device)
 
     n,c,h,w=net.inputs[input_blob].shape
     files=glob.glob(os.getcwd()+args.input[0])

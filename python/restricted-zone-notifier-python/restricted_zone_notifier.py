@@ -174,6 +174,7 @@ def main():
     video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     frame_count = 0
     job_id = os.environ['PBS_JOBID']
+#     job_id  = "12345"
     result_file = open(os.path.join(args.output_dir,'output_'+str(job_id)+'.txt'), "w")
     progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
     infer_time_start = time.time()
