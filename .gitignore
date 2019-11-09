@@ -1,1 +1,8 @@
 __pycache__
+*.e[0-9]*
+*.o[0-9]*
+.ipynb_checkpoints
+results/
+models/
+raw_models/
+thread.info
