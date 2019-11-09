@@ -272,7 +272,7 @@ def runObjectDetector(vid_path = 0,maxlength = 0 ,minlength = 0 ,maxwidth = 0 ,m
         height = np.size(displayFrame, 0)
         width = np.size(displayFrame, 1)
         out_dir = os.path.join(base_dir, 'inference_output.mp4')
-        vw = cv2.VideoWriter(out_dir, cv2.VideoWriter_fourcc(*'avc1'), 15.0, (width, height), True)
+        vw = cv2.VideoWriter(out_dir, 0x00000021, 15.0, (width, height), True)
       vw.write(displayFrame)
   finally:
     if vw != None:

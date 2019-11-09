@@ -47,7 +47,7 @@ LOG_FILE_PATH = "./intruders.log"
 LOG_WIN_HEIGHT = 432
 LOG_WIN_WIDTH = 410
 CONF_CANDIDATE_CONFIDENCE = 4
-CODEC = cv2.VideoWriter_fourcc(*'avc1')
+CODEC = 0x00000021
 output_dir=" "
 
 # Global variables
@@ -308,8 +308,7 @@ def intruder_detector():
     no_more_data = [False] * len(video_caps)
     start_time = time.time()
     inf_time = 0
-    fourcc = cv2.VideoWriter_fourcc(*'avc1')
-    statsVideo = cv2.VideoWriter(os.path.join(output_dir,'Statistics.mp4'), fourcc, min_fps, (LOG_WIN_WIDTH, LOG_WIN_HEIGHT), True)
+    statsVideo = cv2.VideoWriter(os.path.join(output_dir,'Statistics.mp4'), 0x00000021, min_fps, (LOG_WIN_WIDTH, LOG_WIN_HEIGHT), True)
     job_id = os.environ['PBS_JOBID']
     progress_file_path = os.path.join(output_dir,'i_progress_'+str(job_id)+'.txt')
     infer_start_time = time.time() 

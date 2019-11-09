@@ -90,7 +90,8 @@ int main(int argc, char ** argv)
 		width = int(cap.get(CAP_PROP_FRAME_WIDTH));	
 		height = int(cap.get(CAP_PROP_FRAME_HEIGHT));	
 		length = int(cap.get(CAP_PROP_FRAME_COUNT));
-		outVideo.open(output_result, 0x21, 50.0/skip_frame, Size(width*resl, height*resl), true);
+		//outVideo.open(output_result, 0x21, 50.0/skip_frame, Size(width*resl, height*resl), true);
+		outVideo.open(output_result, outVideo.fourcc('a','v','c','1'), 50.0/skip_frame, Size(width*resl, height*resl), true);
 
 	}
 	//Start while loop to process input stream and write the output frame to output_results 
