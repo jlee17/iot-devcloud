@@ -146,6 +146,7 @@ def main():
     fps = int(cap.get(cv2.CAP_PROP_FPS))
     frame_count = 0
     job_id = os.environ['PBS_JOBID']
+    #job_id = "12345"
     progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
     infer_time_start = time.time()
     if input_stream:
@@ -157,7 +158,8 @@ def main():
     prob_threshold = args.prob_threshold
     initial_w = cap.get(3)
     initial_h = cap.get(4)
-    people_counter = cv2.VideoWriter(os.path.join(args.output_dir, "people_counter.mp4"),0x00000021, fps, (int(initial_w), int(initial_h)), True)
+    # ,0x00000021,
+    people_counter = cv2.VideoWriter(os.path.join(args.output_dir, "people_counter.mp4"), cv2.VideoWriter_fourcc(*"AVC1"), fps, (int(initial_w), int(initial_h)), True)
     while cap.isOpened():
         flag, frame = cap.read()
         frame_count += 1

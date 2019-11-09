@@ -300,7 +300,7 @@ def runFlawDetector(vid_path = 0, base_dir=None, draw_callback = None):
                 height = np.size(frame, 0)
                 width = np.size(frame, 1)
                 out_dir = os.path.join(base_dir, 'inference_output.mp4')
-                vw = cv2.VideoWriter(out_dir, 0x00000021, 15.0, (width, height), True)
+                vw = cv2.VideoWriter(out_dir, cv2.VideoWriter_fourcc(*'avc1'), 15.0, (width, height), True)
             vw.write(frame)
     finally:
         if vw != None:
