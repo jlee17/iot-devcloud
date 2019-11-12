@@ -28,7 +28,7 @@ def videoHTML(title, videos_list, stats=None):
     video_string = ""
     height = '480' if len(videos_list) == 1 else '240'
     for x in range(len(videos_list)):
-        video_string += "<video alt=\"\" controls autoplay height=\""+height+"\"><source src=\""+videos_list[x]+"\" type=\"video/mp4\" /></video>"
+        video_string += "<video alt=\"\" controls autoplay muted height=\""+height+"\"><source src=\""+videos_list[x]+"\" type=\"video/mp4\" /></video>"
     return HTML('''<h2>{title}</h2>
     {stats_line}
     {videos}
@@ -60,7 +60,7 @@ def outputHTML(title, result_path, output_type, stats=None):
 		height = '480' if len(op_list) == 1 else '120'
 		if output_type == ".mp4":
 			for x in range(len(op_list)):
-				op_string += "<video alt=\"\" controls autoplay height=\""+height+"\"><source src=\""+op_list[x]+"\" type=\"video/mp4\" /></video>"
+				op_string += "<video alt=\"\" controls autoplay muted height=\""+height+"\"><source src=\""+op_list[x]+"\" type=\"video/mp4\" /></video>"
 		elif output_type == ".png":
 			for x in range(len(op_list)):
 				op_string += "<img src='{img}' width='783' height='{height}'>".format(img=op_list[x], height=height)
