@@ -126,7 +126,7 @@ def main():
     initial_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    shopper = cv2.VideoWriter(os.path.join(args.output_dir, "shopper.mp4"),0x00000021, fps, (initial_w, initial_h), True)
+    shopper = cv2.VideoWriter(os.path.join(args.output_dir, "shopper.mp4"), cv2.VideoWriter_fourcc(*"AVC1"), fps, (initial_w, initial_h), True)
     frame_count = 0
     job_id = os.environ['PBS_JOBID']
     progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
@@ -145,6 +145,8 @@ def main():
     infer_network = Network()
     infer_network_pose = Network()
     # Load the network to IE plugin to get shape of input layer
+    
+    
     plugin, (n_fd, c_fd, h_fd, w_fd) = infer_network.load_model(args.model,
                                                       args.device, 1, 1, 0,
                                                       args.cpu_extension)
@@ -152,18 +154,19 @@ def main():
                                                            args.device, 1,
                                                            3, 0,
                                                            args.cpu_extension, plugin)[1]
-
+    
     ret, frame = cap.read()
+    
     while ret:
-
         looking = 0
         ret, next_frame = cap.read()
         frame_count += 1
         if not ret:
+            print ("checkpoint *BREAKING")
             break
 
         if next_frame is None:
-            log.error("ERROR! blank FRAME grabbed")
+            log.error("checkpoint ERROR! blank FRAME grabbed")
             break
 
         initial_wh = [cap.get(3), cap.get(4)]
@@ -172,13 +175,14 @@ def main():
         in_frame_fd = in_frame_fd.transpose((2, 0, 1))
         in_frame_fd = in_frame_fd.reshape((n_fd, c_fd, h_fd, w_fd))
 
+        
         # Start asynchronous inference for specified request
         inf_start_fd = time.time()
         infer_network.exec_net(0, in_frame_fd)
         # Wait for the result
         infer_network.wait(0)
         det_time_fd = time.time() - inf_start_fd
-
+        
         # Results of the output layer of the network
         res = infer_network.get_output(0)
 

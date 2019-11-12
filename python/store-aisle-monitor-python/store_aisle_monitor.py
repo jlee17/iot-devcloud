@@ -164,7 +164,7 @@ def main():
     initial_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    store_aisle = cv2.VideoWriter(os.path.join(args.output_dir, "store_aisle.mp4"),0x00000021, fps, (initial_w, initial_h), True)
+    store_aisle = cv2.VideoWriter(os.path.join(args.output_dir, "store_aisle.mp4"),cv2.VideoWriter_fourcc(*'avc1'), fps, (initial_w, initial_h), True)
     job_id = os.environ['PBS_JOBID']
     progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
     infer_time_start = time.time()

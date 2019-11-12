@@ -24,7 +24,7 @@ import time
 import logging as log
 import numpy as np
 import io
-from openvino.inference_engine import IENetwork, IEPlugin
+from openvino.inference_engine import IENetwork, IECore
 from pathlib import Path
 sys.path.insert(0, str(Path().resolve().parent.parent))
 from demoTools.demoutils import progressUpdate
@@ -89,7 +89,8 @@ def placeBoxes(res, labels_map, frame, is_async_mode):
 
 def postProcess(result_list, width, height, labels_map, out_path, is_async_mode, ren_progress_file_path=None):
   post_process_t = time.time()
-  vw = cv2.VideoWriter(out_path, 0x00000021, 30.0, (width, height), True)
+  # 0x00000021,
+  vw = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*"AVC1"), 30.0, (width, height), True)
   for i in range(len(result_list)):
     frame,res = result_list[i]
     if len(res) > 0:
@@ -106,21 +107,25 @@ def main():
   model_bin = os.path.splitext(model_xml)[0] + ".bin"
   # Plugin initialization for specified device and load extensions library if specified
   log.info("Initializing plugin for {} device...".format(args.device))
-  plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
+  ie = IECore()
+  #plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
   if args.cpu_extension and 'CPU' in args.device:
     log.info("Loading plugins for {} device...".format(args.device))
-    plugin.add_cpu_extension(args.cpu_extension)
+    ie.add_extension(args.cpu_extension, "CPU")
+#     log.info("Loading plugins for {} device...".format(args.device))
+#     plugin.add_cpu_extension(args.cpu_extension)
 
   # Read IR
   log.info("Reading IR...")
   net = IENetwork(model=model_xml, weights=model_bin)
 
-  if plugin.device == "CPU":
-    supported_layers = plugin.get_supported_layers(net)
+  if args.device == "CPU":
+    #supported_layers = plugin.get_supported_layers(net)    
+    supported_layers = ie.query_network(net, "CPU")
     not_supported_layers = [l for l in net.layers.keys() if l not in supported_layers]
     if len(not_supported_layers) != 0:
       log.error("Following layers are not supported by the plugin for specified device {}:\n {}".
-                format(plugin.device, ', '.join(not_supported_layers)))
+                format(ie.device, ', '.join(not_supported_layers)))
       log.error("Please try to specify cpu extensions library path in sample's command line parameters using -l "
                 "or --cpu_extension command line argument")
       sys.exit(1)
@@ -129,7 +134,9 @@ def main():
   input_blob = next(iter(net.inputs))
   out_blob = next(iter(net.outputs))
   log.info("Loading IR to the plugin...")
-  exec_net = plugin.load(network=net, num_requests=2)
+  #exec_net = plugin.load(network=net, num_requests=2)
+    ## Removed spaces ################
+  exec_net = ie.load_network(network=net,num_requests=2,device_name=args.device)
   # Read and pre-process input image
   if isinstance(net.inputs[input_blob], list):
     n, c, h, w = net.inputs[input_blob]
@@ -153,6 +160,7 @@ def main():
   next_request_id = 1
   
   job_id = os.environ['PBS_JOBID']
+  #job_id = "12345"
   inf_progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
   ren_progress_file_path = os.path.join(args.output_dir,'v_progress_'+str(job_id)+'.txt')
 
@@ -233,7 +241,8 @@ def main():
 
   finally:
     del exec_net
-    del plugin
+    del ie
+    #del plugin
 
 if __name__ == '__main__':
   sys.exit(main() or 0)
