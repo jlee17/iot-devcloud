@@ -132,7 +132,7 @@ def liveQstat():
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     output,_ = p.communicate()
     now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    qstat = widgets.Output(layout={'width': '100%', 'border': '1px solid gray'})
+    qstat = widgets.Output(layout={'width': '100%', 'height': '300px', 'border': '1px solid gray'})
     stop_signal_q = queue.Queue()
 
     def _work(qstat,stop_signal_q):
@@ -141,9 +141,9 @@ def liveQstat():
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
             output,_ = p.communicate()
             now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            qstat.append_stdout(now+'\n'+output.decode()+'\n\n\n')
-            qstat.clear_output(wait=True)
-            time.sleep(1.0)
+            qstat.append_stdout(now+'\n\n'+output.decode()+'\n\n\n')
+            time.sleep(3.0)
+            qstat.clear_output(wait=False)
         print('liveQstat stopped')
     thread = threading.Thread(target=_work, args=(qstat, stop_signal_q))
 
