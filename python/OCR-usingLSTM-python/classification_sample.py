@@ -22,7 +22,7 @@ import cv2
 import numpy as np
 import logging as log
 from time import time
-from openvino.inference_engine import IENetwork, IEPlugin
+from openvino.inference_engine import IENetwork, IECore
 from local_utils import log_utils, data_utils
 from local_utils.config_utils import load_config
 import os.path as ops
@@ -64,9 +64,11 @@ def main():
     model_bin = os.path.splitext(model_xml)[0] + ".bin"
 
     # Plugin initialization for specified device and load extensions library if specified
-    plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
+    #plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
+    ie=IECore()
     if args.cpu_extension and 'CPU' in args.device:
-        plugin.add_cpu_extension(args.cpu_extension)
+        #plugin.add_cpu_extension(args.cpu_extension)
+        ie.add_extension(args.cpu_extension,args.device)
     # Read IR
     log.info("Loading network files:\n\t{}\n\t{}".format(model_xml, model_bin))
     net = IENetwork(model=model_xml, weights=model_bin)
@@ -103,7 +105,7 @@ def main():
 
     # Loading model to the plugin
     log.info("Loading model to the plugin")
-    exec_net = plugin.load(network=net)
+    exec_net = ie.load_network(network=net,device_name=args.device)
     del net
 
     # Start sync inference
@@ -147,7 +149,7 @@ def main():
                 f.write(str(args.number_iter)+'\n')
 
     del exec_net
-    del plugin
+    del ie
 
 
 if __name__ == '__main__':
