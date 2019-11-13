@@ -7,7 +7,7 @@ import keras as K
 import h5py
 import time 
 import tensorflow as tf 
-from openvino.inference_engine import IENetwork, IEPlugin
+from openvino.inference_engine import IENetwork, IECore
 from distutils.sysconfig import get_python_lib
 packages_directory=get_python_lib()
 import matplotlib.pyplot as plt
@@ -246,22 +246,24 @@ log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=s
 
 # Plugin initialization for specified device and load extensions library if specified
 print("check")
-plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
+#plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
+ie=IECore()
 print(args.device)
 if args.cpu_extension and "CPU" in args.device:
-    plugin.add_cpu_extension(args.cpu_extension)
+    #plugin.add_cpu_extension(args.cpu_extension)
+    ie.add_extension(args.cpu_extension, "CPU")
 
 # Read IR
 # If using MYRIAD then we need to load FP16 model version
 model_xml, model_bin = load_model()
 log.info("Loading network files:\n\t{}\n\t{}".format(model_xml, model_bin))
 net = IENetwork(model=model_xml, weights=model_bin)
-if plugin.device == "CPU":
-        supported_layers = plugin.get_supported_layers(net)
+if args.device == "CPU":
+        supported_layers = ie.query_network(net, args.device)
         not_supported_layers = [l for l in net.layers.keys() if l not in supported_layers]
         if len(not_supported_layers) != 0:
             log.error("Following layers are not supported by the plugin for specified device {}:\n {}".
-                      format(plugin.device, ', '.join(not_supported_layers)))
+                      format(args.device, ', '.join(not_supported_layers)))
             log.error("Please try to specify cpu extensions library path in sample's command line parameters using -l "
                       "or --cpu_extension command line argument")
             sys.exit(1)
@@ -286,7 +288,7 @@ input_data, label_data, img_indicies = load_data()
 
 
 # Loading model to the plugin
-exec_net = plugin.load(network=net)
+exec_net = ie.load_network(network=net,device_name=args.device)
 # del net
 
 args.stats = True

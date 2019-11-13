@@ -39,7 +39,7 @@ import collections
 import threading
 import datetime
 import math
-from openvino.inference_engine import IENetwork, IEPlugin
+from openvino.inference_engine import IENetwork, IECore
 from pathlib import Path
 sys.path.insert(0, str(Path().resolve().parent.parent))
 from demoTools.demoutils import progressUpdate
@@ -118,7 +118,8 @@ class VideoCap:
         self.videoName = cap_name + ".mp4"
 
     def init_vw(self, h, w, fps):
-        self.video = cv2.VideoWriter(os.path.join(output_dir, self.videoName), 0x00000021, fps, (w, h), True)
+        #self.video = cv2.VideoWriter(os.path.join(output_dir, self.videoName), 0x00000021, fps, (w, h), True)
+        self.video = cv2.VideoWriter(os.path.join(output_dir, self.videoName), cv2.VideoWriter_fourcc(*"avc1"), fps, (w, h), True) 
         if not self.video.isOpened():
             print ("Could not open for write" + self.videoName)
             sys.exit(1)
@@ -327,9 +328,11 @@ def main():
     #     TARGET_DEVICE = 'CPU'
     
     print("Initializing plugin for {} device...".format(TARGET_DEVICE))
-    plugin = IEPlugin(device=TARGET_DEVICE)
+    #plugin = IEPlugin(device=TARGET_DEVICE)
+    ie = IECore()
     if CPU_EXTENSION and 'CPU' == TARGET_DEVICE:
-        plugin.add_cpu_extension(CPU_EXTENSION)
+        #plugin.add_cpu_extension(CPU_EXTENSION)
+        ie.add_extension(CPU_EXTENSION, "CPU")
 
     # Read IR
     print("Reading IR...")
@@ -341,7 +344,8 @@ def main():
 
     # Load the IR
     print("Loading IR to the plugin...")
-    exec_net = plugin.load(network=net, num_requests=2)
+    #exec_net = plugin.load(network=net, num_requests=2)
+    exec_net = ie.load_network(network=net, num_requests=2, device_name=TARGET_DEVICE)
     # Read and pre-process input image
     n, c, h, w = net.inputs[input_blob].shape
     del net
@@ -358,7 +362,7 @@ def main():
         frames_sum += vc.length
     statsWidth = w if w > 345 else 345
     statsHeight = h if h > (len(videoCaps) * 20 + 15) else (len(videoCaps) * 20 + 15)
-    statsVideo = cv2.VideoWriter(os.path.join(output_dir,'Statistics.mp4'), 0x00000021, minFPS, (statsWidth, statsHeight), True)    
+    statsVideo = cv2.VideoWriter(os.path.join(output_dir,'Statistics.mp4'), cv2.VideoWriter_fourcc(*"AVC1"), minFPS, (statsWidth, statsHeight), True)    
     if not statsVideo.isOpened():
         print ("Couldn't open stats video for writing")
         sys.exit(4)
@@ -539,7 +543,8 @@ def main():
             if key == 27:
                 cv2.destroyAllWindows()
                 del exec_net
-                del plugin
+                #del plugin
+                del ie
                 print("Finished")
                 return
             # Tab key pressed

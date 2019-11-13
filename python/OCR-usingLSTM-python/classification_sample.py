@@ -146,9 +146,6 @@ def main():
                 f.write(str(avg_time)+'\n')
                 f.write(str(args.number_iter)+'\n')
 
-    del exec_net
-    del plugin
-
 
 if __name__ == '__main__':
     sys.exit(main() or 0)

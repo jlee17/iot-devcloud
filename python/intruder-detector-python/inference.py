@@ -25,7 +25,7 @@
 import os
 import sys
 import logging as log
-from openvino.inference_engine import IENetwork, IEPlugin
+from openvino.inference_engine import IENetwork, IECore
 
 
 class Network:
@@ -36,7 +36,7 @@ class Network:
 
     def __init__(self):
         self.net = None
-        self.plugin = None
+        self.ie = None
         self.input_blob = None
         self.out_blob = None
         self.net_plugin = None
@@ -59,24 +59,28 @@ class Network:
         # Plugin initialization for specified device
         # and load extensions library if specified
         log.info("Initializing plugin for {} device...".format(device))
-        self.plugin = IEPlugin(device=device)
-        if cpu_extension and 'CPU' in device:
-            self.plugin.add_cpu_extension(cpu_extension)
+        #self.plugin = IEPlugin(device=device)
+        ie = IECore()
+        #if cpu_extension and 'CPU' in device:
+        if cpu_extension and 'CPU' in device:   
+            #self.plugin.add_cpu_extension(cpu_extension)
+            ie.add_extension(cpu_extension, "CPU")
+
 
         # Read IR
         log.info("Reading IR...")
         self.net = IENetwork(model=model_xml, weights=model_bin)
         log.info("Loading IR to the plugin...")
 
-        if self.plugin.device == "CPU":
-            supported_layers = self.plugin.get_supported_layers(self.net)
+        if device == "CPU":
+            supported_layers = ie.query_network(self.net, device)
             not_supported_layers = \
                 [l for l in self.net.layers.keys() if l not in supported_layers]
             if len(not_supported_layers) != 0:
                 log.error("Following layers are not supported by "
                           "the plugin for specified device {}:\n {}".
-                          format(self.plugin.device,
-                                 ', '.join(not_supported_layers)))
+                          format(device,
+                                ', '.join(not_supported_layers)))
                 log.error("Please try to specify cpu extensions library path"
                           " in command line parameters using -l "
                           "or --cpu_extension command line argument")
@@ -84,9 +88,11 @@ class Network:
 
         if num_requests == 0:
             # Loads network read from IR to the plugin
-            self.net_plugin = self.plugin.load(network=self.net)
+           # self.net_plugin = self.plugin.load(network=self.net)
+             self.net_plugin = ie.load_network(network=self.net, device_name=device)
         else:
-            self.net_plugin = self.plugin.load(network=self.net, num_requests=num_requests)
+            #self.net_plugin = self.plugin.load(network=self.net, num_requests=2,device_name=TARGET_DEVICE )
+             self.net_plugin = ie.load_network(network=self.net, num_requests=2,device_name=device )
 
         self.input_blob = next(iter(self.net.inputs))
         self.out_blob = next(iter(self.net.outputs))
@@ -153,5 +159,5 @@ class Network:
         :return: None
         """
         del self.net_plugin
-        del self.plugin
+        del self.ie
         del self.net
