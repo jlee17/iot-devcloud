@@ -13,7 +13,7 @@ all: tutorial1 ROI_writer
 
 
 tutorial1: main.cpp
-	g++ -fPIE -O3 -fopenmp -o tutorial1 --std=c++11 main.cpp $(OPENVINO_FLAGS) 
+	g++ -w -fPIE -O3 -fopenmp -o tutorial1 --std=c++11 main.cpp $(OPENVINO_FLAGS) 
 
 
 #	g++ -fPIE -O3 -fopenmp -o tutorial1 --std=c++11 main.cpp -I. \

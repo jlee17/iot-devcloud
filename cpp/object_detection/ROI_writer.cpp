@@ -143,7 +143,8 @@ int main(int argc,char **argv)
     Size S = Size((int) cap.get(CAP_PROP_FRAME_WIDTH)/FLAGS_r,    // Acquire input size
                   (int) cap.get(CAP_PROP_FRAME_HEIGHT)/FLAGS_r);
     float o_fps = cap.get(CAP_PROP_FPS)/FLAGS_k;
-    VideoWriter outputVideo(FLAGS_o+"/output.mp4", 0x00000021, o_fps, S, true);
+    //VideoWriter outputVideo(FLAGS_o+"/output.mp4", 0x00000021, o_fps, S, true);
+    VideoWriter outputVideo(FLAGS_o+"/output.mp4", outputVideo.fourcc('a','v','c','1'), o_fps, S, true);
     if (!outputVideo.isOpened())
     {
         cout  << "Could not open the output video for write: " << FLAGS_o+"/output.mp4" << endl;
