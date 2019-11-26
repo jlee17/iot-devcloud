@@ -39,7 +39,8 @@
             "python/people-counter-python/people_counter.ipynb",
             "python/restricted-zone-notifier-python/restricted_zone_notifier.ipynb",
             "python/shopper-gaze-monitor-python/shopper_gaze_monitor.ipynb",
-            "python/store-aisle-monitor-python/store_aisle_monitor.ipynb"
+            "python/store-aisle-monitor-python/store_aisle_monitor.ipynb",
+            "python/object-detection-using-yolov3/Object_Detection_using_Yolov3.ipynb"
 	],
 	"messages":
 	{
