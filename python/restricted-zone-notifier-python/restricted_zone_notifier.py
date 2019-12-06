@@ -77,6 +77,11 @@ def build_argparser():
                         help="Width of the assembly area in pixels.")
     parser.add_argument('-ht', '--height', default=0, type=int,
                         help="Height of the assembly area in pixels.")
+    parser.add_argument('-nireq', '--number_infer_requests',
+                        help='Number of parallel inference requests (default is 2).',
+                        type=int,
+                        required=False,
+                        default=2)
     parser.add_argument('-r', '--rate', default=1, type=int,
                         help="Number of seconds between data updates "
                              "to MQTT server")
@@ -168,83 +173,96 @@ def main():
     # Initialise the class
     infer_network = Network()
     # Load the network to IE plugin to get shape of input layer
-    n, c, h, w = infer_network.load_model(args.model, args.device, 1, 1, 0, args.cpu_extension)
+    n, c, h, w = infer_network.load_model(args.model, args.device, 1, 1, args.number_infer_requests, args.cpu_extension)
 
     ret, frame = cap.read()
     video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     frame_count = 0
+    
+    current_inference = 0
+    previous_inference = 1 - args.number_infer_requests
+    
     job_id = os.environ['PBS_JOBID']
     result_file = open(os.path.join(args.output_dir,'output_'+str(job_id)+'.txt'), "w")
     progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
     infer_time_start = time.time()
-    while ret:
+    while frame_count<video_len:
         dims = ""
         ret, next_frame = cap.read()
-        if not ret:
-            break
-
         initial_wh = [cap.get(3), cap.get(4)]
 
-        if next_frame is None:
-            log.error("ERROR! blank FRAME grabbed")
-            break
 
         # If either default values or negative numbers are given,
         # then we will default to start of the FRAME
-        if roi_x <= 0 or roi_y <= 0:
-            roi_x = 0
-            roi_y = 0
-        if roi_w <= 0:
-            roi_w = next_frame.shape[1]
-        if roi_h <= 0:
-            roi_h = next_frame.shape[0]
-        key_pressed = cv2.waitKey(int(DELAY))
+        if ret:
+            if next_frame is None:
+                log.error("ERROR! blank FRAME grabbed")
+                break
+            if roi_x <= 0 or roi_y <= 0:
+                roi_x = 0
+                roi_y = 0
+            if roi_w <= 0:
+                roi_w = next_frame.shape[1]
+            if roi_h <= 0:
+                roi_h = next_frame.shape[0]
+            #key_pressed = cv2.waitKey(int(DELAY))
 
-        selected_region = [roi_x, roi_y, roi_w, roi_h]
-        selected_region = [roi_x, roi_y, roi_w, roi_h]
-        x_max1= str(selected_region[0])
-        x_min1=str(selected_region[0] + selected_region[2])
-        y_min1=str(selected_region[1] + selected_region[3])
-        y_max1=str(selected_region[1])
+            selected_region = [roi_x, roi_y, roi_w, roi_h]
+            selected_region = [roi_x, roi_y, roi_w, roi_h]
+            x_max1= str(selected_region[0])
+            x_min1=str(selected_region[0] + selected_region[2])
+            y_min1=str(selected_region[1] + selected_region[3])
+            y_max1=str(selected_region[1])
         
-        in_frame_fd = cv2.resize(next_frame, (w, h))
-        # Change data layout from HWC to CHW
-        in_frame_fd = in_frame_fd.transpose((2, 0, 1))
-        in_frame_fd = in_frame_fd.reshape((n, c, h, w))
+            in_frame_fd = cv2.resize(next_frame, (w, h))
+            # Change data layout from HWC to CHW
+            in_frame_fd = in_frame_fd.transpose((2, 0, 1))
+            in_frame_fd = in_frame_fd.reshape((n, c, h, w))
 
-        # Start asynchronous inference for specified request.
-        inf_start = time.time()
-        infer_network.exec_net(0, in_frame_fd)
+            # Start asynchronous inference for specified request.
+            inf_start = time.time()
+            infer_network.exec_net(current_inference, in_frame_fd)
         # Wait for the result
-        infer_network.wait(0)
-        det_time = time.time() - inf_start
-        # Results of the output layer of the network
-        res = infer_network.get_output(0)
-        # Parse SSD output
-        ssd_out(res, args, initial_wh, selected_region)
+        if previous_inference>=0:
+            status=infer_network.wait(previous_inference)
+            # Issue with generating output video, hence commented below 'if status' code
+            #if status is not 0:
+                #raise Exception("Infer request not completed successfully")
+            det_time = time.time() - inf_start
+            # Results of the output layer of the network
+            res = infer_network.get_output(previous_inference)
+            # Parse SSD output
+            ssd_out(res, args, initial_wh, selected_region)
 
-        est = str(render_time * 1000)
-        time1 = round(det_time*1000)
-        Worker = INFO.safe
-        out_list = [str(frame_count), x_min1, y_min1, x_max1, y_max1,str(Worker), est, str(time1)]
-        for i in range(len(out_list)):
-            dims += out_list[i]+' '
-        dims += '\n'
-        result_file.write(dims)
+            est = str(render_time * 1000)
+            time1 = round(det_time*1000)
+            Worker = INFO.safe
+            out_list = [str(frame_count), x_min1, y_min1, x_max1, y_max1,str(Worker), est, str(time1)]
+            for i in range(len(out_list)):
+                dims += out_list[i]+' '
+            dims += '\n'
+            result_file.write(dims)
 
-        render_start = time.time()
-        render_end = time.time()
-        render_time = render_end - render_start
+            render_start = time.time()
+            render_end = time.time()
+            render_time = render_end - render_start
         
         
-        frame_count += 1
+            frame_count += 1
         if frame_count%10 == 0: 
-            progressUpdate(progress_file_path, int(time.time()-infer_time_start), frame_count, video_len)
+            progressUpdate(progress_file_path, int(time.time()-infer_time_start), frame_count+1, video_len+1)
+        current_inference += 1
+        if current_inference >= args.number_infer_requests:
+            current_inference = 0
+
+        previous_inference += 1
+        if previous_inference >= args.number_infer_requests:
+            previous_inference = 0
         frame = next_frame
 
-        if key_pressed == 27:
-            print("Attempting to stop background threads")
-            break
+        #if key_pressed == 27:
+         #   print("Attempting to stop background threads")
+          #  break
     if args.output_dir is None:
         cv2.destroyAllWindows()
     else:

@@ -25,23 +25,24 @@
 import os
 import sys
 import logging as log
-from openvino.inference_engine import IENetwork, IECore #, IEPlugin
+from openvino.inference_engine import IENetwork, IECore
+
 
 class Network:
     """
     Load and configure inference plugins for the specified target devices 
     and performs synchronous and asynchronous modes for the specified infer requests.
     """
+
     def __init__(self):
         self.net = None
-        #self.plugin = None
         self.ie = None
         self.input_blob = None
         self.out_blob = None
         self.net_plugin = None
         self.infer_request_handle = None
 
-    def load_model(self, model, device, input_size, output_size, num_requests, cpu_extension=None, plugin=None):
+    def load_model(self, model, device, input_size, output_size, num_requests, cpu_extension=None, ie=None):
         """
          Loads a network and an image to the Inference Engine plugin.
         :param model: .xml file of pre trained model
@@ -53,43 +54,52 @@ class Network:
         :param plugin: Plugin for specified device
         :return:  Shape of input layer
         """
+
         model_xml = model
         model_bin = os.path.splitext(model_xml)[0] + ".bin"
         # Plugin initialization for specified device
         # and load extensions library if specified
-        log.info("Initializing plugin for {} device...".format(device))
-        self.ie = IECore()
+        if not ie:
+            log.info("Initializing plugin for {} device...".format(device))
+            self.ie = IECore()
+        else:
+            self.ie = ie
+
         if cpu_extension and 'CPU' in device:
-            self.ie.add_extension(cpu_extension, "CPU")
+            self.ie.add_extension(cpu_extension, "CPU") ## DEVC-6
 
         # Read IR
         log.info("Reading IR...")
         self.net = IENetwork(model=model_xml, weights=model_bin)
-        
-        if "CPU" in device:
-            supported_layers = self.ie.query_network(self.net, "CPU")
-            not_supported_layers = [l for l in self.net.layers.keys() if l not in supported_layers]
+        log.info("Loading IR to the IECore...")
+
+        if device == "CPU":
+            supported_layers = self.ie.query_network(self.net, device)
+            not_supported_layers = \
+                [l for l in self.net.layers.keys() if l not in supported_layers]
             if len(not_supported_layers) != 0:
-                log.error("Following layers are not supported by the plugin for specified device {}:\n {}".
-                          format(args.device, ', '.join(not_supported_layers)))
-                log.error("Please try to specify cpu extensions library path in sample's command line parameters using -l "
+                log.error("Following layers are not supported by "
+                          "the plugin for specified device {}:\n {}".
+                          format(device,
+                                 ', '.join(not_supported_layers)))
+                log.error("Please try to specify cpu extensions library path"
+                          " in command line parameters using -l "
                           "or --cpu_extension command line argument")
                 sys.exit(1)
 
+        # Loads network read from IR to the plugin
+        if num_requests == 0:
+            self.net_plugin = self.ie.load_network(network=self.net, device_name=device)
+        else:
+            self.net_plugin = self.ie.load_network(network=self.net, num_requests=num_requests, device_name=device)
+
         self.input_blob = next(iter(self.net.inputs))
         self.out_blob = next(iter(self.net.outputs))
-        
         assert len(self.net.inputs.keys()) == input_size, \
             "Supports only {} input topologies".format(len(self.net.inputs))
         assert len(self.net.outputs) == output_size, \
             "Supports only {} output topologies".format(len(self.net.outputs))
-        
-        log.info("Loading IR to the plugin...")
-        if num_requests == 0:
-            self.net_plugin = self.ie.load_network(network=self.net, device_name=device)
-        else:
-            self.net_plugin = self.ie.load_network(network=self.net, device_name=device, num_requests=num_requests)
-            
+
         return self.ie, self.get_input_shape()
 
     def get_input_shape(self):

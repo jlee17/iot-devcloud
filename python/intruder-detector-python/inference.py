@@ -92,7 +92,7 @@ class Network:
              self.net_plugin = ie.load_network(network=self.net, device_name=device)
         else:
             #self.net_plugin = self.plugin.load(network=self.net, num_requests=2,device_name=TARGET_DEVICE )
-             self.net_plugin = ie.load_network(network=self.net, num_requests=2,device_name=device )
+             self.net_plugin = ie.load_network(network=self.net, num_requests=num_requests, device_name=device )
 
         self.input_blob = next(iter(self.net.inputs))
         self.out_blob = next(iter(self.net.outputs))
@@ -120,15 +120,14 @@ class Network:
         perf_count = self.net_plugin.requests[request_id].get_perf_counts()
         return perf_count
 
-    def exec_net(self, request_id, frame):
+    def exec_net(self, request_id_, frame):
         """
         Starts asynchronous inference for specified request.
         :param request_id: Index of Infer request value. Limited to device capabilities.
         :param frame: Input image
         :return: Instance of Executable Network class
         """
-        self.infer_request_handle = self.net_plugin.start_async(
-            request_id=request_id, inputs={self.input_blob: frame})
+        self.infer_request_handle = self.net_plugin.start_async(request_id=request_id_, inputs={self.input_blob: frame})
         return self.net_plugin
 
     def wait(self, request_id):

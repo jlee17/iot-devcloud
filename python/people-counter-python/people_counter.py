@@ -38,7 +38,6 @@ from demoTools.demoutils import *
 def build_argparser():
     """
     Parse command line arguments.
-
     :return: command line arguments
     """
     parser = ArgumentParser()
@@ -56,6 +55,11 @@ def build_argparser():
                              "CPU, GPU, FPGA or MYRIAD is acceptable. Sample "
                              "will look for a suitable plugin for device "
                              "specified (CPU by default)")
+    parser.add_argument('-nireq', '--number_infer_requests',
+                        help='Number of parallel inference requests (default is 2).',
+                        type=int,
+                        required=False,
+                        default=2)
     parser.add_argument("-pt", "--prob_threshold", type=float, default=0.5,
                         help="Probability threshold for detections filtering"
                         "(0.5 by default)")
@@ -68,7 +72,6 @@ def build_argparser():
 def performance_counts(perf_count):
     """
     print information about layers of the model.
-
     :param perf_count: Dictionary consists of status of the layers.
     :return: None
     """
@@ -83,10 +86,9 @@ def performance_counts(perf_count):
                                                           stats['real_time']))
 
 
-def ssd_out(frame, result):
+def ssd_out(frame_count,result,result_file):
     """
     Parse SSD output.
-
     :param frame: frame from camera/video
     :param result: list contains the data to parse ssd
     :return: person count and frame
@@ -100,15 +102,16 @@ def ssd_out(frame, result):
             ymin = int(obj[4] * initial_h)
             xmax = int(obj[5] * initial_w)
             ymax = int(obj[6] * initial_h)
-            cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 55, 255), 1)
+            #cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 55, 255), 1)
             current_count = current_count + 1
-    return frame, current_count
+            dims = "{frame_id} {xmin} {ymin} {xmax} {ymax} {class_id} {est} {time} {current_count} \n".format(frame_id=frame_count, xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax, class_id=int(obj[1]), est=round(obj[2]*100, 1), time='N/A', current_count=current_count)
+            result_file.write(dims)
+    return current_count
 
 
 def main():
     """
     Load the network and parse the SSD output.
-
     :return: None
     """
 
@@ -116,17 +119,15 @@ def main():
 
     # Flag for the input image
     single_image_mode = False
-    total_count = 0
-    cur_request_id = 0
-    last_count = 0
-    total_count = 0
+    current_inference = 0
+    previous_inference = 1 - args.number_infer_requests
     start_time = 0
-
+    result=None
     # Initialise the class
     infer_network = Network()
     # Load the network to IE plugin to get shape of input layer
     n, c, h, w = infer_network.load_model(args.model, args.device, 1, 1,
-                                          cur_request_id, args.cpu_extension)
+                                          args.number_infer_requests, args.cpu_extension)
     # Checks for live feed
     #if args.input == 'CAM':
         #input_stream = 0
@@ -158,43 +159,41 @@ def main():
     prob_threshold = args.prob_threshold
     initial_w = cap.get(3)
     initial_h = cap.get(4)
-    people_counter = cv2.VideoWriter(os.path.join(args.output_dir, "people_counter.mp4"), cv2.VideoWriter_fourcc(*"AVC1"), fps, (int(initial_w), int(initial_h)), True)
-    while cap.isOpened():
+    #people_counter = cv2.VideoWriter(os.path.join(args.output_dir, "people_counter.mp4"), cv2.VideoWriter_fourcc(*"AVC1"), fps, (int(initial_w), int(initial_h)), True)
+    result_file = open(os.path.join(args.output_dir, 'output_'+job_id+'.txt'), "w")
+    while frame_count<video_len:
         flag, frame = cap.read()
-        frame_count += 1
-        if not flag:
-            break
-        # Start async inference
-        image = cv2.resize(frame, (w, h))
-        # Change data layout from HWC to CHW
-        image = image.transpose((2, 0, 1))
-        image = image.reshape((n, c, h, w))
-        # Start asynchronous inference for specified request.
-        inf_start = time.time()
-        infer_network.exec_net(cur_request_id, image)
-        # Wait for the result
-        if infer_network.wait(cur_request_id) == 0:
-            det_time = time.time() - inf_start
+        if flag:
+            # Start async inference
+            image = cv2.resize(frame, (w, h))
+            # Change data layout from HWC to CHW
+            image = image.transpose((2, 0, 1))
+            image = image.reshape((n, c, h, w))
+            # Start asynchronous inference for specified request.
+            inf_start = time.time()
+            infer_network.exec_net(current_inference, image)
+        if previous_inference >= 0:
+            # Wait for the result
+            status=infer_network.wait(previous_inference)
+            #if status is not 0:
+                #raise Exception("Infer request not completed successfully")
             # Results of the output layer of the network
-            result = infer_network.get_output(cur_request_id)
+            result = infer_network.get_output(previous_inference)
             if args.perf_counts:
-                perf_count = infer_network.performance_counter(cur_request_id)
+                perf_count = infer_network.performance_counter(previous_inference)
                 performance_counts(perf_count)
-            
-            frame, current_count = ssd_out(frame, result)
-            inf_time_message = "Inference time: {:.3f}ms"\
-                               .format(det_time * 1000)
-            cv2.putText(frame, inf_time_message, (15, 15),cv2.FONT_HERSHEY_COMPLEX, 0.5, (200, 10, 10), 1)
-            current_count_message = "Current count: {}"\
-                                     .format(current_count)
-            cv2.putText(frame, current_count_message, (15, 30),cv2.FONT_HERSHEY_COMPLEX, 0.5, (200, 10, 10), 1)
+            current_count = ssd_out(frame_count,result,result_file)
+            frame_count += 1
+        if frame_count%10 == 0 or frame_count >= video_len: 
+            progressUpdate(progress_file_path, int(time.time()-infer_time_start), frame_count+1, video_len+1)
 
-            last_count = current_count
-
-            people_counter.write(frame)
-        if frame_count%10 == 0: 
-            progressUpdate(progress_file_path, int(time.time()-infer_time_start), frame_count, video_len)
-
+        # Increment counter for the inference queue and roll them over if necessary 
+        current_inference += 1
+        if current_inference >= args.number_infer_requests:
+            current_inference = 0
+        previous_inference += 1
+        if previous_inference >= args.number_infer_requests:
+            previous_inference = 0
         if single_image_mode:
             cv2.imwrite('output_image.jpg', frame)
     if args.output_dir:
@@ -202,6 +201,7 @@ def main():
         with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
             f.write(str(round(total_time, 1))+'\n')
             f.write(str(frame_count)+'\n')
+    result_file.close()
     cap.release()
     infer_network.clean()
 

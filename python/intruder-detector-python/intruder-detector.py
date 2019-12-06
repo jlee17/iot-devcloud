@@ -1,4 +1,3 @@
-
 '''
 * Copyright (c) 2018 Intel Corporation.
 *
@@ -34,6 +33,7 @@ import signal
 import pathlib
 from pathlib import Path
 from inference import Network
+
 sys.path.insert(0, str(Path().resolve().parent.parent))
 from demoTools.demoutils import *
 
@@ -48,7 +48,7 @@ LOG_WIN_HEIGHT = 432
 LOG_WIN_WIDTH = 410
 CONF_CANDIDATE_CONFIDENCE = 4
 CODEC = cv2.VideoWriter_fourcc(*'avc1')
-output_dir=" "
+output_dir = " "
 
 # Global variables
 model_xml = ''
@@ -87,12 +87,12 @@ class VideoCap:
         self.events = []
         self.video_name = 'video{}.mp4'.format(cams)
         self.vw = None
-        
+
     def init(self, size):
         self.no_of_labels = size
         for i in range(size):
             self.last_correct_count.append(0)
-            self.total_count.append(0)  
+            self.total_count.append(0)
             self.changed_count.append(False)
             self.current_count.append(0)
             self.candidate_count.append(0)
@@ -100,7 +100,7 @@ class VideoCap:
 
     def init_vw(self, h, w):
         self.vw = cv2.VideoWriter(os.path.join(output_dir, self.video_name), CODEC,
-                                  self.vc.get(cv2.CAP_PROP_FPS), (w,h), True)
+                                  self.vc.get(cv2.CAP_PROP_FPS), (w, h), True)
         if not self.vw.isOpened():
             return -1, self.video_name
         return 0, ''
@@ -119,19 +119,26 @@ def parse_args():
     global model_bin
     global CPU_EXTENSION
     global output_dir
-    
+    global NUM_REQUESTS
+
     parser = ArgumentParser()
-    parser.add_argument("-m", "--model", help="Path to an .xml file with a trained model's weights.", 
+    parser.add_argument("-m", "--model", help="Path to an .xml file with a trained model's weights.",
                         required=True, type=str)
-    parser.add_argument("-lb", "--labels", help="Labels mapping file", default=None, 
+    parser.add_argument("-lb", "--labels", help="Labels mapping file", default=None,
                         type=str, required=True)
-    parser.add_argument("-d", "--device", help="Device to run the inference (CPU, GPU , FPGA or MYRIAD). Default option is CPU.",
+    parser.add_argument("-d", "--device",
+                        help="Device to run the inference (CPU, GPU , FPGA or MYRIAD). Default option is CPU.",
                         required=False, type=str)
     parser.add_argument("-lp", "--loop", help="Loop video to mimic continuous input.", type=str, default=None)
     parser.add_argument("-l", "--cpu_extension",
                         help="MKLDNN (CPU)-targeted custom layers. Absolute path to a shared library with the kernels "
-                        "impl.", type=str, default=None)
-    parser.add_argument("-o", "--output_dir", help = "Path to output directory", type = str, default = None)
+                             "impl.", type=str, default=None)
+    parser.add_argument("-o", "--output_dir", help="Path to output directory", type=str, default=None)
+    parser.add_argument('-nireq', '--number_infer_requests',
+                        help='Number of parallel inference requests (default is 2).',
+                        type=int,
+                        required=False,
+                        default=2)
 
     args = parser.parse_args()
     if args.model:
@@ -144,14 +151,17 @@ def parse_args():
         if args.loop == "True" or args.loop == "true":
             LOOP_VIDEO = True
         elif args.loop == "False" or args.loop == "false":
-            LOOP_VIDEO = False     
+            LOOP_VIDEO = False
         else:
-            print("Invalid input for -lp/--loop. Defaulting to LOOP_VIDEO = False")     
+            print("Invalid input for -lp/--loop. Defaulting to LOOP_VIDEO = False")
             LOOP_VIDEO = False
     if args.cpu_extension:
         CPU_EXTENSION = args.cpu_extension
     if args.output_dir:
-        output_dir=args.output_dir
+        output_dir = args.output_dir
+    if args.number_infer_requests:
+        NUM_REQUESTS = args.number_infer_requests
+
 
 def get_used_labels(req_labels):
     """
@@ -222,10 +232,10 @@ def get_input():
                     return [-8, [words[1]]]
             video_caps.append(video_cap)
         elif words[0] == 'intruder:':
-                labels.append(words[1])
+            labels.append(words[1])
         else:
             print("Unrecognized option; Ignoring")
-    
+
     for video_cap in video_caps:
         if not video_cap.vc.isOpened():
             return [-9, [video_cap.cam_name]]
@@ -233,6 +243,7 @@ def get_input():
         video_cap.init(len(labels))
     file.close()
     return [0, labels]
+
 
 def clean_up():
     """
@@ -262,7 +273,7 @@ def intruder_detector():
     parse_args()
     if not os.path.isfile(CONF_FILE):
         return -12, ""
-    
+
     if not os.path.isfile(conf_labels_file_path):
         return -13, ""
 
@@ -292,133 +303,142 @@ def intruder_detector():
     log_file = open(LOG_FILE_PATH, 'w')
     if not log_file:
         return -16, ''
-    
+
     # Initializing VideoWriter for each source
-    for video_cap in video_caps:
-        
-        ret, ret_value = video_cap.init_vw(int(video_cap.input_height), int(video_cap.input_width))
-        if ret != 0:
-            return ret, ret_value
-    # Initialise the class
+    # for video_cap in video_caps:
+
     infer_network = Network()
     # Load the network to IE plugin to get shape of input layer
-    n, c, h, w = infer_network.load_model(model_xml,TARGET_DEVICE, 1, 1, 0, CPU_EXTENSION)
+    n, c, h, w = infer_network.load_model(model_xml, TARGET_DEVICE, 1, 1, NUM_REQUESTS, CPU_EXTENSION)
 
     min_fps = min([i.vc.get(cv2.CAP_PROP_FPS) for i in video_caps])
     no_more_data = [False] * len(video_caps)
     start_time = time.time()
     inf_time = 0
     fourcc = cv2.VideoWriter_fourcc(*'avc1')
-    statsVideo = cv2.VideoWriter(os.path.join(output_dir,'Statistics.mp4'), fourcc, min_fps, (LOG_WIN_WIDTH, LOG_WIN_HEIGHT), True)
+    statsVideo = cv2.VideoWriter(os.path.join(output_dir, 'Statistics.mp4'), fourcc, min_fps,
+                                 (LOG_WIN_WIDTH, LOG_WIN_HEIGHT), True)
     job_id = os.environ['PBS_JOBID']
-    progress_file_path = os.path.join(output_dir,'i_progress_'+str(job_id)+'.txt')
-    infer_start_time = time.time() 
+#     job_id = "1111"
+    progress_file_path = os.path.join(output_dir, 'i_progress_' + str(job_id) + '.txt')
+    
+    result_files = []
+    for i in range(0, len(video_caps)):
+        # print ("Total number of video files: ", i)
+        result_files.append(open(os.path.join(output_dir, 'output_' + str(job_id) + '_'+str(i)+'.txt'), 'w'))
+
+    infer_start_time = time.time()
+
+    # current_inference = 0
+    # previous_inference = 1 - NUM_REQUESTS
+    # infer_requests = infer_network.net_plugin.requests
+    # frame_count = 0
+
+    # length = video_caps[0].vc.get(cv2.CAP_PROP_FRAME_COUNT)
+
     # Main loop starts here. Loop over all the video captures
     while True:
+        # while video_cap.frame_count < length:
         for idx, video_cap in enumerate(video_caps):
-            # Get a new frame
             vfps = int(round(video_cap.vc.get(cv2.CAP_PROP_FPS)))
-            for i in range(0, int(round(vfps / min_fps))):
+            length = video_cap.vc.get(cv2.CAP_PROP_FRAME_COUNT)
+
+            current_inference = 0
+            previous_inference = 1 - NUM_REQUESTS
+            infer_requests = infer_network.net_plugin.requests
+
+            while True:
                 ret, video_cap.frame = video_cap.vc.read()
                 video_cap.loop_frames += 1
-                # If no new frame or error in reading a frame, exit the loop
-                if not ret:
+                for i in range(video_cap.no_of_labels):
+                    video_cap.current_count[i] = 0
+                    video_cap.changed_count[i] = False
+
+                if ret:
+                    in_frame = cv2.resize(video_cap.frame, (w, h))
+
+                    in_frame = in_frame.transpose((2, 0, 1))
+                    in_frame = in_frame.reshape((n, c, h, w))
+                    # Start asynchronous inference for specified request.
+                    inf_start = time.time()
+
+                    infer_network.exec_net(request_id_=current_inference, frame=in_frame)
+                if previous_inference >= 0:
+                    inf_time = time.time() - inf_start
+                    # Results of the output layer of the network
+                    status = infer_requests[previous_inference].wait(-1)
+                    res = infer_requests[previous_inference].outputs[infer_network.out_blob]
+                    video_cap.frame_count += 1
+                    for obj in res[0][0]:
+                        label = int(obj[1]) - 1
+                        # Draw the bounding box around the object when the probability is more than specified threshold
+                        if obj[2] > CONF_THRESHOLD_VALUE and used_labels[label]:
+                            video_cap.current_count[label] += 1
+                            xmin = int(obj[3] * video_cap.input_width)
+                            ymin = int(obj[4] * video_cap.input_height)
+                            xmax = int(obj[5] * video_cap.input_width)
+                            ymax = int(obj[6] * video_cap.input_height)
+                            # Draw bounding box around the intruder detected
+                            dims = "{frame_id} {xmin} {ymin} {xmax} {ymax} {class_id} {est} {total_count} \n".format(
+                                frame_id=video_cap.frame_count, xmin=xmin, ymin=ymin, xmax=xmax,
+                                ymax=ymax, class_id=int(obj[1]), est=round(obj[2] * 100, 1),
+                                total_count=sum(video_cap.total_count))
+                            result_files[idx].write(dims)
+
+                    for i in range(video_cap.no_of_labels):
+                        if video_cap.candidate_count[i] == video_cap.current_count[i]:
+                            video_cap.candidate_confidence[i] += 1
+                        else:
+                            video_cap.candidate_confidence[i] = 0
+                            video_cap.candidate_count[i] = video_cap.current_count[i]
+
+                        if video_cap.candidate_confidence[i] == CONF_CANDIDATE_CONFIDENCE:
+                            video_cap.candidate_confidence[i] = 0
+                            video_cap.changed_count[i] = True
+                        else:
+                            continue
+
+                        if video_cap.current_count[i] > video_cap.last_correct_count[i]:
+                            video_cap.total_count[i] += video_cap.current_count[i] - video_cap.last_correct_count[i]
+                            det_objs = video_cap.current_count[i] - video_cap.last_correct_count[i]
+                            total_count = sum(video_cap.total_count)
+                            for det_obj in range(det_objs):
+                                current_time = time.strftime("%H:%M:%S")
+                                log = "{} - Intruder {} detected on {}".format(current_time, label_names[i],
+                                                                               video_cap.cam_name)
+                                print(log)
+                                log_list.append(log)
+                                log_file.write(log + "\n")
+                                event = Event(event_time=current_time, intruder=label_names[i], count=total_count,
+                                              frame=video_cap.frame_count)
+                                video_cap.events.append(event)
+
+#                             snapshot_name = "output/intruder_{}.png".format(total_count)
+#                             cv2.imwrite(snapshot_name, video_cap.frame)
+                        video_cap.last_correct_count[i] = video_cap.current_count[i]
+
+                    if video_cap.frame_count % 10 == 0:
+                        progressUpdate(progress_file_path, time.time() - infer_start_time,
+                                       video_cap.frame_count + 1,
+                                       int(video_cap.vc.get(cv2.CAP_PROP_FRAME_COUNT) + 1))
+
+                current_inference += 1
+                if current_inference >= NUM_REQUESTS:
+                    current_inference = 0
+
+                previous_inference += 1
+                if previous_inference >= NUM_REQUESTS:
+                    previous_inference = 0
+                # Create intruder log window, add logs to the frame and display it
+                log_window = numpy.zeros((LOG_WIN_HEIGHT, LOG_WIN_WIDTH, 1), dtype='uint8')
+                for i, log in enumerate(log_list):
+                    cv2.putText(log_window, log, (10, 20 * i + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                log_window = cv2.cvtColor(log_window, cv2.COLOR_GRAY2BGR)
+                statsVideo.write(log_window)
+                if video_cap.frame_count >= length:
                     no_more_data[idx] = True
                     break
-            if no_more_data[idx]:
-                stream_end_frame = numpy.zeros((int(video_cap.input_height), int(video_cap.input_width), 1),
-                                              dtype='uint8')
-                stream_end_message = "Stream from {} has ended.".format(video_cap.cam_name)
-                cv2.putText(stream_end_frame, stream_end_message, (int(video_cap.input_width/2) - 30,
-                            int(video_cap.input_height/2) - 30), cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 255, 255), 1)
-                continue
-            for i in range(video_cap.no_of_labels):
-                video_cap.current_count[i] = 0
-                video_cap.changed_count[i] = False
 
-
-            # Resize to expected size (in model .xml file)
-            # Input frame is resized to infer resolution
-            in_frame = cv2.resize(video_cap.frame, (w, h))
-
-            # PRE-PROCESS STAGE:
-            # Convert image to format expected by inference engine
-            # IE expects planar, convert from packed
-            # Change data layout from HWC to CHW
-            in_frame = in_frame.transpose((2, 0, 1))  
-            in_frame = in_frame.reshape((n, c, h, w))
-            # Start asynchronous inference for specified request.
-            inf_start = time.time()
-            infer_network.exec_net(0, in_frame)
-            # Wait for the result
-            if infer_network.wait(0) == 0:
-                inf_time = time.time() - inf_start
-                # Results of the output layer of the network
-                res = infer_network.get_output(0)
-                for obj in res[0][0]:
-                    label = int(obj[1]) - 1
-                    # Draw the bounding box around the object when the probability is more than specified threshold
-                    if obj[2] > CONF_THRESHOLD_VALUE and used_labels[label]:                   
-                        video_cap.current_count[label] += 1
-                        xmin = int(obj[3] * video_cap.input_width)
-                        ymin = int(obj[4] * video_cap.input_height)
-                        xmax = int(obj[5] * video_cap.input_width)
-                        ymax = int(obj[6] * video_cap.input_height)
-                        # Draw bounding box around the intruder detected
-                        cv2.rectangle(video_cap.frame, (xmin, ymin), (xmax, ymax), (0, 255, 0), 4, 16)      
-
-                for i in range(video_cap.no_of_labels): 
-                    if video_cap.candidate_count[i] == video_cap.current_count[i]:
-                        video_cap.candidate_confidence[i] += 1
-                    else:
-                        video_cap.candidate_confidence[i] = 0
-                        video_cap.candidate_count[i] = video_cap.current_count[i]
-
-                    if video_cap.candidate_confidence[i] == CONF_CANDIDATE_CONFIDENCE:
-                        video_cap.candidate_confidence[i] = 0
-                        video_cap.changed_count[i] = True
-                    else:
-                        continue
-
-                    if video_cap.current_count[i] > video_cap.last_correct_count[i]:
-                        video_cap.total_count[i] += video_cap.current_count[i] - video_cap.last_correct_count[i]
-                        det_objs = video_cap.current_count[i] - video_cap.last_correct_count[i]
-                        total_count = sum(video_cap.total_count)
-                        for det_obj in range(det_objs):
-                            current_time = time.strftime("%H:%M:%S")
-                            log = "{} - Intruder {} detected on {}".format(current_time, label_names[i],
-                                                                           video_cap.cam_name)
-                            print(log)
-                            log_list.append(log)
-                            log_file.write(log + "\n")
-                            event = Event(event_time=current_time, intruder=label_names[i], count=total_count,
-                                          frame=video_cap.frame_count)
-                            video_cap.events.append(event)
-                            
-                        snapshot_name = "output/intruder_{}.png".format(total_count)
-                        cv2.imwrite(snapshot_name, video_cap.frame)
-                    video_cap.last_correct_count[i] = video_cap.current_count[i]
-            # Create intruder log window, add logs to the frame and display it
-            log_window = numpy.zeros((LOG_WIN_HEIGHT, LOG_WIN_WIDTH, 1), dtype='uint8') 
-            for i, log in enumerate(log_list):
-                cv2.putText(log_window, log, (10, 20 * i + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-            log_window = cv2.cvtColor(log_window, cv2.COLOR_GRAY2BGR)
-            statsVideo.write(log_window)
-            video_cap.frame_count += 1
-
-            # Video output        
-            inf_time_message = "Inference time: {:.3f} ms".format(inf_time * 1000)
-            cv2.putText(video_cap.frame, inf_time_message, (10, int(video_cap.input_height) - 30),
-                        cv2.FONT_HERSHEY_COMPLEX, 0.5, (200, 10, 10), 1)
-            fps_time = time.time() - start_time
-            fps_message = "FPS: {:.3f} fps".format(1/fps_time)
-            cv2.putText(video_cap.frame, fps_message, (10, int(video_cap.input_height) - 10),
-                        cv2.FONT_HERSHEY_COMPLEX, 0.5, (200, 10, 10), 1)
-
-            # Display the video output
-            video_cap.vw.write(video_cap.frame)
-            if video_cap.frame_count %10 == 0: 
-                progressUpdate(progress_file_path, time.time()-infer_start_time,video_cap.frame_count, int(video_cap.vc.get(cv2.CAP_PROP_FRAME_COUNT)))
             start_time = time.time()
 
             # Loop video to mimic continuous input if LOOP_VIDEO flag is True
@@ -427,18 +447,20 @@ def intruder_detector():
                 # If a video capture has ended restart it
                 if video_cap.loop_frames > video_cap.vc.get(cv2.CAP_PROP_FRAME_COUNT) - int(round(vfps / min_fps)):
                     video_cap.loop_frames = 0
-                    video_cap.vc.set(cv2.CAP_PROP_POS_FRAMES, 0)      
+                    video_cap.vc.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
         if False not in no_more_data:
-            progressUpdate(progress_file_path, time.time()-infer_start_time, int(video_cap.vc.get(cv2.CAP_PROP_FRAME_COUNT)), int(video_cap.vc.get(cv2.CAP_PROP_FRAME_COUNT))) 
+            progressUpdate(progress_file_path, time.time() - infer_start_time,
+                           int(video_cap.vc.get(cv2.CAP_PROP_FRAME_COUNT)),
+                           int(video_cap.vc.get(cv2.CAP_PROP_FRAME_COUNT)))
             break
 
     no_more_data = False
-    t2 = time.time()-infer_start_time
+    t2 = time.time() - infer_start_time
     for videos in video_caps:
-   	 with open(os.path.join(output_dir, 'stats.txt'), 'w') as f:
-        	f.write('{} \n'.format(round(t2)))
-        	f.write('{} \n'.format(videos.frame_count))
+        with open(os.path.join(output_dir, 'stats.txt'), 'w') as f:
+            f.write('{} \n'.format(round(t2)))
+            f.write('{} \n'.format(videos.frame_count))
 
     infer_network.clean()
     log_file.close()
@@ -465,11 +487,11 @@ if __name__ == '__main__':
     elif status == -6:
         print("Labels file not found!")
     elif status == -7:
-        print("Error in opening Configuration file " + CONF_FILE+ "!")
+        print("Error in opening Configuration file " + CONF_FILE + "!")
     elif status == -8:
-        print("Could not find the video file " + value+ "!")
+        print("Could not find the video file " + value + "!")
     elif status == -9:
-        print("\nCould not open " + value +" for reading!")
+        print("\nCould not open " + value + " for reading!")
     elif status == -12:
         print(CONF_FILE + " configuration file not found!")
     elif status == -13:
@@ -477,11 +499,10 @@ if __name__ == '__main__':
     elif status == -14:
         print("No input source found in configuration file!")
     elif status == -15:
-        print("Error: No labels currently in use. Please edit " + CONF_FILE+" file!")
+        print("Error: No labels currently in use. Please edit " + CONF_FILE + " file!")
     elif status == -16:
         print("Error in opening intruder log file!")
     else:
         print("Unknown error occurred!")
 
     clean_up()
-   

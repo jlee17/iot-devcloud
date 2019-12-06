@@ -25,6 +25,7 @@ import sys
 import json
 import time
 import cv2
+import numpy
 
 from threading import Thread
 from collections import namedtuple
@@ -32,6 +33,7 @@ from argparse import ArgumentParser
 from inference import Network
 from pathlib import Path
 import logging as log
+
 sys.path.insert(0, str(Path().resolve().parent.parent))
 from demoTools.demoutils import *
 
@@ -52,29 +54,34 @@ def args_parser():
     parser = ArgumentParser()
     parser.add_argument("-m", "--model", required=True,
                         help="Path to an .xml file with a pre-trained"
-                        "face detection model")
+                             "face detection model")
     parser.add_argument("-pm", "--posemodel", required=True,
                         help="Path to an .xml file with a pre-trained model"
-                        "head pose model")
+                             "head pose model")
     parser.add_argument("-i", "--input", required=True, type=str,
                         help="Path to video file or image."
-                        "'cam' for capturing video stream from camera")
+                             "'cam' for capturing video stream from camera")
     parser.add_argument("-l", "--cpu_extension", type=str, default=None,
                         help="MKLDNN (CPU)-targeted custom layers. Absolute "
-                        "path to a shared library with the kernels impl.")
+                             "path to a shared library with the kernels impl.")
     parser.add_argument("-d", "--device", default="CPU", type=str,
                         help="Specify the target device to infer on; "
-                        "CPU, GPU, FPGA or MYRIAD is acceptable. Looks"
-                        "for a suitable plugin for device specified"
-                        "(CPU by default)")
+                             "CPU, GPU, FPGA or MYRIAD is acceptable. Looks"
+                             "for a suitable plugin for device specified"
+                             "(CPU by default)")
     parser.add_argument("-c", "--confidence", default=0.5, type=float,
                         help="Probability threshold for detections filtering")
-    parser.add_argument("-o", "--output_dir", help = "Path to output directory", type = str, default = None)
+    parser.add_argument("-o", "--output_dir", help="Path to output directory", type=str, default=None)
+    parser.add_argument('-nireq', '--number_infer_requests',
+                        help='Number of parallel inference requests (default is 2).',
+                        type=int,
+                        required=False,
+                        default=2)
 
     return parser
 
 
-def face_detection(res, args, initial_wh):
+def face_detection(frame_count, res, args, initial_wh, result_file):  ### (res, args, initial_wh)
     """
     Parse Face detection output.
     :param res: Detection results
@@ -97,9 +104,20 @@ def face_detection(res, args, initial_wh):
             ymin = int(obj[4] * initial_wh[1])
             xmax = int(obj[5] * initial_wh[0])
             ymax = int(obj[6] * initial_wh[1])
+
             faces.append([xmin, ymin, xmax, ymax])
             INFO = INFO._replace(shopper=len(faces))
+
     return faces
+
+def writeResults(frame_count, args, res, face_infer_time, head_pose_infer_time, shopper, looker, result_file):
+    for obj in res[0][0]:
+        dims = ""
+       # Draw only objects when probability more than specified threshold
+        if obj[2] > args.confidence:
+            dims = "{frame_id} {face_infer_time} {head_pose_infer_time} {shopper} {looker} \n".format(frame_id=frame_count, face_infer_time=face_infer_time, head_pose_infer_time=head_pose_infer_time, shopper=shopper, looker=looker)
+
+            result_file.write(dims)
 
 def main():
     """
@@ -115,9 +133,9 @@ def main():
     args = args_parser().parse_args()
     logger = log.getLogger()
 
-    #if args.input == 'cam':
-       # input_stream = 0
-    #else:
+    # if args.input == 'cam':
+    # input_stream = 0
+    # else:
     input_stream = args.input
     assert os.path.isfile(args.input), "Specified input file doesn't exist"
 
@@ -126,11 +144,10 @@ def main():
     initial_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     video_len = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    shopper = cv2.VideoWriter(os.path.join(args.output_dir, "shopper.mp4"), cv2.VideoWriter_fourcc(*"AVC1"), fps, (initial_w, initial_h), True)
     frame_count = 0
     job_id = os.environ['PBS_JOBID']
-    progress_file_path = os.path.join(args.output_dir,'i_progress_'+str(job_id)+'.txt')
-    infer_time_start = time.time()
+    progress_file_path = os.path.join(args.output_dir, 'i_progress_' + job_id + '.txt')
+    result_file = open(os.path.join(args.output_dir, 'output_'+job_id+'.txt'), "w")
 
     if input_stream:
         cap.open(args.input)
@@ -145,68 +162,82 @@ def main():
     infer_network = Network()
     infer_network_pose = Network()
     # Load the network to IE plugin to get shape of input layer
-    
-    
     plugin, (n_fd, c_fd, h_fd, w_fd) = infer_network.load_model(args.model,
-                                                      args.device, 1, 1, 0,
-                                                      args.cpu_extension)
+                                                                args.device, 1, 1,
+                                                                args.number_infer_requests,
+                                                                args.cpu_extension)
     n_hp, c_hp, h_hp, w_hp = infer_network_pose.load_model(args.posemodel,
-                                                           args.device, 1,
-                                                           3, 0,
+                                                           args.device, 1, 3,
+                                                           args.number_infer_requests,
                                                            args.cpu_extension, plugin)[1]
-    
+
     ret, frame = cap.read()
-    
-    while ret:
+    infer_time_start = time.time()
+
+    current_inference = 0
+    previous_inference = 1 - args.number_infer_requests
+    infer_requests = infer_network.net_plugin.requests
+
+    current_inference_pose = 0
+    previous_inference_pose = 1 - args.number_infer_requests
+    infer_requests_pose = infer_network_pose.net_plugin.requests
+
+    frame_count = 0
+    ret, frame = cap.read()
+    infer_time_start = time.time()
+    while frame_count < video_len:
         looking = 0
         ret, next_frame = cap.read()
-        frame_count += 1
-        if not ret:
-            print ("checkpoint *BREAKING")
-            break
+        if ret:
+            initial_wh = [cap.get(3), cap.get(4)]
+            in_frame_fd = cv2.resize(next_frame, (w_fd, h_fd))
+            # Change data layout from HWC to CHW
+            in_frame_fd = in_frame_fd.transpose((2, 0, 1))
+            in_frame_fd = in_frame_fd.reshape((n_fd, c_fd, h_fd, w_fd))
 
-        if next_frame is None:
-            log.error("checkpoint ERROR! blank FRAME grabbed")
-            break
+            # Start asynchronous inference for specified request
+            inf_start_fd = time.time()
+            infer_network.net_plugin.start_async(request_id=current_inference, inputs={infer_network.input_blob: in_frame_fd})
 
-        initial_wh = [cap.get(3), cap.get(4)]
-        in_frame_fd = cv2.resize(next_frame, (w_fd, h_fd))
-        # Change data layout from HWC to CHW
-        in_frame_fd = in_frame_fd.transpose((2, 0, 1))
-        in_frame_fd = in_frame_fd.reshape((n_fd, c_fd, h_fd, w_fd))
-
-        
-        # Start asynchronous inference for specified request
-        inf_start_fd = time.time()
-        infer_network.exec_net(0, in_frame_fd)
-        # Wait for the result
-        infer_network.wait(0)
         det_time_fd = time.time() - inf_start_fd
-        
-        # Results of the output layer of the network
-        res = infer_network.get_output(0)
 
-        # Parse face detection output
-        faces = face_detection(res, args, initial_wh)
+        faces = list()
+
+        res = numpy.zeros(1400)
+        res = numpy.reshape(res, newshape=(1, 1, 200, 7))
+        det_time_hp_pose = 0
+
+        if previous_inference >= 0:
+            infer_requests[previous_inference].wait()
+            res = infer_requests[previous_inference].outputs[infer_network.out_blob]
+            frame_count += 1
+            # Results of the output layer of the network
+            # Parse face detection output
+            faces = face_detection(frame_count, res, args, initial_wh, result_file)
 
         if len(faces) != 0:
             # Look for poses
             for res_hp in faces:
-                xmin, ymin, xmax, ymax = res_hp
-                head_pose = frame[ymin:ymax, xmin:xmax]
-                in_frame_hp = cv2.resize(head_pose, (w_hp, h_hp))
-                in_frame_hp = in_frame_hp.transpose((2, 0, 1))
-                in_frame_hp = in_frame_hp.reshape((n_hp, c_hp, h_hp, w_hp))
+                if ret:
+                    xmin, ymin, xmax, ymax = res_hp
+                    head_pose = frame[ymin:ymax, xmin:xmax]
+                    in_frame_hp_pose = cv2.resize(head_pose, (w_hp, h_hp))
+                    in_frame_hp_pose = in_frame_hp_pose.transpose((2, 0, 1))
+                    in_frame_hp_pose = in_frame_hp_pose.reshape((n_hp, c_hp, h_hp, w_hp))
 
-                inf_start_hp = time.time()
-                infer_network_pose.exec_net(0, in_frame_hp)
-                infer_network_pose.wait(0)
-                det_time_hp = time.time() - inf_start_hp
+                    inf_start_hp_pose = time.time()
 
+                    infer_network_pose.net_plugin.start_async(request_id=current_inference_pose,
+                                                            inputs={infer_network_pose.input_blob: in_frame_hp_pose})
+                det_time_hp_pose = time.time() - inf_start_hp_pose
+
+                if previous_inference_pose >= 0:
+                    infer_requests_pose[previous_inference_pose].wait()
+                # Parse inference results
+                angle_p_fc = infer_requests_pose[previous_inference_pose].outputs["angle_p_fc"]
+                angle_y_fc = infer_requests_pose[previous_inference_pose].outputs["angle_y_fc"]
 
                 # Parse head pose detection results
-                angle_p_fc = infer_network_pose.get_output(0, "angle_p_fc")
-                angle_y_fc = infer_network_pose.get_output(0, "angle_y_fc")
                 if ((angle_y_fc > -22.5) & (angle_y_fc < 22.5) & (angle_p_fc > -22.5) &
                         (angle_p_fc < 22.5)):
                     looking += 1
@@ -214,35 +245,45 @@ def main():
                     INFO = INFO._replace(looker=looking)
                 else:
                     INFO = INFO._replace(looker=looking)
+
+                current_inference_pose += 1
+                if current_inference_pose >= args.number_infer_requests:
+                    current_inference_pose = 0
+
+                previous_inference_pose += 1
+                if previous_inference_pose >= args.number_infer_requests:
+                    previous_inference_pose = 0
         else:
             INFO = INFO._replace(looker=0)
 
-        # Draw performance stats
-        inf_time_message = "Face Inference time: {:.3f} ms.".format(det_time_fd * 1000)
+        writeResults(frame_count, args, res, (det_time_fd * 1000), (det_time_hp_pose * 1000), len(faces), looking, result_file)
 
-        if POSE_CHECKED:
-            cv2.putText(frame, "Head pose Inference time: {:.3f} ms.".format(det_time_hp * 1000), (0, 35),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-        cv2.putText(frame, inf_time_message, (0, 15), cv2.FONT_HERSHEY_COMPLEX,
-                    0.5, (255, 255, 255), 1)
-        cv2.putText(frame, "Shopper: {}".format(INFO.shopper), (0, 90), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5, (255, 255, 255), 1)
-        cv2.putText(frame, "Looker: {}".format(INFO.looker), (0, 110), cv2.FONT_HERSHEY_SIMPLEX,
-                    0.5, (255, 255, 255), 1)
+        previous_inference += 1
+        if previous_inference >= args.number_infer_requests:
+            previous_inference = 0
 
-        shopper.write(frame)
-        if frame_count%10 == 0: 
-            progressUpdate(progress_file_path, int(time.time()-infer_time_start), frame_count, video_len)
+        current_inference += 1
+        if current_inference >= args.number_infer_requests:
+            current_inference = 0
+
+        if frame_count % 10 == 0:
+            progressUpdate(progress_file_path, int(time.time() - infer_time_start), frame_count+1, video_len+1)
         frame = next_frame
-        if args.output_dir:
-            total_time = time.time() - infer_time_start
-            with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
-                f.write(str(round(total_time, 1))+'\n')
-                f.write(str(frame_count)+'\n')
-    infer_network.clean()
-    infer_network_pose.clean()
-    cap.release()
+    if args.output_dir:
+        total_time = time.time() - infer_time_start
+        with open(os.path.join(args.output_dir, 'stats.txt'), 'w') as f:
+            f.write(str(round(total_time, 1)) + '\n')
+            f.write(str(frame_count) + '\n')
 
+    del infer_network.net_plugin
+    del infer_network.ie
+    del infer_network
+    del infer_network_pose.net_plugin
+    del infer_network_pose.ie
+    del infer_network_pose
+    
+    result_file.close()
+    cap.release()
 
 if __name__ == '__main__':
     main()
