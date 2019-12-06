@@ -32,6 +32,12 @@ import numpy as np
 
 from math import atan2
 
+import time
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path().resolve().parent.parent))
+from demoTools.demoutils import progressUpdate
+
 # Lower and upper value of color Range of the object for color thresholding to detect the object
 
 
@@ -197,7 +203,7 @@ def runFlawDetector(vid_path = 0, base_dir=None, draw_callback = None):
 
 
     if base_dir == None:
-       base_dir = os.getcwd()
+        base_dir = os.getcwd()
 
 
     dir_names = ["crack", "color", "orientation", "no_defect"]
@@ -217,12 +223,16 @@ def runFlawDetector(vid_path = 0, base_dir=None, draw_callback = None):
 
     capture = cv2.VideoCapture(vid_path)
 
+    job_id = os.environ['PBS_JOBID']
+    progress_file_path = os.path.join(base_dir,'i_progress_'+job_id+'.txt')
+    infer_start_time = time.time()
+    
     # Check if video is loaded successfully
-    if capture.isOpened():
-        print("Opened video!!")
-
-    else:
+    if not capture.isOpened():
         print("Problem loading the video!!!")
+
+#     else:
+#         print("Problem loading the video!!!")
 
     # OpenCV video write to store the output video
     try:
@@ -300,22 +310,35 @@ def runFlawDetector(vid_path = 0, base_dir=None, draw_callback = None):
                 height = np.size(frame, 0)
                 width = np.size(frame, 1)
                 out_dir = os.path.join(base_dir, 'inference_output.mp4')
-                fourcc = cv2.VideoWriter_fourcc('a','v','c','1')
-                vw = cv2.VideoWriter(out_dir, fourcc, 15.0, (width, height), True)
+                #vw = cv2.VideoWriter(out_dir, 0x00000021, 15.0, (width, height), True)
+                vw = cv2.VideoWriter(out_dir, cv2.VideoWriter_fourcc(*"AVC1"), 15.0, (width, height), True)
             vw.write(frame)
+            
+            if frame_count%10 == 0: 
+                progressUpdate(progress_file_path, time.time()-infer_start_time, frame_count, capture.get(cv2.CAP_PROP_FRAME_COUNT)) 
+
+            if base_dir:    
+                total_time = time.time() - infer_start_time
+                with open(os.path.join(base_dir, 'stats.txt'), 'w') as f:
+                    f.write(str(round(total_time, 1))+'\n')
+                    f.write(str(frame_count)+'\n')
+            
     finally:
+        progressUpdate(progress_file_path, time.time()-infer_start_time, capture.get(cv2.CAP_PROP_FRAME_COUNT), capture.get(cv2.CAP_PROP_FRAME_COUNT))
         if vw != None:
             vw.release()
-
+        capture.release()
 
 if __name__ == '__main__':
     data = []
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--dir', required=False, help="Name of the directory to which defective images are saved")
+    parser.add_argument('-d', '--dir', required=True, help="Name of the directory to which defective images are saved")
+#     parser.add_argument('-o', '--output_dir', required=True, help="Output directory to save inferenced video")
     parser.add_argument('-f', '--vid', default=0, help="Name of the video file")
     args = vars(parser.parse_args())
     base_dir = args['dir']
     vid_path = args['vid']
-    runFlawDetector(vid_path, base_dir)
-
-
+#     output_dor = args['output_dir']
+    
+    runFlawDetector(vid_path=vid_path, base_dir=base_dir)
+#     runFlawDetector(vid_path=vid_path, base_dir=base_dir, output_dir=output_dir)
