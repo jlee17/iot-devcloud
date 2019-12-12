@@ -7,7 +7,6 @@ from time import time
 from openvino.inference_engine import IENetwork, IEPlugin
 from PIL import Image
 from argparse import ArgumentParser
-from bs4 import BeautifulSoup
 import matplotlib.pyplot as plt
 from PIL import Image
 from matplotlib import cm
