@@ -1,0 +1,1 @@
+echo "cosh\nn\nq\nn\nn\ncosh\nn\nn\ny\ny\ny\ny\ny" | python3 /opt/intel/openvino/deployment_tools/tools/extension_generator/extgen.py new --mo-tf-ext --mo-op --ie-cpu-ext --ie-gpu-ext --output_dir=./cl_cosh
