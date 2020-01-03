@@ -27,7 +27,7 @@ from argparse import ArgumentParser
 import pathlib
 import cv2
 import numpy as np
-from azure.storage.blob import BlockBlobService, PublicAccess
+# from azure.storage.blob import BlockBlobService, PublicAccess
 from inference import Network
 from pathlib import Path
 sys.path.insert(0, str(Path().resolve().parent.parent))
