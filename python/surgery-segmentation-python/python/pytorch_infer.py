@@ -1,0 +1,40 @@
+import sys
+import os
+from time import time
+import cv2
+import numpy as np
+import torch
+from torchvision import transforms, utils
+from python.utils import crop_rgb, mask_overlay, get_model
+from pathlib import Path
+sys.path.insert(0, os.path.join(Path.home(), 'Reference-samples/iot-devcloud'))
+from demoTools.demoutils import progressUpdate
+
+job_id = os.environ['PBS_JOBID']
+
+image = crop_rgb(cv2.imread(str('./data/frame.png')))
+
+mean_values = [0.485, 0.456, 0.406]
+scale_values = [0.229, 0.224, 0.225]
+
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean=mean_values, std=scale_values)])
+
+img_t = transform(image)
+batch_t = torch.unsqueeze(img_t, 0)
+
+
+model_path = "./models/original/unet11_binary_20/model_0.pt"
+model = get_model(model_path, model_type='UNet11', problem_type='binary')
+
+start_time = time()
+with torch.no_grad(): 
+    res_pytorch = model(batch_t)  # Perform inference with PyTorch Model
+    
+print("PyTorch took {:,} msec for inference".format(1000.0*(time() - start_time)))
+
+cv2.imwrite("generated/input.png", image)
+utils.save_image(res_pytorch, "generated/mask.png")
+
+progressUpdate('./results/' + str(job_id) + '.txt', time()-start_time, 1, 1)
