@@ -10,6 +10,8 @@ from demoTools.demoutils import progressUpdate
 job_id = os.environ['PBS_JOBID']
 
 def create_onnx_model(model, onnx_filename):
+        
+    os.makedirs(os.path.dirname(onnx_filename), exist_ok=True)
     
     input_layer_name = "image"
     output_layer_name = ["toolmask"]
