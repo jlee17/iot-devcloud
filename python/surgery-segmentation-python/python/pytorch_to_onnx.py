@@ -24,11 +24,11 @@ def create_onnx_model(model, onnx_filename):
 
 start_time = time.time()
 
-model_path = "./models/original/unet11_binary_20/model_0.pt"
+model_path = "/data/robotic-instrument-segmentation/unet11_binary_20/model_0.pt"
 model = get_model(model_path, model_type='UNet11', problem_type='binary')
 create_onnx_model(model, "models/onnx/surgical_tools.onnx")
 
-model_path = "./models/original/unet11_parts_20/model_0.pt"
+model_path = "/data/robotic-instrument-segmentation/unet11_parts_20/model_0.pt"
 model = get_model(model_path, model_type='UNet11', problem_type='parts')
 create_onnx_model(model, "models/onnx/surgical_tools_parts.onnx")
 

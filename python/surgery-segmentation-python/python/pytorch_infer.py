@@ -25,7 +25,7 @@ img_t = transform(image)
 batch_t = torch.unsqueeze(img_t, 0)
 
 
-model_path = "./models/original/unet11_binary_20/model_0.pt"
+model_path = "/data/robotic-instrument-segmentation/unet11_binary_20/model_0.pt"
 model = get_model(model_path, model_type='UNet11', problem_type='binary')
 
 start_time = time()
