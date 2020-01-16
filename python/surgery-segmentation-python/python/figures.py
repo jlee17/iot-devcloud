@@ -32,7 +32,7 @@ mask = crop_rgb(mask_left + mask_right)
 
 # Load surgical_tools network
 ie_surgical_tools = IECore()
-net_surgical_tools = IENetwork(model="models/ov/FP32/surgical_tools.xml", weights="models/ov/FP32/surgical_tools.bin")
+net_surgical_tools = IENetwork(model="models/ov/FP16/surgical_tools.xml", weights="models/ov/FP16/surgical_tools.bin")
 exec_net_surgical_tools = ie_surgical_tools.load_network(network=net_surgical_tools, device_name='CPU')
 
 # Infer
@@ -42,7 +42,7 @@ log.info("OpenVINO took {} msec for inference".format(1000.0*(time.time() - star
 
 # Load surgical_tools_parts network
 ie_surgical_tools_parts = IECore()
-net_surgical_tools_parts = IENetwork(model="models/ov/FP32/surgical_tools_parts.xml", weights="models/ov/FP32/surgical_tools_parts.bin")
+net_surgical_tools_parts = IENetwork(model="models/ov/FP16/surgical_tools_parts.xml", weights="models/ov/FP16/surgical_tools_parts.bin")
 exec_net_surgical_tools_parts = ie_surgical_tools_parts.load_network(network=net_surgical_tools_parts, device_name='CPU')
 
 # Infer

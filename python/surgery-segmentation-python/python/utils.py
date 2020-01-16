@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import cv2
 import torch
@@ -71,6 +72,11 @@ def create_script(script_path, *lines):
     :param scripts: The name of the script
     :param *lines: The lines to write to the script
     """
+    
+    os.makedirs(os.path.dirname(script_path), exist_ok=True)
+    os.makedirs("logs", exist_ok=True)
+
+               
     f = open(script_path, "w")
 
     f.write("cd $PBS_O_WORKDIR\n")

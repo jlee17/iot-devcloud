@@ -10,9 +10,8 @@ import logging as log
 from time import time
 from openvino.inference_engine import IENetwork, IECore
 from pathlib import Path
-#sys.path.insert(0, str(Path().resolve().parent.parent))
 sys.path.insert(0, os.path.join(Path.home(), 'Reference-samples/iot-devcloud'))
-#from demoTools.demoutils import progressUpdate
+from demoTools.demoutils import progressUpdate
 
 def main():
     # Construct the argument parser and parse the arguments
@@ -100,7 +99,6 @@ def main():
 
         # Write out frame to video 
         out.write(cv2.addWeighted(image, 1, mask_frame, 0.5, 0))
-        #out.write(mask_frame)
 
         progressUpdate('./results/' + str(job_id) + '.txt', time()-infer_time_start, number+1, total_frames)  
 
