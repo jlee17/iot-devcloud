@@ -55,7 +55,7 @@
 				},
 
 				{
-					"name": "SKL", 
+					"name": "SKYLAKE", 
 					"defines" :
 					{
 						"NODE" : "idc001skl"
@@ -66,7 +66,7 @@
 					}
 				},
 				{
-					"name": "SKL/HDDLR", 
+					"name": "SKYLAKE/8x-VPU", 
 					"defines" :
 					{
 						"NODE" : "idc002mx8"
@@ -77,7 +77,7 @@
 					}
 				},
 				{
-					"name": "SKL/FPGA", 
+					"name": "SKYLAKE/FPGA", 
 					"defines" :
 					{
 						"NODE" : "idc003a10"
@@ -88,7 +88,7 @@
 					}
 				},
 				{
-					"name": "SKL/NCS2", 
+					"name": "SKYLAKE/1x-VPU(NCS2)", 
 					"defines" :
 					{
 						"NODE" : "idc004nc2"
@@ -99,7 +99,7 @@
 					}
 				},
 				{
-					"name": "KBL", 
+					"name": "KABYLAKE", 
 					"defines" :
 					{
 						"NODE" : "idc006kbl"
@@ -110,7 +110,7 @@
 					}
 					},
 				{
-					"name": "SKL/XEON", 
+					"name": "SKYLAKE/XEON CPU", 
 					"defines" :
 					{
 						"NODE" : "idc007xv5"
@@ -121,7 +121,7 @@
 					}
 				},
 				{
-					"name": "UP-Squared", 
+					"name": "Intel-Atom CPU", 
 					"defines" :
 					{
 						"NODE" : "idc008u2g"
