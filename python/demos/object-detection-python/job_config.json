@@ -22,15 +22,15 @@
 			{
 				"title" : "Inference Time",
 				"type" : "time",
-				"xlabel" : "Time in seconds",
-				"ylabel" : "Architectures",
+				"ylabel" : "Time in seconds",
+				"xlabel" : "Architectures",
 				"selector" : ["Target node", "Target architecture"]
 			},
             		{
-            		    "title" : "Frames per second",
-            		    "type" : "fps",
-            		    "xlabel" : "Number of frames per second",
-            		    "ylabel" : "Architectures"
+            		    	"title" : "Frames per second",
+            		    	"type" : "fps",
+            		    	"ylabel" : "Number of frames per second",
+            		    	"xlabel" : "Architectures"
             		}
 		]
 	},
@@ -73,7 +73,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-530", "i5-6500te", "iei-mustang-v100-mx8"]
+						"Target_arch":["iei-mustang-v100-mx8"]
 					}
 				},
 				{
@@ -84,7 +84,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-530", "i5-6500te", "iei-mustang-f100-a10"]
+						"Target_arch":["iei-mustang-f100-a10"]
 					}
 				},
 				{
@@ -95,11 +95,11 @@
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-530", "i5-6500te", "intel-ncs2"]
+						"Target_arch":["intel-ncs2"]
 					}
 				},
 				{
-					"name": "KABYLAKE", 
+					"name": "KABY LAKE", 
 					"defines" :
 					{
 						"NODE" : "idc006kbl"
@@ -129,28 +129,6 @@
 					"controls":
 					{
 						"Target_arch":["intel-hd-505", "e3950", "intel-ncs2"]
-					}
-				},
-				{
-					"name": "JWIP/KBL", 
-					"defines":    
-					{
-						"NODE" : "idc009jkl"
-					},
-					"controls":
-					{
-						"Target_arch":["i5-7500", "intel-hd-630"]
-					}
-				},
-				{
-					"name": "JWIP/ATOM", 
-					"defines":    
-					{
-						"NODE" : "idc010jal"
-					},
-					"controls":
-					{
-						"Target_arch":["e3950", "intel-hd-505"]
 					}
 				}
 				]
@@ -193,7 +171,7 @@
 						"defines":
     						{
         						"ARCH": "iei-mustang-v100-mx8",
-						        "TARGET": "MYRIAD",
+						        "TARGET": "HDDL",
 						        "FP_MODEL": "FP16",
 							"N_REQ": "128"
     						}
