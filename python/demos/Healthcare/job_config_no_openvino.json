@@ -44,10 +44,9 @@
 					"dummy": "True",
 					"controls":
 					{
-						"Target_arch":["Select Architecture", "iei-mustang-f100-a10", "intel-ncs2", "iei-mustang-v100-mx8", "intel-hd-505", "intel-hd-530", "i5-7500", "intel-hd-630", "e3-1268l-v5"]
+						"Target_arch":["Select Architecture", "i5-6500te", "i5-7500", "e3-1268l-v5", "e3950"]
 					}
 				},
-
 				{
 					"name": "SKYLAKE",
 					"defines" :
@@ -56,40 +55,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-530", "i5-6500te"]
-					}
-				},
-				{
-					"name": "SKYLAKE/8x-VPU",
-					"defines" :
-					{
-						"NODE" : "idc002mx8"
-					},
-					"controls":
-					{
-						"Target_arch":["iei-mustang-v100-mx8"]
-					}
-				},
-				{
-					"name": "SKYLAKE/FPGA",
-					"defines" :
-					{
-						"NODE" : "idc003a10"
-					},
-					"controls":
-					{
-						"Target_arch":["iei-mustang-f100-a10"]
-					}
-				},
-				{
-					"name": "SKYLAKE/1x-VPU(NCS2)",
-					"defines" :
-					{
-						"NODE" : "idc004nc2"
-					},
-					"controls":
-					{
-						"Target_arch":["intel-ncs2"]
+						"Target_arch":["i5-6500te"]
 					}
 				},
 				{
@@ -100,7 +66,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["i5-7500t", "intel-hd-630"]
+						"Target_arch":["i5-7500t"]
 					}
 				},
 				{
@@ -111,7 +77,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-p530", "e3-1268l-v5"]
+						"Target_arch":["e3-1268l-v5"]
 					}
 				},
 				{
@@ -122,7 +88,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-505", "e3950", "intel-ncs2"]
+						"Target_arch":["e3950"]
 					}
 				}
 			]
@@ -139,62 +105,6 @@
 					{
 						"name": "Select Architecture",
 						"dummy": "True"
-					},
-					{
-						"name": "iei-mustang-f100-a10",
-						"defines":
-						{
-							"ARCH": "iei-mustang-f100-a10",
-							"TARGET": "HETERO:FPGA,CPU"
-						}
-					},
-					{
-						"name": "intel-ncs2",
-						"defines" :
-						{
-							"ARCH": "intel-ncs2",
-							"TARGET": "MYRIAD"
-						}
-					},
-					{
-						"name": "iei-mustang-v100-mx8",
-						"defines":
-						{
-							"ARCH": "iei-mustang-v100-mx8",
-							"TARGET": "HDDL"
-						}
-					},
-					{
-						"name": "intel-hd-505",
-						"defines":
-						{
-							"ARCH":  "intel-hd-505",
-							"TARGET": "GPU"
-						}
-					},
-					{
-						"name": "intel-hd-530",
-						"defines":
-						{
-							"ARCH": "intel-hd-530",
-							"TARGET": "GPU"
-						}
-					},
-					{
-						"name": "intel-hd-630",
-						"defines":
-						{
-							"ARCH": "intel-hd-630",
-							"TARGET": "GPU"
-						}
-					},
-					{
-						"name": "intel-hd-p530",
-						"defines":
-						{
-							"ARCH": "intel-hd-p530",
-							"TARGET": "GPU"
-						}
 					},
 					{
 						"name":"i5-6500te",
@@ -219,38 +129,46 @@
 							"ARCH": "e3-1268l-v5",
 							"TARGET": "CPU"
 						}
+					},
+					{
+						"name": "e3950",
+						"defines":
+						{
+							"ARCH": "e3950",
+							"TARGET": "CPU"
+						}
 					}
 				]
 			}
 		},
-        {
-            "Target Environment":
-            {
-                "display_name" : "Target Environment",
-                "type" : "select",
-                "default" : "Stock",
-                "defines" : ["JOB_ENV_SCRIPT"],
-                "options": [
-                    {
-                        "name": "Select Env",
-                        "dummy": "True"
-                    },
-                    {
-                        "name": "Stock Conda Env",
-                        "defines":
-                        {
-                            "JOB_ENV_SCRIPT": "healthcare_job_stocktf.sh"
-                        }
-                    },
-                    {
-                        "name": "Optimized Conda Env",
-                        "defines":
-                        {
-                            "JOB_ENV_SCRIPT": "healthcare_job_mkltf.sh"
-                        }
-                    }
-                    ]
-            }
-        }
+		{
+			"Target Environment":
+			{
+				"display_name" : "Target Environment",
+				"type" : "select",
+				"default" : "Stock",
+				"defines" : ["JOB_ENV_SCRIPT"],
+				"options": [
+					{
+						"name": "Select Env",
+						"dummy": "True"
+					},
+					{
+						"name": "Stock Tensorflow (stocktf) Env",
+						"defines":
+						{
+							"JOB_ENV_SCRIPT": "healthcare_job_stocktf.sh"
+						}
+					},
+					{
+						"name": "Intel Optimized Tensorflow (mkltf) Env",
+						"defines":
+						{
+							"JOB_ENV_SCRIPT": "healthcare_job_mkltf.sh"
+						}
+					}
+				]
+			}
+		}
 	]
 }
