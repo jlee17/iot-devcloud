@@ -238,11 +238,11 @@ def main():
             progressUpdate(progress_file_path, int(time.time()-infer_time_start), frame_count+1, video_len)
         frame = next_frame
     if args.output_dir:
-        total_time = time.time() - infer_time_start
+        total_time = round(time.time() - infer_time_start,2)
         stats = {}
         stats['time'] = str(total_time)
         stats['frames'] = str(video_len)
-        stats['fps'] = str(video_len/total_time)
+        stats['fps'] = str(round(video_len/total_time,2))
         with open(os.path.join(args.output_dir, job_id, 'stats.json'), 'w') as json_file:
             json.dump(stats, json_file)
 

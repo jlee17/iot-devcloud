@@ -163,11 +163,11 @@ def main():
         time_images.append(avg_time)
         progressUpdate(progress_file_path, index_f* avg_time, index_f+1, len(files))
 
-    total_time = time.time() - tstart
+    total_time = round(time.time() - tstart,2)
     stats = {}
     stats['time'] = str(total_time)
     stats['frames'] = str(len(files))
-    stats['fps'] = str(len(files)/total_time)
+    stats['fps'] = str(round(len(files)/total_time,2))
     with open(os.path.join(args.output_dir, job_id, 'stats.json'), 'w') as json_file:
         json.dump(stats, json_file)
 

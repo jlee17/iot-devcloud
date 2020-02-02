@@ -199,11 +199,11 @@ def main():
         if single_image_mode:
             cv2.imwrite('output_image.jpg', frame)
     if args.output_dir:
-        total_time = time.time() - infer_time_start
+        total_time = round(time.time() - infer_time_start,2)
         stats = {}
-        stats['time'] = total_time
+        stats['time'] = str(total_time)
         stats['frames'] = str(frame_count)
-        stats['fps'] = str(frame_count / round(total_time, 1))
+        stats['fps'] = str(round(frame_count / total_time, 2))
         with open(os.path.join(args.output_dir, str(job_id), 'stats.json'), 'w') as f:
             json.dump(stats, f)
     cap.release()

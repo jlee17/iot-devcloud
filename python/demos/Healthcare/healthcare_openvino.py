@@ -320,13 +320,13 @@ for idx in indicies_validation:
     val_id += 1
 
 
-total_time = time.time() - process_time_start
+total_time = round(time.time() - process_time_start, 2)
 
 # Stats Json file for output mp4 file
 stats = {}
 stats['time'] = str(total_time)
 stats['frames'] = str(val_id)
-stats['fps'] = str(val_id / total_time)
+stats['fps'] = str(round(val_id / total_time,2))
 
 with open(os.path.join(png_directory, 'stats.json'), 'w') as json_file:
     json.dump(stats, json_file)

@@ -440,8 +440,8 @@ def intruder_detector():
     t2 = time.time()-infer_start_time
     for videos in video_caps:
         stats = {}
-        stats['time'] = str(t2)
-        stats['fps'] = str(round(videos.frame_count/t2))
+        stats['time'] = str(round(t2,2))
+        stats['fps'] = str(round(videos.frame_count/t2, 2))
         stats['frames'] = str(videos.frame_count)
 
     with open(os.path.join(output_dir, str(job_id), 'stats.json'), 'w') as f:

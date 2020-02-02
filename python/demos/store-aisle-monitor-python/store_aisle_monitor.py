@@ -220,11 +220,11 @@ def main():
         frame = next_frame
 
     if args.output_dir:
-        total_time = time.time() - infer_time_start
+        total_time = round(time.time() - infer_time_start,2)
         stats = {}
         stats['time'] = str(total_time)
         stats['frames'] = str(frame_count)
-        stats['fps'] = str(frame_count / total_time)
+        stats['fps'] = str(round(frame_count / total_time,2))
         with open(os.path.join(args.output_dir, job_id, 'stats.json'), 'w') as json_file:
             json.dump(stats, json_file)
     cap.release()
@@ -233,4 +233,3 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main() or 0)
-

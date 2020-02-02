@@ -221,11 +221,11 @@ def main():
             progressUpdate(infer_file, time.time()-infer_time_start, frame_count+1, video_len+1)
 
         # End while loop
-        total_time = time.time() - infer_time_start
+        total_time = round(time.time() - infer_time_start,2)
         stats = {}
         stats['time'] = str(total_time)
         stats['frames'] = str(frame_count)
-        stats['fps'] = str(frame_count / total_time)
+        stats['fps'] = str(round(frame_count / total_time,2))
         with open(os.path.join(args.output_dir, job_id,'stats.json'), 'w') as json_file:
                 json.dump(stats, json_file)
 

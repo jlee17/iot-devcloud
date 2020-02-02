@@ -235,8 +235,8 @@ def main():
     else:
       total_time = time.time() - infer_time_start
       stats = {}
-      stats["time"] = str(total_time)
-      stats["fps"] = str(frame_count / round(total_time, 1))
+      stats["time"] = str(round(total_time,2))
+      stats["fps"] = str(round(frame_count / total_time, 2)),
       stats["frames"] = str(frame_count)
       with open(os.path.join(args.output_dir, job_id, 'stats.json'), 'w') as f:        
         json.dump(stats, f)

@@ -569,7 +569,7 @@ def main():
             break
 #End of while loop--------------------
     no_more_data = True
-    t2 = time.time()-infer_start_time
+    t2 = round(time.time()-infer_start_time,2)
     for videos in videoCaps:
         print(videos.length)
         print(videos.closed)
@@ -580,7 +580,7 @@ def main():
     stats = {}
     stats['time'] = str(t2) # Total Time
     stats['frames'] = str(frame_count)
-    stats['fps'] = str(frame_count / t2)
+    stats['fps'] = str(round(frame_count / t2,2))
     with open(os.path.join(output_dir, job_id, 'stats.json'), 'w') as json_file:
         json.dump(stats, json_file)
 

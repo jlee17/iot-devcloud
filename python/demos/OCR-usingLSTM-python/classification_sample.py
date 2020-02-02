@@ -155,7 +155,7 @@ def main():
     stats = {}
     stats['time'] = str(round (t1,2))
     stats['frames'] = str(args.number_iter*n)
-    stats['fps'] = str(round(args.number_iter*n / t1))
+    stats['fps'] = str(round(args.number_iter*n / t1, 2))
     stats_file = result_dir+"/stats.json"
     with open(stats_file, 'w') as f:
         json.dump(stats, f)
