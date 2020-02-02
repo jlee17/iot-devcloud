@@ -48,7 +48,7 @@
 					"dummy": "True",
 					"controls":
 					{
-						"Target_arch":["Select Architecture", "iei-mustang-f100-a10", "intel-ncs2", "iei-mustang-v100-mx8", "intel-hd-505", "intel-hd-530", "i5-7500", "intel-hd-630", "e3-1268l-v5"]
+						"Target_arch":["Select Architecture", "iei-mustang-f100-a10", "intel-ncs2", "iei-mustang-v100-mx8", "intel-hd-505 GPU", "intel-hd-530 GPU", "i5-7500", "intel-hd-630 GPU", "e3-1268l-v5"]
 					}
 				},
 				{
@@ -59,7 +59,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-530", "i5-6500te"]
+						"Target_arch":["intel-hd-530 GPU", "i5-6500te"]
 					}
 				},
 				{
@@ -103,7 +103,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["i5-7500t", "intel-hd-630"]
+						"Target_arch":["i5-7500t", "intel-hd-630 GPU"]
 					}
 				},
 				{
@@ -114,7 +114,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-p530", "e3-1268l-v5"]
+						"Target_arch":["intel-hd-p530 GPU", "e3-1268l-v5"]
 					}
 				},
 				{
@@ -125,7 +125,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-505", "e3950", "intel-ncs2"]
+						"Target_arch":["intel-hd-505 GPU", "e3950", "intel-ncs2"]
 					}
 				}
 			]
@@ -171,7 +171,7 @@
 						}
 					},
 					{
-						"name": "intel-hd-505",
+						"name": "intel-hd-505 GPU",
 						"defines":
 						{
 							"ARCH":  "intel-hd-505",
@@ -180,7 +180,7 @@
 						}
 					},
 					{
-						"name": "intel-hd-530",
+						"name": "intel-hd-530 GPU",
 						"defines":
 						{
 							"ARCH": "intel-hd-530",
@@ -189,7 +189,7 @@
 						}
 					},
 					{
-						"name": "intel-hd-630",
+						"name": "intel-hd-630 GPU",
 						"defines":
 						{
 							"ARCH": "intel-hd-630",
@@ -198,7 +198,7 @@
 						}
 					},
 					{
-						"name": "intel-hd-p530",
+						"name": "intel-hd-p530 GPU",
 						"defines":
 						{
 							"ARCH": "intel-hd-p530",
