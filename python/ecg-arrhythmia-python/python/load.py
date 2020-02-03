@@ -42,7 +42,7 @@ def load_dataset(data_csv):
         sample_count = len(names)
         time_start = time()
         for i, d in enumerate(tqdm.tqdm(names)):
-            ecgs.append(load_ecg('./training2017/' + d + '.mat'))
+            ecgs.append(load_ecg('./data/' + d + '.mat'))
             progressUpdate('./logs/' + os.environ['PBS_JOBID']  + '_load.txt', time()-time_start, i+1, sample_count)        
         sizes = []
         for item in ecgs:    

@@ -17,7 +17,7 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 model_path = "./0.427-0.863-020-0.290-0.899.hdf5"
-data_csv = "./reference.csv"
+data_csv = "./data/reference.csv"
 
 print("Loading Dataset")
 ecgs, labels = load.load_dataset(data_csv)
