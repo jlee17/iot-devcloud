@@ -228,9 +228,6 @@ def main():
         stats['frames'] = str(frame_count)
         with open(os.path.join(args.output_dir, job_id, 'stats.json'), 'w') as f:
             json.dump(stats, f)
-        #with open(os.path.join(args.output_dir, job_id, 'stats.json'), 'w') as f:
-        #        f.write('{:.3g} \n'.format(total_time))
-        #        f.write('{} \n'.format(frame_count))
 
         result_file.close()
 
