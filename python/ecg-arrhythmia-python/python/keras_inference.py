@@ -36,11 +36,15 @@ for x in tqdm(ecgs):
     
 print("Keras took {} sec for inference".format(total_time))
 
+# The class distribution of the overall dataset
 prior = [[[0.15448743, 0.66301941, 0.34596848, 0.09691286]]]
+
+# Determine the predicted class from the most commonly predicted class 
 preds = []
 for p in probs:
     preds.append(sst.mode(np.argmax(p / prior, axis=2).squeeze())[0][0])
 
+# Generate a report with the precision, recall, and f-1 scores for each of the classes
 report = skm.classification_report(labels, preds, target_names=['A','N','O','~'], digits=3)
 scores = skm.precision_recall_fscore_support(labels, preds, average=None)
 

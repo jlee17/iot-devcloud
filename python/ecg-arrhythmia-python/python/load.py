@@ -1,11 +1,8 @@
 import csv
-import keras
 import numpy as np
 import os
-import random
 import scipy.io as sio
 import tqdm
-import pickle
 
 STEP = 256
 
