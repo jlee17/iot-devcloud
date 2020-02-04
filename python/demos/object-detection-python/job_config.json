@@ -131,7 +131,7 @@
 					}
 				},
 				{
-					"name": "8th Gen Intel Core i7 CPU",
+					"name": "8th Gen Intel Core CPU",
 					"defines" :
 					{
 						"NODE" : "idc014upxa10fx1"
