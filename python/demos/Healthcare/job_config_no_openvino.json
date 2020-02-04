@@ -1,0 +1,174 @@
+{
+	"job":
+	{
+		"command": "qsub JOB_ENV_SCRIPT -l nodes=1:NODE:ARCH -F \"RESULTS\"",
+		"output_type": ".png",
+		"results_path": "results/",
+		"results_defines" : "RESULTS",
+		"progress_indicators":
+		[
+			{
+				"file_name": "i_progress.txt",
+				"title": "Inference Progress"
+			}
+		],
+		"plots":
+		[
+			{
+				"title" : "Inference Time",
+				"type" : "time",
+				"ylabel" : "Time in seconds",
+				"xlabel" : "Architectures",
+				"selector" : ["Target Environment","Target node", "Target architecture"]
+			},
+				{
+				    "title" : "Frames per second",
+				    "type" : "fps",
+				    "ylabel" : "Number of frames per second",
+				    "xlabel" : "Architectures"
+				}
+		]
+	},
+	"inputs":
+	[
+		{
+			"Target_node":
+			{
+				"display_name": "Target node",
+				"type": "select",
+				"default" : "tank-870",
+				"defines" : ["NODE"],
+				"options": [
+				{
+					"name": "Select Node",
+					"dummy": "True",
+					"controls":
+					{
+						"Target_arch":["Select Architecture", "i5-6500te", "i5-7500", "e3-1268l-v5", "e3950"]
+					}
+				},
+				{
+					"name": "SKYLAKE",
+					"defines" :
+					{
+						"NODE" : "idc001skl"
+					},
+					"controls":
+					{
+						"Target_arch":["i5-6500te"]
+					}
+				},
+				{
+					"name": "KABY LAKE",
+					"defines" :
+					{
+						"NODE" : "idc006kbl"
+					},
+					"controls":
+					{
+						"Target_arch":["i5-7500t"]
+					}
+				},
+				{
+					"name": "SKYLAKE/XEON CPU",
+					"defines" :
+					{
+						"NODE" : "idc007xv5"
+					},
+					"controls":
+					{
+						"Target_arch":["e3-1268l-v5"]
+					}
+				},
+				{
+					"name": "Intel-Atom CPU",
+					"defines" :
+					{
+						"NODE" : "idc008u2g"
+					},
+					"controls":
+					{
+						"Target_arch":["e3950"]
+					}
+				}
+			]
+			}
+		},
+		{
+			"Target_arch":
+			{
+				"display_name": "Target architecture",
+				"type": "select",
+				"default" : "nodes=1:i5-6500te",
+				"defines" : ["ARCH", "TARGET", "FP_MODEL"],
+				"options": [
+					{
+						"name": "Select Architecture",
+						"dummy": "True"
+					},
+					{
+						"name":"i5-6500te",
+						"defines":
+						{
+							"ARCH": "i5-6500te",
+							"TARGET": "CPU"
+						}
+					},
+					{
+						"name":"i5-7500t",
+						"defines":
+						{
+							"ARCH": "i5-7500t",
+							"TARGET": "CPU"
+						}
+					},
+					{
+						"name": "e3-1268l-v5",
+						"defines":
+						{
+							"ARCH": "e3-1268l-v5",
+							"TARGET": "CPU"
+						}
+					},
+					{
+						"name": "e3950",
+						"defines":
+						{
+							"ARCH": "e3950",
+							"TARGET": "CPU"
+						}
+					}
+				]
+			}
+		},
+		{
+			"Target Environment":
+			{
+				"display_name" : "Target Environment",
+				"type" : "select",
+				"default" : "Stock",
+				"defines" : ["JOB_ENV_SCRIPT"],
+				"options": [
+					{
+						"name": "Select Env",
+						"dummy": "True"
+					},
+					{
+						"name": "Stock Tensorflow (stocktf) Env",
+						"defines":
+						{
+							"JOB_ENV_SCRIPT": "healthcare_job_stocktf.sh"
+						}
+					},
+					{
+						"name": "Intel Optimized Tensorflow (mkltf) Env",
+						"defines":
+						{
+							"JOB_ENV_SCRIPT": "healthcare_job_mkltf.sh"
+						}
+					}
+				]
+			}
+		}
+	]
+}

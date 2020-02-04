@@ -1,0 +1,289 @@
+{
+	"job":
+	{
+		"command": "qsub object_detection_job.sh -l nodes=1:NODE:ARCH -F \"-r RESULTS -d TARGET -f FP_MODEL -i /data/reference-sample-data/object-detection-python/cars_1900.mp4 -n N_REQ\"",
+		"output_type": ".mp4",
+		"results_path": "results/",
+		"results_defines" : "RESULTS",
+		"progress_indicators":
+		[
+			{
+				"file_name": "i_progress.txt",
+				"title": "Inference Progress"
+			},
+			{
+				"file_name": "post_progress.txt",
+				"title": "Post Infer Progress"
+			}
+		],
+		"plots":
+		[
+			{
+				"title" : "Inference Time",
+				"type" : "time",
+				"ylabel" : "Time in seconds",
+				"xlabel" : "Architectures",
+				"selector" : ["Target node", "Target architecture"]
+			},
+            		{
+            		    	"title" : "Frames per second",
+            		    	"type" : "fps",
+            		    	"ylabel" : "Number of frames per second",
+            		    	"xlabel" : "Architectures"
+            		}
+		]
+	},
+	"inputs":
+	[
+		{
+			"Target_node":
+			{
+				"display_name": "Target node",
+				"type": "select",              
+				"default" : "tank-870", 
+				"defines" : ["NODE"],
+				"options": [
+				{	
+					"name": "Select Node", 
+					"dummy": "True",
+					"controls":
+					{
+						"Target_arch":["Intel Arria10 FPGA", "Intel NCS2", "MX8 VPU Acceleration Card", "Intel HD Graphics 505", "Intel HD Graphics 530", "Intel Core i5-7500T CPU", "Intel Core i5-6500TE CPU", "Intel HD Graphics 630", "Intel Xeon CPU", "Intel Core i7-8665UE", "Intel HD Graphics 620"]
+					}
+
+				},
+
+				{
+					"name": "6th Gen Intel Core CPU", 
+					"defines" :
+					{
+						"NODE" : "idc001skl"
+					},
+					"controls":
+					{
+						"Target_arch":["Intel Core i5-6500TE CPU", "Intel HD Graphics 530"]
+					}
+				},
+				{
+					"name": "6th Gen Intel Core CPU/MX8 VPU", 
+					"defines" :
+					{
+						"NODE" : "idc002mx8"
+					},
+					"controls":
+					{
+						"Target_arch":["MX8 VPU Acceleration Card"]
+					}
+				},
+				{
+					"name": "6th Gen Intel Core CPU/Intel FPGA", 
+					"defines" :
+					{
+						"NODE" : "idc003a10"
+					},
+					"controls":
+					{
+						"Target_arch":["Intel Arria10 FPGA"]
+					}
+				},
+				{
+					"name": "6th Gen Intel Core CPU/Intel NCS2", 
+					"defines" :
+					{
+						"NODE" : "idc004nc2"
+					},
+					"controls":
+					{
+						"Target_arch":["Intel NCS2"]
+					}
+				},
+				{
+					"name": "7th Gen Intel Core CPU",
+					"defines" :
+					{
+						"NODE" : "idc006kbl"
+					},
+					"controls":
+					{
+						"Target_arch":["Intel Core i5-7500T CPU", "Intel HD Graphics 630"]
+					}
+					},
+				{
+					"name": "6th Gen Intel Xeon CPU", 
+					"defines" :
+					{
+						"NODE" : "idc007xv5"
+					},
+					"controls":
+					{
+						"Target_arch":["Intel Xeon CPU", "Intel HD Graphics P530"]
+					}
+				},
+				{
+					"name": "Intel Atom CPU",
+					"defines" :
+					{
+						"NODE" : "idc008u2g"
+					},
+					"controls":
+					{
+						"Target_arch":["Intel HD Graphics 505"]
+					}
+				},
+				{
+					"name": "8th Gen Intel Core CPU",
+					"defines" :
+					{
+						"NODE" : "idc014upxa10fx1"
+					},
+					"controls":
+					{
+						"Target_arch":["Intel Core i7-8665UE", "Intel HD Graphics 620"]
+					}
+				}
+				]
+			}
+		},
+		{
+                        "Target_arch":
+			{ 
+	                        "display_name": "Target architecture",
+				"type": "select",              
+				"default" : "nodes=1:i5-6500te",
+				"defines" : ["ARCH", "TARGET", "FP_MODEL", "N_REQ"],
+				"options": [
+                                {
+					"name": "Select Architecture", 
+					"dummy": "True"
+                                },
+                                {
+                                	"name": "Intel Arria10 FPGA",
+					"defines":
+                                        {
+                                        	"ARCH": "iei-mustang-f100-a10",
+                                                "TARGET": "HETERO:FPGA,CPU",
+                                                "FP_MODEL": "FP32",
+						"N_REQ": "4"
+                                        }
+                                        },
+                                        {
+                                        	"name": "Intel NCS2", 
+                                        	"defines" :
+                                                {
+                                                	"ARCH": "intel-ncs2",
+                                                	"TARGET": "MYRIAD",
+                                                        "FP_MODEL": "FP16",
+							"N_REQ": "4"
+                                                }
+                                        },
+                                        {
+						"name": "MX8 VPU Acceleration Card",
+						"defines":
+    						{
+        						"ARCH": "iei-mustang-v100-mx8",
+						        "TARGET": "HDDL",
+						        "FP_MODEL": "FP16",
+							"N_REQ": "128"
+    						}
+                                        },
+                                        {
+						"name": "Intel HD Graphics 505", 
+						"defines":
+						{
+						        "ARCH":  "intel-hd-505",
+						        "TARGET": "GPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "4"
+
+						}
+					},
+					{
+						"name": "Intel HD Graphics 530", 
+						"defines":
+						{
+						        "ARCH": "intel-hd-530",
+						        "TARGET": "GPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "4"
+
+						}
+					},
+					{
+						"name": "Intel HD Graphics 630", 
+						"defines":
+						{
+						        "ARCH": "intel-hd-630",
+						        "TARGET": "GPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "4"
+
+    						}
+					},
+					{
+						"name": "Intel HD Graphics P530", 
+						"defines":
+						{
+						        "ARCH": "intel-hd-p530",
+						        "TARGET": "GPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "4"
+						
+   						}
+                    },
+                    {
+						"name":"Intel Core i5-6500TE CPU",
+						"defines":
+						{
+						        "ARCH": "i5-6500te",
+						        "TARGET": "CPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "2"
+						
+						}
+					},
+					{
+						"name":"Intel Core i5-7500T CPU",
+						"defines":
+						{
+						        "ARCH": "i5-7500t",
+						        "TARGET": "CPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "2"
+						
+						}
+					},
+					{
+						"name": "Intel Xeon CPU", 
+						"defines":
+						{
+						        "ARCH": "e3-1268l-v5",
+						        "TARGET": "CPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "2"
+						}
+					},
+					{
+						"name": "Intel Core i7-8665UE", 
+						"defines":
+						{
+						        "ARCH": "i7-8665ue",
+						        "TARGET": "CPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "2"
+						}
+					},
+					{
+						"name": "Intel HD Graphics 620",
+						"defines":
+						{
+						        "ARCH": "intel-hd-620",
+						        "TARGET": "GPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "4"
+						}
+					}
+					]
+			}
+		}
+	]
+}
