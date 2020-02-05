@@ -44,44 +44,44 @@
 					"dummy": "True",
 					"controls":
 					{
-						"Target_arch":["Select Architecture", "iei-mustang-f100-a10", "intel-ncs2", "iei-mustang-v100-mx8", "intel-hd-505 GPU", "intel-hd-530 GPU", "i5-7500", "intel-hd-630 GPU", "e3-1268l-v5"]
+						"Target_arch":["Select Architecture", "Intel Arria10 FPGA", "intel-ncs2", "MX8 VPU Acceleration Card", "Integrated GPU (hd-505)", "Integrated GPU (hd-530)", "Intel Core i5 CPU6", "Intel Core i5 CPU7", "Integrated GPU (hd-630)", "Intel Xeon CPU"]
 					}
 				},
 				{
-					"name": "SKYLAKE",
+					"name": "Intel 6th Gen Core CPU (Skylake)",
 					"defines" :
 					{
 						"NODE" : "idc001skl"
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-530 GPU", "i5-6500te"]
+						"Target_arch":["Integrated GPU (hd-530)", "Intel Core i5 CPU6"]
 					}
 				},
 				{
-					"name": "SKYLAKE/8x-VPU",
+					"name": "Intel 6th Gen Core CPU (Skylake)/8x-VPU",
 					"defines" :
 					{
 						"NODE" : "idc002mx8"
 					},
 					"controls":
 					{
-						"Target_arch":["iei-mustang-v100-mx8"]
+						"Target_arch":["MX8 VPU Acceleration Card"]
 					}
 				},
 				{
-					"name": "SKYLAKE/FPGA",
+					"name": "Intel 6th Gen Core CPU (Skylake)/FPGA",
 					"defines" :
 					{
 						"NODE" : "idc003a10"
 					},
 					"controls":
 					{
-						"Target_arch":["iei-mustang-f100-a10"]
+						"Target_arch":["Intel Arria10 FPGA"]
 					}
 				},
 				{
-					"name": "SKYLAKE/1x-VPU(NCS2)",
+					"name": "Intel 6th Gen Core CPU (Skylake)/1x-VPU(NCS2)",
 					"defines" :
 					{
 						"NODE" : "idc004nc2"
@@ -92,25 +92,25 @@
 					}
 				},
 				{
-					"name": "KABY LAKE",
+					"name": "Intel 7th Gen Core CPU (Kabylake)",
 					"defines" :
 					{
 						"NODE" : "idc006kbl"
 					},
 					"controls":
 					{
-						"Target_arch":["i5-7500t", "intel-hd-630 GPU"]
+						"Target_arch":["Intel Core i5 CPU7", "Integrated GPU (hd-630)"]
 					}
 				},
 				{
-					"name": "SKYLAKE/XEON CPU",
+					"name": "Intel 6th Gen Core CPU (Skylake)/XEON CPU",
 					"defines" :
 					{
 						"NODE" : "idc007xv5"
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-p530 GPU", "e3-1268l-v5"]
+						"Target_arch":["Integrated GPU(hd-p530)", "Intel Xeon CPU"]
 					}
 				},
 				{
@@ -121,10 +121,10 @@
 					},
 					"controls":
 					{
-						"Target_arch":["intel-hd-505 GPU", "e3950", "intel-ncs2"]
+						"Target_arch":["Integrated GPU (hd-505)", "e3950", "intel-ncs2"]
 					}
 				}
-				]
+			]
 			}
 		},
 		{
@@ -140,7 +140,7 @@
 						"dummy": "True"
 					},
 					{
-						"name": "iei-mustang-f100-a10",
+						"name": "Intel Arria10 FPGA",
 						"defines":
 						{
 							"ARCH": "iei-mustang-f100-a10",
@@ -158,7 +158,7 @@
 						}
 					},
 					{
-						"name": "iei-mustang-v100-mx8",
+						"name": "MX8 VPU Acceleration Card",
 						"defines":
 						{
 							"ARCH": "iei-mustang-v100-mx8",
@@ -167,7 +167,7 @@
 						}
 					},
 					{
-						"name": "intel-hd-505 GPU",
+						"name": "Integrated GPU (hd-505)",
 						"defines":
 						{
 							"ARCH":  "intel-hd-505",
@@ -176,7 +176,7 @@
 						}
 					},
 					{
-						"name": "intel-hd-530 GPU",
+						"name": "Integrated GPU (hd-530)",
 						"defines":
 						{
 							"ARCH": "intel-hd-530",
@@ -185,7 +185,7 @@
 						}
 					},
 					{
-						"name": "intel-hd-630 GPU",
+						"name": "Integrated GPU (hd-630)",
 						"defines":
 						{
 							"ARCH": "intel-hd-630",
@@ -194,7 +194,7 @@
 						}
 					},
 					{
-						"name": "intel-hd-p530 GPU",
+						"name": "Integrated GPU (hd-p530)",
 						"defines":
 						{
 							"ARCH": "intel-hd-p530",
@@ -203,7 +203,7 @@
 						}
 					},
 					{
-						"name":"i5-6500te",
+						"name":"Intel Core i5 CPU6",
 						"defines":
 						{
 							"ARCH": "i5-6500te",
@@ -212,7 +212,7 @@
 						}
 					},
 					{
-						"name":"i5-7500t",
+						"name":"Intel Core i5 CPU7",
 						"defines":
 						{
 							"ARCH": "i5-7500t",
@@ -221,7 +221,7 @@
 						}
 					},
 					{
-						"name": "e3-1268l-v5",
+						"name": "Intel Xeon CPU",
 						"defines":
 						{
 							"ARCH": "e3-1268l-v5",
