@@ -1,7 +1,7 @@
 {
 	"job":
 	{
-		"command": "qsub object_detection_job.sh -l nodes=1:NODE:ARCH -F \"-r RESULTS -d TARGET -f FP_MODEL -i /data/reference-sample-data/object-detection-python/cars_1900.mp4 -n N_REQ\"",
+		"command": "qsub object_detection_job.sh -l nodes=NODE:ARCH -F \"-r RESULTS -d TARGET -f FP_MODEL -i /data/reference-sample-data/object-detection-python/cars_1900.mp4 -n N_REQ\"",
 		"output_type": ".mp4",
 		"results_path": "results/",
 		"results_defines" : "RESULTS",
@@ -54,7 +54,7 @@
 				},
 
 				{
-					"name": "6th Gen Intel Core CPU", 
+					"name": "6th Gen Intel Core", 
 					"defines" :
 					{
 						"NODE" : "idc001skl"
@@ -65,7 +65,7 @@
 					}
 				},
 				{
-					"name": "6th Gen Intel Core CPU/MX8 VPU", 
+					"name": "6th Gen Intel Core/MX8 VPU", 
 					"defines" :
 					{
 						"NODE" : "idc002mx8"
@@ -76,7 +76,7 @@
 					}
 				},
 				{
-					"name": "6th Gen Intel Core CPU/Intel FPGA", 
+					"name": "6th Gen Intel Core/Intel FPGA", 
 					"defines" :
 					{
 						"NODE" : "idc003a10"
@@ -87,7 +87,7 @@
 					}
 				},
 				{
-					"name": "6th Gen Intel Core CPU/Intel NCS2", 
+					"name": "6th Gen Intel Core/Intel NCS2", 
 					"defines" :
 					{
 						"NODE" : "idc004nc2"
@@ -98,7 +98,7 @@
 					}
 				},
 				{
-					"name": "7th Gen Intel Core CPU",
+					"name": "7th Gen Intel Core",
 					"defines" :
 					{
 						"NODE" : "idc006kbl"
@@ -109,7 +109,7 @@
 					}
 					},
 				{
-					"name": "6th Gen Intel Xeon CPU", 
+					"name": "6th Gen Intel Xeon", 
 					"defines" :
 					{
 						"NODE" : "idc007xv5"
@@ -120,7 +120,7 @@
 					}
 				},
 				{
-					"name": "Intel Atom CPU",
+					"name": "Intel Atom",
 					"defines" :
 					{
 						"NODE" : "idc008u2g"
@@ -131,7 +131,7 @@
 					}
 				},
 				{
-					"name": "8th Gen Intel Core CPU",
+					"name": "8th Gen Intel Core",
 					"defines" :
 					{
 						"NODE" : "idc014upxa10fx1"
@@ -266,7 +266,7 @@
 						"name": "Intel Core i7-8665UE", 
 						"defines":
 						{
-						        "ARCH": "i7-8665ue",
+						        "ARCH": "intel-core",
 						        "TARGET": "CPU",
 						        "FP_MODEL": "FP32",
 							"N_REQ": "2"
