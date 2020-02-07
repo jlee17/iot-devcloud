@@ -9,7 +9,6 @@ from tqdm import tqdm
 
 import load
 
-model_path = "./0.427-0.863-020-0.290-0.899.hdf5"
 data_csv = "./data/reference.csv"
 
 print("Loading Dataset")
