@@ -1,7 +1,7 @@
 {
 	"job":
 	{
-		"command": "qsub object_detection_job.sh -l nodes=1:NODE:ARCH -F \"-r RESULTS -d TARGET -f FP_MODEL -i /data/reference-sample-data/object-detection-python/cars_1900.mp4 -n N_REQ\"",
+		"command": "qsub object_detection_job.sh -l nodes=NODE:ARCH -F \"-r RESULTS -d TARGET -f FP_MODEL -i /data/reference-sample-data/object-detection-python/cars_1900.mp4 -n N_REQ\"",
 		"output_type": ".mp4",
 		"results_path": "results/",
 		"results_defines" : "RESULTS",
@@ -48,35 +48,12 @@
 					"dummy": "True",
 					"controls":
 					{
-						"Target_arch":["Intel Arria10 FPGA", "Intel NCS2", "MX8 VPU Acceleration card", "Integrated GPU (hd-505)", "Integrated GPU (hd-530)", "Intel Core i5 CPU7", "Intel Core i5 CPU6", "Integrated GPU (hd-630)", "Intel Xeon CPU"]
+						"Target_arch":["Intel Arria10 FPGA", "Intel NCS2", "MX8 VPU Acceleration Card", "Intel HD Graphics 505", "Intel HD Graphics 530", "Intel HD Graphics 620", "Intel HD Graphics 630", "Intel Core i7-8665UE CPU", "Intel Core i5-7500T CPU", "Intel Core i5-6500TE CPU", "Intel Xeon CPU"]
 					}
 
 				},
-
 				{
-					"name": "6th Gen Intel Core CPU", 
-					"defines" :
-					{
-						"NODE" : "idc001skl"
-					},
-					"controls":
-					{
-						"Target_arch":["Integrated GPU (hd-530)", "Intel Core i5 CPU6"]
-					}
-				},
-				{
-					"name": "6th Gen Intel Core CPU/MX8 VPU", 
-					"defines" :
-					{
-						"NODE" : "idc002mx8"
-					},
-					"controls":
-					{
-						"Target_arch":["MX8 VPU Acceleration card"]
-					}
-				},
-				{
-					"name": "6th Gen Intel Core CPU/Intel FPGA", 
+					"name": "6th Gen Intel Core/Intel FPGA", 
 					"defines" :
 					{
 						"NODE" : "idc003a10"
@@ -87,7 +64,18 @@
 					}
 				},
 				{
-					"name": "6th Gen Intel Core CPU/Intel NCS2", 
+					"name": "6th Gen Intel Core/MX8 VPU", 
+					"defines" :
+					{
+						"NODE" : "idc002mx8"
+					},
+					"controls":
+					{
+						"Target_arch":["MX8 VPU Acceleration Card"]
+					}
+				},
+				{
+					"name": "6th Gen Intel Core/Intel NCS2", 
 					"defines" :
 					{
 						"NODE" : "idc004nc2"
@@ -98,36 +86,58 @@
 					}
 				},
 				{
-					"name": "7th Gen Intel Core CPU",
+					"name": "6th Gen Intel Core", 
+					"defines" :
+					{
+						"NODE" : "idc001skl"
+					},
+					"controls":
+					{
+						"Target_arch":["Intel Core i5-6500TE CPU", "Intel HD Graphics 530"]
+					}
+				},
+				{
+					"name": "7th Gen Intel Core",
 					"defines" :
 					{
 						"NODE" : "idc006kbl"
 					},
 					"controls":
 					{
-						"Target_arch":["Intel Core i5 CPU7", "Integrated GPU (hd-630)"]
+						"Target_arch":["Intel Core i5-7500T CPU", "Intel HD Graphics 630"]
 					}
-					},
+				},
 				{
-					"name": "6th Gen Intel Xeon CPU", 
+					"name": "8th Gen Intel Core",
+					"defines" :
+					{
+						"NODE" : "idc014upxa10fx1"
+					},
+					"controls":
+					{
+						"Target_arch":["Intel Core i7-8665UE CPU", "Intel HD Graphics 620"]
+					}
+				},
+				{
+					"name": "6th Gen Intel Xeon", 
 					"defines" :
 					{
 						"NODE" : "idc007xv5"
 					},
 					"controls":
 					{
-						"Target_arch":["Integrated GPU (hd-p530)", "Intel Xeon CPU"]
+						"Target_arch":["Intel Xeon CPU", "Intel HD Graphics P530"]
 					}
 				},
 				{
-					"name": "Intel Atom CPU",
+					"name": "Intel Atom",
 					"defines" :
 					{
 						"NODE" : "idc008u2g"
 					},
 					"controls":
 					{
-						"Target_arch":["Integrated GPU (hd-505)"]
+						"Target_arch":["Intel HD Graphics 505"]
 					}
 				}
 				]
@@ -166,7 +176,7 @@
                                                 }
                                         },
                                         {
-						"name": "MX8 VPU Acceleration card",
+						"name": "MX8 VPU Acceleration Card",
 						"defines":
     						{
         						"ARCH": "iei-mustang-v100-mx8",
@@ -176,7 +186,7 @@
     						}
                                         },
                                         {
-						"name": "Integrated GPU (hd-505)", 
+						"name": "Intel HD Graphics 505", 
 						"defines":
 						{
 						        "ARCH":  "intel-hd-505",
@@ -187,7 +197,7 @@
 						}
 					},
 					{
-						"name": "Integrated GPU (hd-530)", 
+						"name": "Intel HD Graphics 530", 
 						"defines":
 						{
 						        "ARCH": "intel-hd-530",
@@ -198,7 +208,17 @@
 						}
 					},
 					{
-						"name": "Integrated GPU (hd-630)", 
+						"name": "Intel HD Graphics 620",
+						"defines":
+						{
+						        "ARCH": "intel-hd-620",
+						        "TARGET": "GPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "4"
+						}
+					},
+					{
+						"name": "Intel HD Graphics 630", 
 						"defines":
 						{
 						        "ARCH": "intel-hd-630",
@@ -209,7 +229,7 @@
     						}
 					},
 					{
-						"name": "Integrated GPU (hd-p530)", 
+						"name": "Intel HD Graphics P530", 
 						"defines":
 						{
 						        "ARCH": "intel-hd-p530",
@@ -218,9 +238,9 @@
 							"N_REQ": "4"
 						
    						}
-                                        },
-                                        {
-						"name":"Intel Core i5 CPU6",
+                    },
+                    {
+						"name":"Intel Core i5-6500TE CPU",
 						"defines":
 						{
 						        "ARCH": "i5-6500te",
@@ -231,7 +251,7 @@
 						}
 					},
 					{
-						"name":"Intel Core i5 CPU7",
+						"name":"Intel Core i5-7500T CPU",
 						"defines":
 						{
 						        "ARCH": "i5-7500t",
@@ -239,6 +259,16 @@
 						        "FP_MODEL": "FP32",
 							"N_REQ": "2"
 						
+						}
+					},
+					{
+						"name": "Intel Core i7-8665UE CPU", 
+						"defines":
+						{
+						        "ARCH": "intel-core",
+						        "TARGET": "CPU",
+						        "FP_MODEL": "FP32",
+							"N_REQ": "2"
 						}
 					},
 					{

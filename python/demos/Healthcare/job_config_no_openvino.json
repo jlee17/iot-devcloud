@@ -44,40 +44,40 @@
 					"dummy": "True",
 					"controls":
 					{
-						"Target_arch":["Select Architecture", "i5-6500te", "i5-7500", "e3-1268l-v5", "e3950"]
+						"Target_arch":["Select Architecture", "Intel Core i5 CPU6", "Intel Core i5 CPU7", "Intel Xeon CPU", "Intel Atom CPU"]
 					}
 				},
 				{
-					"name": "SKYLAKE",
+					"name": "Intel 6th Gen Core CPU (Skylake)",
 					"defines" :
 					{
 						"NODE" : "idc001skl"
 					},
 					"controls":
 					{
-						"Target_arch":["i5-6500te"]
+						"Target_arch":["Intel Core i5 CPU6"]
 					}
 				},
 				{
-					"name": "KABY LAKE",
+					"name": "Intel 7th Gen Core CPU (Kabylake)",
 					"defines" :
 					{
 						"NODE" : "idc006kbl"
 					},
 					"controls":
 					{
-						"Target_arch":["i5-7500t"]
+						"Target_arch":["Intel Core i5 CPU7"]
 					}
 				},
 				{
-					"name": "SKYLAKE/XEON CPU",
+					"name": "Intel 6th Gen Core CPU (Skylake)/XEON CPU",
 					"defines" :
 					{
 						"NODE" : "idc007xv5"
 					},
 					"controls":
 					{
-						"Target_arch":["e3-1268l-v5"]
+						"Target_arch":["Intel Xeon CPU"]
 					}
 				},
 				{
@@ -88,7 +88,7 @@
 					},
 					"controls":
 					{
-						"Target_arch":["e3950"]
+						"Target_arch":["Intel Atom CPU"]
 					}
 				}
 			]
@@ -107,7 +107,7 @@
 						"dummy": "True"
 					},
 					{
-						"name":"i5-6500te",
+						"name":"Intel Core i5 CPU6",
 						"defines":
 						{
 							"ARCH": "i5-6500te",
@@ -115,7 +115,7 @@
 						}
 					},
 					{
-						"name":"i5-7500t",
+						"name":"Intel Core i5 CPU7",
 						"defines":
 						{
 							"ARCH": "i5-7500t",
@@ -123,7 +123,7 @@
 						}
 					},
 					{
-						"name": "e3-1268l-v5",
+						"name": "Intel Xeon CPU",
 						"defines":
 						{
 							"ARCH": "e3-1268l-v5",
@@ -131,7 +131,7 @@
 						}
 					},
 					{
-						"name": "e3950",
+						"name": "Intel Atom CPU",
 						"defines":
 						{
 							"ARCH": "e3950",
