@@ -13,7 +13,7 @@ all: interactive_face_detection_demo
 
 
 interactive_face_detection_demo: main.cpp detectors.cpp face.cpp visualizer.cpp
-	ln -sf /opt/intel/openvino_2019.3.334/deployment_tools/inference_engine/lib/intel64/libcpu_extension_avx2.so libcpu_extension.so
+	ln -sf /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_avx2.so libcpu_extension.so
 	g++ -fPIE -O3 -c -o detectors.o --std=c++11 detectors.cpp -fopenmp -I. -DUSE_OPENCV ${OPENVINO_FLAGS} -I./
 	g++ -fPIE -O3 -c -o face.o --std=c++11 face.cpp -fopenmp -I. -DUSE_OPENCV ${OPENVINO_FLAGS} -I./
 	g++ -fPIE -O3 -c -o visualizer.o --std=c++11 visualizer.cpp -fopenmp -I. -DUSE_OPENCV ${OPENVINO_FLAGS} -I./
