@@ -80,19 +80,16 @@ plt.title("Example segmentation")
 
 # Parts segmentation figures
 output_ov_surgical_tools_parts = res_ov_surgical_tools_parts["toolmask/mul_"]
-predicted_ov_surgical_tools_parts = np.zeros((1024,1280,3), dtype=np.uint8)
-
 
 img = image.copy()
 
 start_time = time.time()
 
-
-sliced = output_ov_surgical_tools_parts[0,1:,:,:]
+sliced = output_ov_surgical_tools_parts[0,[3,2,1],:,:]
 predicted_ov_surgical_tools_parts = (np.floor(np.transpose(sliced, [1,2,0])*255)).astype(np.uint8)
 
 plt.subplot(3,3,4)
-plt.imshow(output_ov_surgical_tools_parts[0,0]);
+plt.imshow(np.absolute(output_ov_surgical_tools_parts[0,0]-1));
 plt.title("OpenVINO prediction");
 ax = plt.gca();
 ax.set_ylabel("Surgical Tools Parts Network", rotation=90, size='large')
@@ -115,12 +112,9 @@ img[ind2] = img[ind2]*.5 + .5*predicted_ov_surgical_tools_parts[ind2]
 plt.imshow(img);
 plt.title("Example segmentation")
 
-
 log.info("OpenVINO took {} msec for image processing alternate".format(1000.0*(time.time() - start_time)))
 
-
 fig.savefig('generated/predictions.png', dpi=fig.dpi, bbox_inches='tight')
-
 
 # Update progress bar when done
 job_id = os.environ['PBS_JOBID']
