@@ -27,8 +27,7 @@ import numpy as np
 import io
 from openvino.inference_engine import IENetwork, IECore
 from pathlib import Path
-sys.path.insert(0, str(Path().resolve().parent.parent.parent))
-from demoTools.demoutils import *
+from qarpo.demoutils import *
 import cv2
 import json
 
