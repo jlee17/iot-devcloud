@@ -29,7 +29,7 @@ def pad(x, val=0, dtype=np.float32):
         padded[e, :len(i)] = i
     return padded
 
-def load_dataset(data_csv):
+def load_dataset(data_csv, progress_bar=True):
     with open(data_csv, 'r') as fid:
         data = csv.reader(fid)
         rows = [row for row in data]
@@ -38,9 +38,12 @@ def load_dataset(data_csv):
         labels = [classes[row[1]] for row in rows]
         sample_count = len(names)
         time_start = time()
-        for i, d in enumerate(tqdm.tqdm(names)):
+        if progress_bar == True:
+            names = tqdm.tqdm(names)
+        for i, d in enumerate(names):
             ecgs.append(load_ecg('./data/' + d + '.mat'))
-            progressUpdate('./logs/' + os.environ['PBS_JOBID']  + '_load.txt', time()-time_start, i+1, sample_count)        
+            if progress_bar != True:
+                progressUpdate('./logs/' + os.environ['PBS_JOBID']  + '_load.txt', time()-time_start, i+1, sample_count)        
         sizes = []
         for item in ecgs:    
             sizes.append(len(item))
