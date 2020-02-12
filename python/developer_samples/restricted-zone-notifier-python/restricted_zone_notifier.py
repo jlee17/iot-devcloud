@@ -36,8 +36,7 @@ from collections import namedtuple
 from argparse import ArgumentParser
 from inference import Network
 from pathlib import Path
-sys.path.insert(0, str(Path().resolve().parent.parent))
-from demoTools.demoutils import *
+from qarpo.demoutils import *
 
 # Assemblyinfo contains information about assembly area
 MyStruct = namedtuple("assemblyinfo", "safe")

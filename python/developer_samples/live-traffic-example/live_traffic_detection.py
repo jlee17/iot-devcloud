@@ -26,8 +26,7 @@ import numpy as np
 import io
 from openvino.inference_engine import IENetwork, IECore
 from pathlib import Path
-sys.path.insert(0, str(Path().resolve().parent.parent))
-from demoTools.demoutils import progressUpdate
+from qarpo import progressUpdate
 
 def build_argparser():
   parser = ArgumentParser()

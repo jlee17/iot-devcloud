@@ -15,8 +15,7 @@ import time
 
 from utils import load_img, img_to_array, resize_image
 from pathlib import Path
-sys.path.insert(0, str(Path().resolve().parent.parent))
-from demoTools.demoutils import simpleProgressUpdate
+from qarpo.demoutils import simpleProgressUpdate
 
 
 def float16_conversion(n):

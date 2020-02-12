@@ -32,8 +32,7 @@ from argparse import ArgumentParser
 from inference import Network
 from pathlib import Path
 import logging as log
-sys.path.insert(0, str(Path().resolve().parent.parent))
-from demoTools.demoutils import *
+from qarpo.demoutils import *
 
 # shoppingInfo contains statistics for the shopping information
 MyStruct = namedtuple("shoppingInfo", "shopper, looker")

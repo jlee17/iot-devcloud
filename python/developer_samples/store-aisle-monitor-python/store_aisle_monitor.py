@@ -30,8 +30,7 @@ import numpy as np
 # from azure.storage.blob import BlockBlobService, PublicAccess
 from inference import Network
 from pathlib import Path
-sys.path.insert(0, str(Path().resolve().parent.parent))
-from demoTools.demoutils import *
+from qarpo.demoutils import *
 
 # Multiplication factor to compute time interval for uploading snapshots to the cloud
 MULTIPLICATION_FACTOR = 5

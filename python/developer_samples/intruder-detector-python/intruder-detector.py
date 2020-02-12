@@ -34,8 +34,7 @@ import signal
 import pathlib
 from pathlib import Path
 from inference import Network
-sys.path.insert(0, str(Path().resolve().parent.parent))
-from demoTools.demoutils import *
+from qarpo.demoutils import *
 
 # CONSTANTS
 CONF_FILE = "./resources/conf.txt"
