@@ -13,7 +13,7 @@ packages_directory=get_python_lib()
 import matplotlib.pyplot as plt
 from pathlib import Path
 sys.path.insert(0, str(Path().resolve().parent.parent))
-from demoTools.demoutils import progressUpdate
+from qarpo.demoutils import progressUpdate
 from argparser import args
 
 if args.keras_api:

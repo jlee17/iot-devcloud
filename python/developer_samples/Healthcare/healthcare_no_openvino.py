@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from distutils.sysconfig import get_python_lib
 from pathlib import Path
 sys.path.insert(0, str(Path().resolve().parent.parent))
-from demoTools.demoutils import progressUpdate
+from qarpo.demoutils import progressUpdate
 
 
 packages_directory=get_python_lib()
