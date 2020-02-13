@@ -14,7 +14,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 K.clear_session()
 K.set_learning_phase(0)
 
-input_model = './0.427-0.863-020-0.290-0.899.hdf5'
+input_model = '/data/ecg/0.427-0.863-020-0.290-0.899.hdf5'
 output_model = 'models/output_graph.pb'
 num_output = 1 
 

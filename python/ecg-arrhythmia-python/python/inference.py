@@ -23,16 +23,19 @@ log.basicConfig(format="[ %(levelname)s ] %(message)s", level=log.INFO, stream=s
 ap = argparse.ArgumentParser()
 ap.add_argument("-d", "--device", required=False,
                 default='CPU', help="device type")
+ap.add_argument("-o", "--output_dir", required=False,
+                default='results/', help="Location for output data")
 args = vars(ap.parse_args())
 
 # Arguments
 device_type = args['device']
+output_dir = args['output_dir']
 
 model_path = "./0.427-0.863-020-0.290-0.899.hdf5"
 data_csv = "./data/reference.csv"
 
 log.info("Loading Dataset")
-ecgs, labels = load.load_dataset(data_csv)
+ecgs, labels = load.load_dataset(data_csv, progress_bar=False)
 
 # Load network and add CPU extension if device is CPU
 ie = IECore()
@@ -65,7 +68,7 @@ for x in ecgs:
 
     
 log.info("OpenVINO took {} sec for inference".format(total_time))
-with open(os.path.join(os.getcwd(), 'results/stats_'+str(job_id)+'.txt'), 'w') as f:
+with open(os.path.join(os.getcwd(), output_dir + 'stats_'+str(job_id)+'.txt'), 'w') as f:
     f.write(str(round(((total_time/sample_count)*1000), 1))+'\n')
     f.write(str(sample_count)+'\n')
 
