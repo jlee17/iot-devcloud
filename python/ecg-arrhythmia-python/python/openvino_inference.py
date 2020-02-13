@@ -1,3 +1,4 @@
+import json
 import os
 from time import time
 
@@ -45,5 +46,16 @@ for p in probs_total:
 report = skm.classification_report(labels, preds, target_names=['A','N','O','~'], digits=3)
 scores = skm.precision_recall_fscore_support(labels, preds, average=None)
 
+with open(os.path.join(os.getcwd(), 'results/predictions.json'), 'w+') as f:
+    json_data = {}
+    with open(data_csv, 'r') as data:
+        classes = ['A', 'N', 'O', '~']
+        for p, d in zip(probs_total, data):
+            prob = np.amax(p, axis=2).squeeze()
+            data = list(map(lambda x: classes[x], np.argmax(p / prior, axis=2).squeeze()))
+            name, actual = d.split(',')
+            json_data[name] = {"data": data, "prob": prob.tolist(), "actual": actual.strip()}
+    json.dump(json_data, f, indent=4)
+    
 print(report)
 print ("CINC Average {:3f}".format(np.mean(scores[2][:3])))

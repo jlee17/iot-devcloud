@@ -22,13 +22,6 @@ def process_x(x):
     x = x[:, :, None]
     return x
 
-def pad(x, val=0, dtype=np.float32):
-    max_len = max(len(i) for i in x)
-    padded = np.full((len(x), max_len), val, dtype=dtype)
-    for e, i in enumerate(x):
-        padded[e, :len(i)] = i
-    return padded
-
 def load_dataset(data_csv, progress_bar=True):
     with open(data_csv, 'r') as fid:
         data = csv.reader(fid)
@@ -41,7 +34,7 @@ def load_dataset(data_csv, progress_bar=True):
         if progress_bar == True:
             names = tqdm.tqdm(names)
         for i, d in enumerate(names):
-            ecgs.append(load_ecg('./data/' + d + '.mat'))
+            ecgs.append(load_ecg('/data/ecg/training/' + d + '.mat'))
             if progress_bar != True:
                 progressUpdate('./logs/' + os.environ['PBS_JOBID']  + '_load.txt', time()-time_start, i+1, sample_count)        
         sizes = []
