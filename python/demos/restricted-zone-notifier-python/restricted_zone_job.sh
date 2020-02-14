@@ -29,9 +29,9 @@ python3 restricted_zone_notifier.py -m ${MODELPATH}\
                                     -d ${DEVICE}\
                                     -l /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so
 
-g++ -std=c++14 ROI_writer.cpp -o ROI_writer  -lopencv_core -lopencv_videoio -lopencv_imgproc -lopencv_highgui  -fopenmp -I/opt/intel/openvino/opencv/include/ -L/opt/intel/openvino/opencv/lib/
+g++ -std=c++14 ROI_writer.cpp -o ROI_writer_${PBS_JOBID}  -lopencv_core -lopencv_videoio -lopencv_imgproc -lopencv_highgui  -fopenmp -I/opt/intel/openvino/opencv/include/ -L/opt/intel/openvino/opencv/lib/
 
 #Rendering the output video
 SKIPFRAME=1
 RESOLUTION=0.5
-./ROI_writer $INPUT_FILE $OUTPUT_FILE $SKIPFRAME $RESOLUTION
+./ROI_writer_${PBS_JOBID} $INPUT_FILE $OUTPUT_FILE $SKIPFRAME $RESOLUTION
