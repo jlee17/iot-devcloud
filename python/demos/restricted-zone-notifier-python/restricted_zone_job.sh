@@ -35,3 +35,4 @@ g++ -std=c++14 ROI_writer.cpp -o ROI_writer_${PBS_JOBID}  -lopencv_core -lopencv
 SKIPFRAME=1
 RESOLUTION=0.5
 ./ROI_writer_${PBS_JOBID} $INPUT_FILE $OUTPUT_FILE $SKIPFRAME $RESOLUTION
+rm -f ROI_writer_${PBS_JOBID}
