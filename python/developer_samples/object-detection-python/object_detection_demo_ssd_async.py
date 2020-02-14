@@ -26,7 +26,6 @@ import logging as log
 import numpy as np
 import io
 from openvino.inference_engine import IENetwork, IECore
-from pathlib import Path
 from qarpo.demoutils import *
 import cv2
 

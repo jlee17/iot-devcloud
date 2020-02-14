@@ -6,9 +6,7 @@ import numpy as np
 import torch
 from torchvision import transforms, utils
 from python.utils import crop_rgb, mask_overlay, get_model
-from pathlib import Path
-sys.path.insert(0, os.path.join(Path.home(), 'Reference-samples/iot-devcloud'))
-from demoTools.demoutils import progressUpdate
+from qarpo.demoutils import progressUpdate
 
 job_id = os.environ['PBS_JOBID']
 

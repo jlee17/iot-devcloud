@@ -3,9 +3,7 @@ from python.utils import get_model
 import time
 import os
 import sys
-from pathlib import Path
-sys.path.insert(0, os.path.join(Path.home(), 'Reference-samples/iot-devcloud'))
-from demoTools.demoutils import progressUpdate
+from qarpo.demoutils import progressUpdate
 
 job_id = os.environ['PBS_JOBID']
 

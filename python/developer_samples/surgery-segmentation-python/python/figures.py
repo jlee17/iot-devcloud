@@ -7,9 +7,7 @@ from pathlib import Path
 import logging as log
 import matplotlib.pyplot as plt
 from openvino.inference_engine import IECore, IENetwork
-#sys.path.insert(0, str(Path().resolve().parent.parent))
-sys.path.insert(0, os.path.join(Path.home(), 'Reference-samples/iot-devcloud'))
-from demoTools.demoutils import *
+from qarpo.demoutils import progressUpdate
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from python.utils import crop_rgb, mask_overlay
 
@@ -118,5 +116,5 @@ fig.savefig('generated/predictions.png', dpi=fig.dpi, bbox_inches='tight')
 
 # Update progress bar when done
 job_id = os.environ['PBS_JOBID']
-from demoTools.demoutils import progressUpdate
+
 progressUpdate('./results/' + str(job_id) + '.txt', time.time()-start_time, 1, 1)

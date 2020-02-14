@@ -11,8 +11,6 @@ from openvino.inference_engine import IENetwork, IECore
 from distutils.sysconfig import get_python_lib
 packages_directory=get_python_lib()
 import matplotlib.pyplot as plt
-from pathlib import Path
-sys.path.insert(0, str(Path().resolve().parent.parent))
 from qarpo.demoutils import progressUpdate
 from argparser import args
 

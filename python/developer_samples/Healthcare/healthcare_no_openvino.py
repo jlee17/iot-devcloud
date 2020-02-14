@@ -11,8 +11,6 @@ import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from distutils.sysconfig import get_python_lib
-from pathlib import Path
-sys.path.insert(0, str(Path().resolve().parent.parent))
 from qarpo.demoutils import progressUpdate
 
 
