@@ -16,8 +16,8 @@ if [ "$2" = "HETERO:FPGA,CPU" ]; then
 fi
 # Running the object detection code
 SAMPLEPATH=$PBS_O_WORKDIR
-python3 app/classification_sample.py  -m app/model/${FP_MODEL}/crnn.xml  \
-                                           -i app/board4.jpg \
+python3 classification_sample.py  -m model/${FP_MODEL}/crnn.xml  \
+                                           -i board4.jpg \
                                            -o $OUTPUT_FILE \
                                            -d $DEVICE
                                            
