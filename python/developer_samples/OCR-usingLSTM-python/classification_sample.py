@@ -21,12 +21,13 @@ from argparse import ArgumentParser
 import cv2
 import numpy as np
 import logging as log
-from time import time
+import time
 from openvino.inference_engine import IENetwork, IECore
 from local_utils import log_utils, data_utils
 from local_utils.config_utils import load_config
 import os.path as ops
 from easydict import EasyDict
+from qarpo.demoutils import *
 
 def build_argparser():
     parser = ArgumentParser()
@@ -84,6 +85,8 @@ def main():
     assert len(net.inputs.keys()) == 1, "Sample supports only single input topologies"
     assert len(net.outputs) == 1, "Sample supports only single output topologies"
 
+    job_id = str(os.environ['PBS_JOBID'])
+    infer_file = os.path.join(args.output_dir, 'i_progress.txt')
     log.info("Preparing input blobs")
     input_blob = next(iter(net.inputs))
     out_blob = next(iter(net.outputs))
@@ -109,12 +112,16 @@ def main():
     # Start sync inference
     log.info("Starting inference ({} iterations)".format(args.number_iter))
     infer_time = []
-    t0 = time()
+    t0 = time.time()
+    print(args.number_iter)
     for i in range(args.number_iter):
         #t0 = time()
         res = exec_net.infer(inputs={input_blob: images})
+        if i%10 == 0 or i==args.number_iter-1: 
+            progressUpdate(infer_file, time.time()-t0, i+1, args.number_iter) 
+
         #infer_time.append((time()-t0)*1000)
-    t1 = (time() - t0)*1000
+    t1 = (time.time() - t0)*1000
     log.info("Average running time of one iteration: {} ms".format(np.average(np.asarray(infer_time))))
     if args.perf_counts:
         perf_counts = exec_net.requests[0].get_perf_counts()

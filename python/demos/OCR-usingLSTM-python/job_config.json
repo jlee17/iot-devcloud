@@ -37,40 +37,7 @@
 					"dummy": "True",
 					"controls":
 					{
-						"Target_arch":["Intel Arria10 FPGA", "Intel NCS2", "MX8 VPU Acceleration Card", "Intel HD Graphics 505", "Intel HD Graphics 530", "Intel HD Graphics 620", "Intel HD Graphics 630", "Intel Core i7-8665UE CPU", "Intel Core i5-7500T CPU", "Intel Core i5-6500TE CPU", "Intel Xeon CPU"]
-					}
-				},
-				{
-					"name": "6th Gen Intel Core/Intel FPGA",
-					"defines" :
-					{
-						"NODE" : "idc003a10"
-					},
-					"controls":
-					{
-						"Target_arch":["Intel Arria10 FPGA"]
-					}
-				},
-				{
-					"name": "6th Gen Intel Core/MX8 VPU",
-					"defines" :
-					{
-						"NODE" : "idc002mx8"
-					},
-					"controls":
-					{
-						"Target_arch":["MX8 VPU Acceleration Card"]
-					}
-				},
-				{
-					"name": "6th Gen Intel Core/Intel NCS2",
-					"defines" :
-					{
-						"NODE" : "idc004nc2"
-					},
-					"controls":
-					{
-						"Target_arch":["Intel NCS2"]
+						"Target_arch":["Intel HD Graphics 505", "Intel HD Graphics 530", "Intel HD Graphics 620", "Intel HD Graphics 630", "Intel Core i7-8665UE CPU", "Intel Core i5-7500T CPU", "Intel Core i5-6500TE CPU", "Intel Xeon CPU"]
 					}
 				},
 				{
@@ -116,17 +83,6 @@
 					{
 						"Target_arch":["Intel Xeon CPU", "Intel HD Graphics P530"]
 					}
-				},
-				{
-					"name": "Intel Atom",
-					"defines" :
-					{
-						"NODE" : "idc008u2g"
-					},
-					"controls":
-					{
-						"Target_arch":["Intel HD Graphics 505"]
-					}
 				}
 				]
 			}
@@ -142,42 +98,6 @@
 					{
 						"name": "Select Architecture",
 						"dummy": "True"
-					},
-					{
-						"name": "Intel Arria10 FPGA",
-						"defines":
-						{
-							"ARCH": "iei-mustang-f100-a10",
-							"TARGET": "HETERO:FPGA,CPU",
-							"FP_MODEL": "FP32"
-						}
-					},
-					{
-						"name": "Intel NCS2",
-						"defines" :
-						{
-							"ARCH": "intel-ncs2",
-							"TARGET": "MYRIAD",
-							"FP_MODEL": "FP16"
-						}
-					},
-					{
-						"name": "MX8 VPU Acceleration Card",
-						"defines":
-						{
-							"ARCH": "iei-mustang-v100-mx8",
-							"TARGET": "HDDL",
-							"FP_MODEL": "FP16"
-						}
-					},
-					{
-						"name": "Intel HD Graphics 505",
-						"defines":
-						{
-							"ARCH":  "intel-hd-505",
-							"TARGET": "GPU",
-							"FP_MODEL": "FP32"
-						}
 					},
 					{
 						"name": "Intel HD Graphics 530",

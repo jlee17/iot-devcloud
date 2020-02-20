@@ -21,7 +21,7 @@ from argparse import ArgumentParser
 import cv2
 import numpy as np
 import logging as log
-from time import time
+import time
 from openvino.inference_engine import IENetwork, IEPlugin
 from local_utils import log_utils, data_utils
 from local_utils.config_utils import load_config
@@ -116,15 +116,13 @@ def main():
     if not os.path.isdir(result_dir):
         print(result_dir)
         os.makedirs(result_dir, exist_ok=True)
-    progress_file_path = os.path.join(result_dir, 'i_progress.txt')
-    t0 = time()
+    infer_file = os.path.join(result_dir, 'i_progress.txt')
+    t0 = time.time()
     for i in range(args.number_iter):
-        #t0 = time()
         res = exec_net.infer(inputs={input_blob: images})
-        #infer_time.append((time()-t0)*1000)
-        print(i, args.number_iter)
-        progressUpdate(progress_file_path, time()-t0, i+1, args.number_iter) 
-    t1 = (time() - t0)
+        if i%10 == 0 or i==args.number_iter-1: 
+            progressUpdate(infer_file, time.time()-t0, i+1, args.number_iter) 
+    t1 = (time.time() - t0)
     log.info("Average running time of one iteration: {} ms".format(np.average(np.asarray(infer_time))))
     if args.perf_counts:
         perf_counts = exec_net.requests[0].get_perf_counts()
