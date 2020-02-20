@@ -53,7 +53,6 @@ python3 object_detection_demo_ssd_async.py  -m ${SAMPLEPATH}/models/mobilenet-ss
                                             -o $RESULTS_PATH \
                                             -d $DEVICE \
                                             -nireq $NUM_INFER_REQS \
-                                            -ce /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_avx2.so \
                                             --labels /data/reference-sample-data/safety-gear-detection/labels.txt
 
 g++ -std=c++14 ROI_writer.cpp -o ROI_writer_${PBS_JOBID}  -lopencv_core -lopencv_videoio -lopencv_imgproc -lopencv_highgui  -fopenmp -I/opt/intel/openvino/opencv/include/ -L/opt/intel/openvino/opencv/lib/

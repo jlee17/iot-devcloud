@@ -34,5 +34,4 @@ python3 shopper_gaze_monitor.py -m ${MODELPATH} \
                                 -i ${INPUT_FILE} \
                                 -o ${OUTPUT_FILE} \
                                 -d ${DEVICE} \
-                                -pm ${POSE_MODEL} \
-                                -l /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so
+                                -pm ${POSE_MODEL}

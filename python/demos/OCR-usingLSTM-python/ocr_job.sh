@@ -19,6 +19,4 @@ SAMPLEPATH=$PBS_O_WORKDIR
 python3 classification_sample.py  -m model/${FP_MODEL}/crnn.xml  \
                                            -i board4.jpg \
                                            -o $OUTPUT_FILE \
-                                           -d $DEVICE \
-                                           -l ~/inference_engine_samples_build/intel64/Release/lib/libcpu_extension.so
-                                           
+                                           -d $DEVICE

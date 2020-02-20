@@ -33,7 +33,6 @@ SAMPLEPATH=$PBS_O_WORKDIR
 python3 store_traffic_monitor.py  -d $DEVICE \
                                     -m ${SAMPLEPATH}/models/mobilenet-ssd/${FP_MODEL}/mobilenet-ssd.xml \
                                     -l labels.txt \
-                                    -e /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_avx2.so \
                                     -lp false \
                                     -o $OUTPUT_FILE \
                                     -c $config_file \

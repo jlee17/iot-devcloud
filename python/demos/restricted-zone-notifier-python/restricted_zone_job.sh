@@ -26,8 +26,7 @@ fi
 python3 restricted_zone_notifier.py -m ${MODELPATH}\
                                     -i ${INPUT_FILE}\
                                     -o ${OUTPUT_FILE}\
-                                    -d ${DEVICE}\
-                                    -l /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so
+                                    -d ${DEVICE}
 
 g++ -std=c++14 ROI_writer.cpp -o ROI_writer_${PBS_JOBID}  -lopencv_core -lopencv_videoio -lopencv_imgproc -lopencv_highgui  -fopenmp -I/opt/intel/openvino/opencv/include/ -L/opt/intel/openvino/opencv/lib/
 

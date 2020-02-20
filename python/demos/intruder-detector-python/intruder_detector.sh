@@ -26,5 +26,4 @@ fi
 python3 intruder-detector.py -m ${MODELPATH} \
                              -lb resources/labels.txt \
                              -o $OUTPUT_FILE \
-                             -d $DEVICE \
-                             -l /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so 
+                             -d $DEVICE

@@ -41,8 +41,6 @@ def main():
 
     # Set up OpenVINO inference
     ie = IECore()
-    if device_type == "CPU":
-        ie.add_extension('/opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so',"CPU")
     net = IENetwork(model='./models/ov/' + fp_model + '/surgical_tools_parts.xml', weights='./models/ov/' + fp_model + '/surgical_tools_parts.bin')
     exec_net = ie.load_network(network=net,device_name=device_type)
 
@@ -55,9 +53,6 @@ def main():
                   "the plugin for specified device {}:\n {}".
                   format(ie.device,
                      ', '.join(not_supported_layers)))
-            log.error("Please try to specify cpu extensions library path"
-                  " in command line parameters using -l "
-                  "or --cpu_extension command line argument")
             sys.exit(1)
 
     # Define the codec and create VideoWriter object

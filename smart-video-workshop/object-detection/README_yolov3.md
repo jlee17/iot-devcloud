@@ -85,12 +85,12 @@ You should see the following two files listed in this directory: **frozen_darkne
 #### 3. Run the sample application to use the Inference Engine 
 The below command runs the application with YOLOv3 IR model and the video captured by the camera.
 
-	python3 /opt/intel/openvino/deployment_tools/open_model_zoo/demos/python_demos/object_detection_demo_yolov3_async/object_detection_demo_yolov3_async.py -i /dev/video0 -m $SV/object-detection/tensorflow-yolo-v3/FP32/frozen_darknet_yolov3_model.xml -l $HOME/inference_engine_samples_build/intel64/Release/lib/libcpu_extension.so
+	python3 /opt/intel/openvino/deployment_tools/open_model_zoo/demos/python_demos/object_detection_demo_yolov3_async/object_detection_demo_yolov3_async.py -i /dev/video0 -m $SV/object-detection/tensorflow-yolo-v3/FP32/frozen_darknet_yolov3_model.xml
 
 
 #### 1. Inference on CPU
 ```
-python3 /opt/intel/openvino/deployment_tools/open_model_zoo/demos/python_demos/object_detection_demo_yolov3_async/object_detection_demo_yolov3_async.py -i /dev/video0 -m $SV/object-detection/tensorflow-yolo-v3/FP32/frozen_darknet_yolov3_model.xml -l $HOME/inference_engine_samples_build/intel64/Release/lib/libcpu_extension.so -d CPU
+python3 /opt/intel/openvino/deployment_tools/open_model_zoo/demos/python_demos/object_detection_demo_yolov3_async/object_detection_demo_yolov3_async.py -i /dev/video0 -m $SV/object-detection/tensorflow-yolo-v3/FP32/frozen_darknet_yolov3_model.xml -d CPU
 ```
 You will see the **total time** it took to run the inference and see the detected objects captured by the camera video. 
 

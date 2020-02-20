@@ -125,7 +125,6 @@ CMake creates the necessary make files for the project, and then starts a build.
     export INFENG=$INTEL_CVSDK_DIR/deployment_tools/inference_engine; 
     export IE_PLUGINS_PATH=$INFENG/lib/ubuntu_16.04/intel64; 
     [ ! -d /tmp/OpenVINO ] && mkdir /tmp/OpenVINO; 
-    cp $INFENG/lib/ubuntu_16.04/intel64/libcpu_extension_avx2.so /tmp/OpenVINO/libcpu_extension.so; 
     export LD_LIBRARY_PATH=/tmp/OpenVINO:$INTEL_CVSDK_DIR/opencv/lib:/opt/intel/opencl:$INFENG/external/gna/lib:$INFENG/external/mkltiny_lnx/lib:$INFENG/external/omp/lib:$INFENG/lib/ubuntu_16.04/intel64:$LD_LIBRARY_PATH;
     export DISPLAY=:0;
         
@@ -165,7 +164,6 @@ Now, let's push the application to run on our remote system - Up2* AI Vision Boa
     export INFENG=$INTEL_CVSDK_DIR/deployment_tools/inference_engine; 
     export IE_PLUGINS_PATH=$INFENG/lib/ubuntu_16.04/intel64; 
     [ ! -d /tmp/OpenVINO ] && mkdir /tmp/OpenVINO; 
-    cp $INFENG/lib/ubuntu_16.04/intel64/libcpu_extension_sse4.so /tmp/OpenVINO/libcpu_extension.so; 
     export LD_LIBRARY_PATH=/tmp/OpenVINO:$INTEL_CVSDK_DIR/opencv/lib:/opt/intel/opencl:$INFENG/external/gna/lib:$INFENG/external/mkltiny_lnx/lib:$INFENG/external/omp/lib:$INFENG/lib/ubuntu_16.04/intel64:$LD_LIBRARY_PATH;
     export XAUTHORITY=/home/upsquared/.Xauthority;
     export DISPLAY=localhost:10.0;

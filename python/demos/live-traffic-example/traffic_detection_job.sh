@@ -28,5 +28,4 @@ python3 live_traffic_detection.py  -m ${MODELPATH} \
                                    -i ${INPUT_ADDR} \
                                    -o ${OUTPUT_DIR} \
                                    -d ${DEVICE} \
-                                   -c 300 \
-                                   -l /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so
+                                   -c 300

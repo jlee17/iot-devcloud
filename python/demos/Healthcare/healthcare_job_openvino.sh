@@ -24,5 +24,4 @@ fi
 SAMPLEPATH=$PBS_O_WORKDIR
 python3 healthcare_openvino.py     -d $DEVICE \
                                    -IR output/IR_models/${FP_MODEL}/saved_model \
-                                   -l /opt/intel/openvino/inference_engine/lib/intel64/libcpu_extension_avx2.so \
                                    -r $RESULTS

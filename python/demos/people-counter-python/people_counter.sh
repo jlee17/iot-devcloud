@@ -29,5 +29,4 @@ python3 people_counter.py   -m ${MODELPATH} \
                             -i ${INPUT_FILE} \
                             -o ${OUTPUT_FILE} \
                             -d ${DEVICE} \
-                            -pt ${THRESHOLD}\
-                            -l /opt/intel/openvino/deployment_tools/inference_engine/lib/intel64/libcpu_extension_sse4.so
+                            -pt ${THRESHOLD}
