@@ -92,10 +92,8 @@ def main():
     # Plugin initialization for specified device and load extensions library if specified
     log.info("Initializing plugin for {} device...".format(args.device))
     ie = IECore()
-    #plugin = IEPlugin(device=args.device, plugin_dirs=args.plugin_dir)
     if args.cpu_extension and 'CPU' in args.device:
         log.info("Loading plugins for {} device...".format(args.device))
-        #ie.add_extension(args.cpu_extension, args.device) // openvino2019-R1 
         ie.add_extension(args.cpu_extension, "CPU")
 
     # Read IR
