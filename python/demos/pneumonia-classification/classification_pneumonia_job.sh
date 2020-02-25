@@ -5,9 +5,12 @@ OUTPUT_FILE=$1
 DEVICE=$2
 FP_MODEL=$3
 
-if [ "$2" = "HETERO:FPGA,CPU" ]; then
-    source /opt/intel/init_openvino.sh
-    aocl program acl0 /opt/intel/openvino/bitstreams/a10_vision_design_sg2_bitstreams/2019R3_PV_PL2_FP16_AlexNet_GoogleNet_InceptionV1_SSD300_Generic.aocx
+if [ "$DEVICE" = "HETERO:FPGA,CPU" ]; then
+    # Environment variables and compilation for edge compute nodes with FPGAs - Updated for OpenVINO 2020.1
+    source /opt/altera/aocl-pro-rte/aclrte-linux64/init_opencl.sh
+    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/openvino/bitstreams/a10_vision_design_sg1_bitstreams/BSP/a10_1150_sg1/linux64/lib
+    aocl program acl0 /opt/intel/openvino/bitstreams/a10_vision_design_sg1_bitstreams/2019R4_PL1_FP11_AlexNet_GoogleNet_Generic.aocx
+    export CL_CONTEXT_COMPILER_MODE_INTELFPGA=3
 fi
 
 SAMPLEPATH=${PBS_O_WORKDIR}

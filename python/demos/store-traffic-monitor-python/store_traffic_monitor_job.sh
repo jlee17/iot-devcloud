@@ -12,9 +12,11 @@ NUM_VIDEOS=$4
 mkdir -p $1
 
 if [ "$DEVICE" = "HETERO:FPGA,CPU" ]; then
-    #source /opt/fpga_support_files/setup_env.sh
-    source /opt/intel/init_openvino.sh
-    aocl program acl0 /opt/intel/openvino/bitstreams/a10_vision_design_sg1_bitstreams/2019R3_PV_PL1_FP16_MobileNet_Clamp.aocx
+    # Environment variables and compilation for edge compute nodes with FPGAs - Updated for OpenVINO 2020.1
+    source /opt/altera/aocl-pro-rte/aclrte-linux64/init_opencl.sh
+    export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/opt/intel/openvino/bitstreams/a10_vision_design_sg1_bitstreams/BSP/a10_1150_sg1/linux64/lib
+    aocl program acl0 /opt/intel/openvino/bitstreams/a10_vision_design_sg1_bitstreams/2019R4_PL1_FP11_MobileNet_Clamp.aocx
+    export CL_CONTEXT_COMPILER_MODE_INTELFPGA=3
 fi
 
 if [ "$FP_MODEL" = "FP32" ]; then

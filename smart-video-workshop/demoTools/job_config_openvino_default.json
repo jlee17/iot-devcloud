@@ -81,7 +81,7 @@
 		    {
 			"display_name": "IEI\nMustang-F100-A10",
 			"properties": "iei-mustang-f100-a10",
-			"arguments": "HETERO:FPGA,CPU -f FP32 -n 4"
+			"arguments": "HETERO:FPGA,CPU -f FP16 -n 4"
 		    },
 		    {
 			"display_name": "Intel Core\ni5-6500TE",

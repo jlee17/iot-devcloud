@@ -164,7 +164,7 @@
 						{
 							"ARCH": "iei-mustang-f100-a10",
 							"TARGET": "HETERO:FPGA,CPU",
-							"FP_MODEL": "FP32",
+							"FP_MODEL": "FP16",
 							"N_REQ": "4"
 						}
 					},

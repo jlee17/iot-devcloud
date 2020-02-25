@@ -1,6 +1,6 @@
 OPENVINO_FLAGS=-I$(INTEL_CVSDK_DIR)/deployment_tools/inference_engine/include \
-	    -I$(INTEL_CVSDK_DIR)/deployment_tools/inference_engine/samples/common/ \
-	    -I$(INTEL_CVSDK_DIR)/deployment_tools/inference_engine/src/extension/ \
+	    -I$(INTEL_CVSDK_DIR)/deployment_tools/inference_engine/samples/cpp/common/ \
+	    -I$(INTEL_CVSDK_DIR)/deployment_tools/tools/extension_generator/templates/ \
 	    -I$(INTEL_CVSDK_DIR)/opencv/include \
 	    -L$(INTEL_CVSDK_DIR)/deployment_tools/inference_engine/lib/intel64 \
 	    -L$(INTEL_CVSDK_DIR)/opencv/lib \
