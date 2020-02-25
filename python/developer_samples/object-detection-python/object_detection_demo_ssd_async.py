@@ -41,14 +41,9 @@ def build_argparser():
                         help='Path to video file or image. \'cam\' for capturing video stream from camera.',
                         required=True,
                         type=str)
-    parser.add_argument('-ce', '--cpu_extension',
-                        help='MKLDNN-targeted custom layers.'
-                             'Absolute path to a shared library with the kernel implementation.',
-                        type=str,
-                        default=None)
     parser.add_argument('-d', '--device',
                         help='Specify the target device to infer on; CPU, GPU, FPGA, MYRIAD, or HDDL is acceptable.'
-                             'Demo will look for a suitable plugin for specified device (CPU by default).',
+                             '(CPU by default).',
                         default='CPU',
                         type=str)
     parser.add_argument('-nireq', '--number_infer_requests',
@@ -89,26 +84,22 @@ def main():
     model_xml = args.model
     model_bin = os.path.splitext(model_xml)[0] + ".bin"
 
-    # Plugin initialization for specified device and load extensions library if specified
-    log.info("Initializing plugin for {} device...".format(args.device))
+    # Creating IECore
+    log.info("Initializing IECore...")
     ie = IECore()
-    if args.cpu_extension and 'CPU' in args.device:
-        log.info("Loading plugins for {} device...".format(args.device))
-        ie.add_extension(args.cpu_extension, "CPU")
 
     # Read IR
     log.info("Reading IR...")
     net = IENetwork(model=model_xml, weights=model_bin)
 
-    if "CPU" in args.device:
-        supported_layers = ie.query_network(net, "CPU")
-        not_supported_layers = [l for l in net.layers.keys() if l not in supported_layers]
-        if len(not_supported_layers) != 0:
-            log.error("Following layers are not supported by the plugin for specified device {}:\n {}".
-                      format(args.device, ', '.join(not_supported_layers)))
-            log.error("Please try to specify cpu extensions library path in sample's command line parameters using -l "
-                      "or --cpu_extension command line argument")
-            sys.exit(1)
+    supported_layers = ie.query_network(net, "CPU")
+    not_supported_layers = [l for l in net.layers.keys() if l not in supported_layers]
+    if len(not_supported_layers) != 0:
+        log.error("Following layers are not supported by the specified device {}:\n {}".
+                    format(args.device, ', '.join(not_supported_layers)))
+        log.error("If you are using a custom network, you may need OpenVINO extensions in "
+                  "order to use your model. See OpenVINO documention for more.)
+        sys.exit(1)
     assert len(net.inputs.keys()) == 1, "Sample supports only single input topologies"
     assert len(net.outputs) == 1, "Sample supports only single output topologies"
 
@@ -123,7 +114,7 @@ def main():
         assert os.path.isfile(args.input), "Specified input file doesn't exist"
         out_file_name = os.path.splitext(os.path.basename(args.input))[0]
 
-    log.info("Loading IR to the plugin...")
+    log.info("Generating ExecutableNetwork...")
     exec_net = ie.load_network(network=net, num_requests=args.number_infer_requests, device_name=args.device)
  
 
