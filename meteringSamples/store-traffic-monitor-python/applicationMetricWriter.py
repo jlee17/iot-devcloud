@@ -45,9 +45,9 @@ def send_application_metrics(modelXML, targetHardware):
 	global INF_TIME
 	global INF_UID
 	avgInferenceTime=INF_TIME/INF_UID
-	data['applicationMetrics'].append({'avgInferenceTime': avgInferenceTime})
+	data['applicationMetrics'].append({'avgInferenceTime': round(avgInferenceTime, 2)})
 	data['applicationMetrics'].append({'inferenceCount': INF_UID})
-	data['applicationMetrics'].append({'totalinferenceTime': INF_TIME})
+	data['applicationMetrics'].append({'totalinferenceTime': round(INF_TIME, 2)})
 #	time.sleep(30)
 	with open('/tmp/AppMetrics.json', 'w') as outfile:  
             json.dump(data, outfile)          
@@ -56,9 +56,9 @@ def send_inference_time(infTime):
 	global INF_UID, INF_TIME, start
 	global data
 	elapsed = time.time() - start
-	data['inferenceStats'].append({time.time(): 1000/infTime})
+	data['inferenceStats'].append({time.time(): infTime})
 	if elapsed > 5:
-	    data['inferenceStats'].append({time.time(): 1000/infTime})
+	    data['inferenceStats'].append({time.time(): infTime})
 	    start = time.time()        
 	INF_TIME+=infTime
 	INF_UID+=1
