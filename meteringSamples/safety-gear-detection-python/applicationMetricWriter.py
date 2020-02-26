@@ -29,10 +29,10 @@ def send_application_metrics(modelXML, targetHardware):
 	            dictLayerTypes[subelem.get('type')] = 1
 	        else:
 	            dictLayerTypes[subelem.get('type')] += 1
-	            precision = subelem.get("precision")
+	            #precision = subelem.get("precision")
 	data['applicationMetrics'] = []
 	data['applicationMetrics'].append({'modelName': root.attrib.get("name")})
-	data['applicationMetrics'].append({'precision': str(precision)})
+	data['applicationMetrics'].append({'precision': str(root[0].findall('layer')[0].findall('output')[0].findall('port')[0].get("precision"))})
 	data['applicationMetrics'].append({'targetHardware': str(targetHardware)})
 	print(targetHardware)
 	data['applicationMetrics'].append({'numLayers': str(sum(dictLayerTypes.values()) - 1)})
