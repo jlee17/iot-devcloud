@@ -26,9 +26,8 @@ import numpy as np
 import io
 from openvino.inference_engine import IENetwork, IEPlugin
 from pathlib import Path
-sys.path.insert(0, str(Path().resolve().parent.parent))
-from demoTools.demoutils import progressUpdate
-from applicationMetricWriter import applicationMetricWriter
+from qarpo.demoutils import progressUpdate
+import applicationMetricWriter
 
 def build_argparser():
     parser = ArgumentParser()
@@ -235,7 +234,7 @@ def main():
         log.info("Processing done...")
         del exec_net
         del plugin
-    applicationMetricWriter.send_application_metrics(args.model, args.device)     
+    applicationMetricWriter.send_application_metrics(args.model, args.device)    
 
 if __name__ == '__main__':
     sys.exit(main() or 0)
