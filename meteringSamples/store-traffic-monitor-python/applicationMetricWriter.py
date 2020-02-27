@@ -6,6 +6,7 @@ import time
 import sys
 from threading import Thread
 import json
+import os
 
 INF_UID = 0
 INF_TIME = 0
@@ -13,7 +14,9 @@ start = time.time()
 data = {}   
 data['inferenceStats'] = []
 def send_application_metrics(modelXML, targetHardware):
-	global data    
+	global data
+	data['applicationName'] = []
+	data['applicationName'].append({'applicationName': os.path.realpath(__file__).split('/')[-2]})
 	tree = ET.parse(modelXML)
 	root = tree.getroot()
 	dictLayerTypes = {}
@@ -51,13 +54,13 @@ def send_application_metrics(modelXML, targetHardware):
 #	time.sleep(30)
 	with open('/tmp/AppMetrics.json', 'w') as outfile:  
             json.dump(data, outfile)          
-
+            
 def send_inference_time(infTime):
 	global INF_UID, INF_TIME, start
 	global data
 	elapsed = time.time() - start
-	data['inferenceStats'].append({time.time(): infTime})
-	if elapsed > 5:
+	#data['inferenceStats'].append({time.time(): infTime})
+	if elapsed > 1:
 	    data['inferenceStats'].append({time.time(): infTime})
 	    start = time.time()        
 	INF_TIME+=infTime
