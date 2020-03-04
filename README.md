@@ -10,3 +10,4 @@ Your home directory on the development server is network-shared between the deve
 Figure 1 illustrates the process flow involved in job submission.
 
 <img alt="Job Queue Flow" src="assets/iot-dev-cloud-workflow-diagram.svg" width="100%" />
+
