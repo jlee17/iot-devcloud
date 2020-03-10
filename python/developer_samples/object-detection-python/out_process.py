@@ -23,9 +23,9 @@ def placeBoxes(res, labels_map, prob_threshold, frame, initial_w, initial_h, is_
             color = (min(class_id * 12.5, 255), min(class_id * 7, 255), min(class_id * 5, 255))
             cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), color, 2)
             det_label = labels_map[class_id] if labels_map else str(class_id)
-            cv2.putText(frame, det_label + ' ' + str(round(obj[2] * 100, 1)) + ' %', (xmin, ymin - 7), cv2.FONT_HERSHEY_COMPLEX, 0.6, color, 1)
-            cv2.putText(frame, inf_time_message, (15, 15), cv2.FONT_HERSHEY_COMPLEX, 0.5, (200, 10, 10), 1)
-            cv2.putText(frame, async_mode_message, (10, int(initial_h - 20)), cv2.FONT_HERSHEY_COMPLEX, 0.5,(10, 10, 200), 1)
+            cv2.putText(frame, det_label + ' ' + str(round(obj[2] * 100, 1)) + ' %', (xmin, ymin - 7), cv2.FONT_HERSHEY_COMPLEX, 1, color, 2)
+            cv2.putText(frame, inf_time_message, (25, 25), cv2.FONT_HERSHEY_COMPLEX, 1, (200, 10, 10), 1)
+            cv2.putText(frame, async_mode_message, (10, int(initial_h - 20)), cv2.FONT_HERSHEY_COMPLEX, 1,(10, 10, 200), 1)
 
     return frame
 

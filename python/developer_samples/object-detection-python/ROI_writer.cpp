@@ -18,14 +18,14 @@ using namespace std;
 using namespace cv;
 
 
-void placeBoxes(Mat& frame, vector<string> obj, bool is_async_mode = true){
+void placeBoxes(Mat& frame, vector<string> obj, vector<string> labels, bool is_async_mode = true){
 	string id = obj[0];    // frame id
 	int xmin = std::stoi(obj[1]);  // xmin
 	int ymin = std::stoi(obj[2]);  // ymin
 	int xmax = std::stoi(obj[3]);  // xmax
 	int ymax = std::stoi(obj[4]);  // ymax
-	string det_label = obj[5]; //class_id
 	int class_id = std::stoi(obj[5]); //class_id
+	string det_label = labels[class_id]; //class_id
 	string prob = obj[6];   // probability
 	string det_time = obj[7]; //inference engine detection time
         Scalar color = (std::min(int(class_id * 12.5), 255), std::min(int(class_id * 7), 255), std::min(int(class_id * 5), 255));
@@ -40,9 +40,9 @@ void placeBoxes(Mat& frame, vector<string> obj, bool is_async_mode = true){
 		async_mode_message = "Async mode is off. Processing request: "+id;
 	}
 	rectangle(frame, Point(xmin, ymin), Point(xmax, ymax), color, 2 );
-        putText(frame, det_label+' '+prob+'%', Point(xmin, ymin-7), CV_FONT_HERSHEY_COMPLEX, 0.6, color, 1);
-        putText(frame, inf_time_message, Point(15, 15), CV_FONT_HERSHEY_COMPLEX, 0.5, color, 1);
-        putText(frame, async_mode_message, Point(30, 30), CV_FONT_HERSHEY_COMPLEX, 0.5, color, 1);
+        putText(frame, det_label+' '+prob+'%', Point(xmin, ymin-7), CV_FONT_HERSHEY_COMPLEX, 1, color, 1);
+        putText(frame, inf_time_message, Point(25, 25), CV_FONT_HERSHEY_COMPLEX, 1, color, 1);
+        putText(frame, async_mode_message, Point(50, 50), CV_FONT_HERSHEY_COMPLEX, 1, color, 1);
 	return; 
 }
 
@@ -50,7 +50,7 @@ void placeBoxes(Mat& frame, vector<string> obj, bool is_async_mode = true){
 int main(int argc, char ** argv)
 
 {	
-	assert(argc >= 3);
+	assert(argc >= 4);
 	double t = omp_get_wtime();	
 	//Parse input arguments: 
 	//argv[1]:(string)input_stream->path to streaming video, 
@@ -65,6 +65,23 @@ int main(int argc, char ** argv)
 	int skip_frame = stoi(argv[3]);
 	float resl = stof(argv[4]);
 	
+    //Parse through labels file if it exist
+    string labelFileName = string(argv[5]);
+    bool labelsEnabled = false;
+    vector<string> labels;
+
+		std::ifstream inputFile;
+		inputFile.open(labelFileName, std::ios::in);
+		if (inputFile.is_open()) {
+			std::string strLine;
+			while (std::getline(inputFile, strLine)) {
+				//trim(strLine);
+				labels.push_back(strLine);
+			}
+			labelsEnabled = true;
+		}
+    
+    
 	//Start VideoCapture
 	Mat frame;
 	VideoCapture cap(input_stream); 
@@ -113,7 +130,7 @@ int main(int argc, char ** argv)
 			}
 			next_id = std::stoi(object[0]);
 			if (id == next_id){
-				placeBoxes(frame, object);
+				placeBoxes(frame, object, labels);
 				getline(input, str,  input.widen('\n'));
 			}
 			else {
