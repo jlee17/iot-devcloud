@@ -29,7 +29,9 @@ SAMPLEPATH=$PBS_O_WORKDIR
 #  -d : device to use for inference
 #  -c : conf file to use
 #  -n : number of videos to process
-cp influxdbSender.py /etc/collectd/influxdbSender.py
+cp influxdbSender.py /etc/collectd/influxdbSender.py 
+cp dashboard.json /etc/collectd/dashboard.json
+
 python3 store_traffic_monitor.py  -d $DEVICE \
                                     -m ${SAMPLEPATH}/models/mobilenet-ssd/${FP_MODEL}/mobilenet-ssd.xml \
                                     -l labels.txt \
