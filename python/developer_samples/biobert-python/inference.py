@@ -49,9 +49,8 @@ n_best_size = 20
 max_answer_length = 30
 
 # Data files
-input_file = "./data-release/BioASQ-7b/test/Full-Abstract/BioASQ-test-factoid-7b-3.json"
-#input_file = "./BioASQ-test-factoid-6b-1.json"
-vocab_file = os.path.join("./BERT-pubmed-1000000-SQuAD", "vocab.txt")
+input_file = "/data/BioBert/data-release/BioASQ-7b/test/Full-Abstract/BioASQ-test-factoid-7b-3.json"
+vocab_file = os.path.join("/data/BioBert/BERT-pubmed-1000000-SQuAD", "vocab.txt")
 
 data_features = []
 all_results = []
