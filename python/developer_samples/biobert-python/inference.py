@@ -14,6 +14,8 @@ from run_factoid import write_predictions, read_squad_examples, convert_examples
 
 # Include devcloud demoutils
 from qarpo.demoutils import progressUpdate
+from qarpo.demoutils import *
+import applicationMetricWriter
 
 # Disable tensorflow logging when processing the data
 import tensorflow as tf
@@ -92,8 +94,11 @@ if device_type != "TF":
                 "segment_ids": list(map(lambda x: x.segment_ids, data_features[idx:idx+batch_size]))}
 
         unique_ids = list(map(lambda x: x.unique_id, data_features[idx:idx+batch_size]))
-
+        
+        inf_time = time()
         result = exec_net.infer(inputs=data)
+        applicationMetricWriter.send_inference_time((time()-inf_time)*1000)                      
+
 
         # Process input and append to results list
         for i in range(batch_size):
@@ -164,3 +169,6 @@ logging.info("Writing predictions to {}".format(output_prediction_file))
 write_predictions(eval_examples, data_features, all_results,
                   n_best_size, max_answer_length,
                   True, output_prediction_file, output_nbest_file, None)
+
+if device_type != "TF":
+    applicationMetricWriter.send_application_metrics('./ov/saved_model.xml', args.device)
