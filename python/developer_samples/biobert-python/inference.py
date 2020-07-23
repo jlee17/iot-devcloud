@@ -4,18 +4,18 @@ import json
 import logging
 import os
 import sys
+import time
 
 import tokenization
 import numpy as np
 
-from time import time
 from openvino.inference_engine import IECore
 from run_factoid import write_predictions, read_squad_examples, convert_examples_to_features 
 
 # Include devcloud demoutils
-from qarpo.demoutils import progressUpdate
 from qarpo.demoutils import *
 import applicationMetricWriter
+from qarpo.demoutils import progressUpdate
 
 # Disable tensorflow logging when processing the data
 import tensorflow as tf
@@ -79,15 +79,15 @@ if device_type != "TF":
     ie = IECore()
 
     logging.info("Reading IR...")
-    net = ie.read_network(model = './ov/saved_model.xml', 
-                    weights = './ov/saved_model.bin')
+    net = ie.read_network(model = './ov/biobert.xml', 
+                    weights = './ov/biobert.bin')
 
     logging.info("Generating Executable Network...")
     exec_net = ie.load_network(network=net, device_name=device_type)
     del net
 
     logging.info("Starting inference...")
-    infer_start_time = time()
+    infer_start_time = time.time()
     for idx in range(n):
         data = {"input_ids": list(map(lambda x: x.input_ids, data_features[idx:idx+batch_size])),
                 "input_mask": list(map(lambda x: x.input_mask, data_features[idx:idx+batch_size])),
@@ -95,9 +95,10 @@ if device_type != "TF":
 
         unique_ids = list(map(lambda x: x.unique_id, data_features[idx:idx+batch_size]))
         
-        inf_time = time()
+        inf_time = time.time()
         result = exec_net.infer(inputs=data)
-        applicationMetricWriter.send_inference_time((time()-inf_time)*1000)                      
+        det_time = time.time()-inf_time
+        applicationMetricWriter.send_inference_time(det_time*1000)                      
 
 
         # Process input and append to results list
@@ -112,7 +113,9 @@ if device_type != "TF":
                                          end_logits=end_logits))
             
         progressUpdate('./logs/' + str(job_id) + '.txt', 
-                       time()-infer_start_time, idx+1, n)
+                       time.time()-infer_start_time, idx+1, n)
+
+    applicationMetricWriter.send_application_metrics('ov/biobert.xml', device_type)
 
 else:
     from tensorflow.contrib import predictor
@@ -121,14 +124,17 @@ else:
     predict_fn = predictor.from_saved_model('./tf_saved_model/' + os.listdir('./tf_saved_model/')[0])
 
     logging.info("Starting inference...")
-    infer_start_time = time()
+    infer_start_time = time.time()
     for idx in range(n):
         data = {"input_ids": list(map(lambda x: x.input_ids, data_features[idx:idx+batch_size])),
                 "input_mask": list(map(lambda x: x.input_mask, data_features[idx:idx+batch_size])),
                 "segment_ids": list(map(lambda x: x.segment_ids, data_features[idx:idx+batch_size])),
                 "unique_ids": list(map(lambda x: x.unique_id, data_features[idx:idx+batch_size]))}
 
+        inf_time = time.time()
         result = predict_fn(data)
+        det_time = time.time()-inf_time
+        applicationMetricWriter.send_inference_time(det_time*1000)                      
         
         # Process input and append to results list
         for i in range(batch_size):
@@ -142,9 +148,9 @@ else:
                                          end_logits=end_logits))
             
         progressUpdate('./logs/' + str(job_id) + '.txt', 
-                       time()-infer_start_time, idx+1, n)
+                       time.time()-infer_start_time, idx+1, n)
         
-total_time = time() - infer_start_time
+total_time = time.time() - infer_start_time
 logging.info("Inference took {} sec".format(total_time))
 
 # Write performance stats to file
@@ -169,6 +175,3 @@ logging.info("Writing predictions to {}".format(output_prediction_file))
 write_predictions(eval_examples, data_features, all_results,
                   n_best_size, max_answer_length,
                   True, output_prediction_file, output_nbest_file, None)
-
-if device_type != "TF":
-    applicationMetricWriter.send_application_metrics('./ov/saved_model.xml', args.device)
