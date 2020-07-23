@@ -9,13 +9,11 @@ import tokenization
 import numpy as np
 
 from time import time
-from openvino.inference_engine import IENetwork, IECore
+from openvino.inference_engine import IECore
 from run_factoid import write_predictions, read_squad_examples, convert_examples_to_features 
 
 # Include devcloud demoutils
-from pathlib import Path
-sys.path.insert(0, os.path.join(Path.home(), 'Reference-samples/iot-devcloud'))
-from demoTools.demoutils import progressUpdate
+from qarpo.demoutils import progressUpdate
 
 # Disable tensorflow logging when processing the data
 import tensorflow as tf
@@ -79,7 +77,7 @@ if device_type != "TF":
     ie = IECore()
 
     logging.info("Reading IR...")
-    net = IENetwork(model = './ov/saved_model.xml', 
+    net = ie.read_network(model = './ov/saved_model.xml', 
                     weights = './ov/saved_model.bin')
 
     logging.info("Generating Executable Network...")
